@@ -1,0 +1,3316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Volant Lyrics — Marketplace</title>
+    <meta name="description" content="Discover and purchase original song lyrics from talented songwriters. Premium lyrics marketplace." />
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
+    <!-- Paystack -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html { scroll-behavior: smooth; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #faf9fe;
+            color: #1a1a2e;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+        
+        a { text-decoration: none; color: inherit; }
+        img { max-width: 100%; height: auto; display: block; }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f0edf5; }
+        ::-webkit-scrollbar-thumb { background: #4b2aad; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a1f8a; }
+        
+        /* ===== HEADER — SAME AS VOLANT FOUNDRY ===== */
+        header {
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 !important;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4rem;
+            width: 100%;
+            height: 100%;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.6rem !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+        }
+
+        .logo .logo-text {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.6rem !important;
+            font-weight: 700 !important;
+            color: #4b2aad !important;
+        }
+
+        .logo .logo-highlight {
+            color: #ffffff !important;
+            text-shadow: 0 0 2px #4b2aad, 0 0 4px #4b2aad, 0 0 6px #4b2aad !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            font-weight: 500;
+            color: #4b2aad;
+            transition: color 0.3s;
+            position: relative;
+            font-size: 0.92rem;
+            padding: 4px 0;
+            font-weight: 650;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #4b2aad;
+            transition: width 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #4b2aad;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        .nav-links a.active {
+            color: #4b2aad;
+        }
+        
+        .nav-links a.active::after {
+            width: 100%;
+        }
+        
+        .nav-cta {
+            background: #4b2aad !important;
+            color: white !important;
+            padding: 10px 22px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+        }
+        
+        .nav-cta::after { display: none !important; }
+        .nav-cta:hover { background: #3a1f8a !important; transform: translateY(-2px); }
+        
+        .menu-toggle {
+            display: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #4b2aad !important;
+            padding: 8px;
+            touch-action: manipulation;
+            transition: color 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            color: #3a1f8a !important;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 14px 4px 8px;
+            border-radius: 30px;
+            background: #f5f0ff;
+            border: 1px solid #ede8ff;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #4b2aad;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-badge:hover {
+            background: #ede8ff;
+            border-color: #4b2aad;
+        }
+        
+        .user-badge .avatar-small {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #4b2aad;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.65rem;
+            color: white;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ===== MOBILE NAV ===== */
+        @media (max-width: 768px) {
+            nav {
+                padding: 0 1.5rem !important;
+            }
+            .logo .logo-text {
+                font-size: 1.4rem !important;
+            }
+            .logo img {
+                width: 34px !important;
+                height: 34px !important;
+            }
+            .logo {
+                gap: 0.5rem !important;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                gap: 12px;
+                padding: 20px;
+                background: white;
+                position: absolute;
+                top: 66px;
+                left: 0;
+                right: 0;
+                border-bottom: 1px solid #eee;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            }
+            
+            .nav-links.open {
+                display: flex;
+            }
+            
+            .nav-links a {
+                padding: 10px 0;
+                font-size: 1rem;
+                border-bottom: 1px solid #f5f5f5;
+                width: 100%;
+                color: #4b2aad !important;
+                font-weight: 500;
+            }
+            
+            .nav-links a:hover {
+                background: #f5f0ff;
+                padding-left: 8px;
+                border-radius: 4px;
+            }
+            
+            .nav-links a::after { display: none; }
+            
+            .nav-links .nav-cta {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            nav {
+                padding: 0 0.8rem !important;
+                gap: 0.5rem !important;
+            }
+            .logo .logo-text {
+                font-size: 1.3rem !important;
+            }
+            .logo img {
+                width: 30px !important;
+                height: 30px !important;
+            }
+            .logo {
+                gap: 0.4rem !important;
+            }
+            .user-badge {
+                font-size: 0.7rem;
+                padding: 2px 10px 2px 6px;
+            }
+            .user-badge .avatar-small {
+                width: 22px;
+                height: 22px;
+                font-size: 0.55rem;
+            }
+        }
+
+        /* ===== MARKETPLACE HERO - CENTERED ===== */
+        .marketplace-hero {
+            padding: 50px 0 30px;
+            background: linear-gradient(135deg, #f8f5ff, #f0edff);
+            border-bottom: 1px solid #ede8ff;
+            text-align: center;
+        }
+        
+        .marketplace-hero .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .marketplace-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.6rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 0;
+        }
+        
+        .marketplace-hero h1 .highlight {
+            color: #4b2aad;
+        }
+        
+        .marketplace-hero p {
+            color: #6a5f55;
+            font-size: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        
+        .btn-sell {
+            background: #4b2aad;
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .btn-sell:hover {
+            background: #3a1f8a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(75, 42, 173, 0.25);
+        }
+
+        /* ===== FILTERS BAR ===== */
+        .filters-bar {
+            padding: 16px 0 20px;
+            background: #ffffff;
+            border-bottom: 1px solid #ede8ff;
+            margin-bottom: 0;
+        }
+        
+        .filters-bar .container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #8a7b6a;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+        
+        .filter-btn {
+            background: transparent;
+            border: 1px solid #ede8ff;
+            color: #6a5f55;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .filter-btn:hover {
+            border-color: #4b2aad;
+            color: #4b2aad;
+            background: #f5f0ff;
+        }
+        
+        .filter-btn.active {
+            border-color: #4b2aad;
+            color: white;
+            background: #4b2aad;
+        }
+        
+      
+        
+        .filter-search {
+            background: #faf9fe;
+            border: 1px solid #ede8ff;
+            border-radius: 30px;
+            padding: 6px 16px 6px 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 180px;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-search:focus-within {
+            border-color: #4b2aad;
+            box-shadow: 0 0 0 3px rgba(75, 42, 173, 0.06);
+            background: white;
+        }
+        
+        .filter-search input {
+            background: transparent;
+            border: none;
+            color: #1a1a2e;
+            font-size: 0.82rem;
+            font-family: 'Inter', sans-serif;
+            padding: 6px 0;
+            width: 100%;
+            outline: none;
+        }
+        
+        .filter-search input::placeholder {
+            color: #b0a89a;
+        }
+        
+        .filter-search i {
+            color: #4b2aad;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        /* ===== LYRICS GRID ===== */
+        .lyrics-grid {
+            padding: 24px 0 60px;
+            background: #faf9fe;
+        }
+        
+        .lyrics-grid .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .lyric-card {
+            background: white;
+            border: 1px solid #ede8ff;
+            border-radius: 16px;
+            padding: 22px 24px 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .lyric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4b2aad, #a88aff);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .lyric-card:hover {
+            transform: translateY(-4px);
+            border-color: #4b2aad;
+            box-shadow: 0 12px 40px rgba(75, 42, 173, 0.06);
+        }
+        
+        .lyric-card:hover::before {
+            opacity: 1;
+        }
+        
+        .lyric-card .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+        
+        .lyric-card .song-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.01em;
+        }
+        
+        .lyric-card .song-title .icon {
+            color: #4b2aad;
+            font-size: 0.7rem;
+            margin-right: 4px;
+            opacity: 0.5;
+        }
+        
+        .lyric-card .price-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #4b2aad;
+            background: #f0edff;
+            padding: 2px 14px;
+            border-radius: 30px;
+            white-space: nowrap;
+            border: 1px solid #ede8ff;
+        }
+        
+        .lyric-card .price-tag.free {
+            color: #28a745;
+            background: #e8f5e9;
+            border-color: #c8e6c9;
+        }
+        
+        .lyric-card .artist-name {
+            font-size: 0.85rem;
+            color: #6a5f55;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .lyric-card .artist-name i {
+            font-size: 0.65rem;
+            color: #b0a89a;
+        }
+        
+        .lyric-card .genre-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        
+        .lyric-card .genre-tag {
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: #4b2aad;
+            background: #f0edff;
+            padding: 1px 12px;
+            border-radius: 30px;
+            border: 1px solid #ede8ff;
+        }
+        
+        .lyric-card .lyric-preview {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 0.92rem;
+            line-height: 1.8;
+            color: #555;
+            padding: 10px 0;
+            border-top: 1px solid #f0edf5;
+            border-bottom: 1px solid #f0edf5;
+            margin: 6px 0 12px;
+            max-height: 76px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .lyric-card .lyric-preview::after {
+            content: '…';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: white;
+            padding-left: 4px;
+            color: #4b2aad;
+        }
+        
+        .lyric-card .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            color: #b0a89a;
+        }
+        
+        .lyric-card .card-footer .views {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .lyric-card .card-footer .views i {
+            font-size: 0.6rem;
+            color: #4b2aad;
+            opacity: 0.5;
+        }
+        
+        .lyric-card .btn-preview {
+            background: #f0edff;
+            color: #4b2aad;
+            border: none;
+            padding: 4px 18px;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .lyric-card .btn-preview:hover {
+            background: #4b2aad;
+            color: white;
+            transform: scale(1.02);
+        }
+
+        /* ===== LOADING ===== */
+        .loading-skeleton {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .loading-skeleton .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f0edff;
+            border-top-color: #4b2aad;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-skeleton p {
+            margin-top: 12px;
+            color: #b0a89a;
+            font-size: 0.9rem;
+        }
+        
+        /* ===== NO RESULTS ===== */
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .no-results i {
+            font-size: 3rem;
+            color: #ede8ff;
+            margin-bottom: 16px;
+            display: block;
+        }
+        
+        .no-results h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 500;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        
+        .no-results p {
+            color: #b0a89a;
+            font-size: 0.95rem;
+        }
+        
+        .no-results .btn-submit-cta {
+            display: inline-block;
+            margin-top: 16px;
+            background: #4b2aad;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .no-results .btn-submit-cta:hover {
+            background: #3a1f8a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(75, 42, 173, 0.25);
+        }
+
+        /* ===== FOOTER ===== */
+        #volant-footer {
+            background: #1a1a2e;
+            color: #aaa;
+            padding: 1.5rem 0 20px;
+        }
+
+        #volant-footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 1.5rem 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 35px;
+            text-align: left !important;
+        }
+
+        .volant-footer-col {
+            text-align: left !important;
+        }
+
+        .volant-footer-col h4 {
+            color: white;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: left !important;
+        }
+
+        .volant-footer-col a {
+            display: block;
+            color: #aaa;
+            margin-bottom: 6px;
+            transition: color 0.3s;
+            font-size: 0.88rem;
+            text-decoration: none;
+            text-align: left !important;
+        }
+
+        .volant-footer-col a:hover {
+            color: white;
+        }
+
+        #volant-footer .logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.6rem !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+            margin-bottom: 8px;
+            justify-content: flex-start !important;
+        }
+
+        #volant-footer .logo .logo-text {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.3rem !important;
+            font-weight: 700 !important;
+            color: #ffffff !important;
+        }
+
+        #volant-footer .logo .logo-highlight {
+            color: #ffffff !important;
+            text-shadow: 0 0 2px #4b2aad, 0 0 4px #4b2aad, 0 0 6px #4b2aad !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+
+        #volant-footer .logo img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .volant-footer-desc {
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #aaa;
+            max-width: 320px;
+            text-align: left !important;
+        }
+
+        .volant-footer-contact-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left !important;
+        }
+
+        .volant-footer-contact-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #aaa;
+            font-size: 0.88rem;
+            padding: 4px 0;
+            line-height: 1.4;
+            text-align: left !important;
+            justify-content: flex-start !important;
+        }
+
+        .volant-footer-contact-list li i {
+            color: #B8860B;
+            width: 18px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .volant-footer-contact-list li a {
+            color: #aaa !important;
+            text-decoration: none !important;
+            transition: 0.3s ease !important;
+        }
+
+        .volant-footer-contact-list li a:hover {
+            color: white !important;
+        }
+
+        #volant-footer-bottom {
+            border-top: 1px solid #333;
+            padding: 20px 20px;
+            text-align: center;
+            font-size: 0.82rem;
+            color: #888;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .platform-badge {
+            display: inline-block;
+            background: rgba(184, 134, 11, 0.15);
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: #B8860B;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            #volant-footer-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 1.2rem;
+            }
+            .volant-footer-brand {
+                grid-column: 1 / -1;
+                text-align: left !important;
+                margin-bottom: 0.2rem;
+            }
+            #volant-footer .logo {
+                justify-content: flex-start !important;
+            }
+            .volant-footer-desc {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #volant-footer-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.8rem;
+            }
+            .volant-footer-desc {
+                font-size: 0.8rem;
+            }
+            .volant-footer-col h4 {
+                font-size: 0.85rem !important;
+            }
+            .volant-footer-col a {
+                font-size: 0.78rem !important;
+            }
+            .volant-footer-contact-list li {
+                font-size: 0.78rem;
+            }
+        }
+
+        /* ===== RESPONSIVE GRID ===== */
+        @media (max-width: 992px) {
+            .lyrics-grid .container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .marketplace-hero {
+                padding: 35px 0 25px;
+            }
+            .marketplace-hero h1 {
+                font-size: 2rem;
+            }
+            .marketplace-hero p {
+                font-size: 0.9rem;
+                padding: 0 16px;
+            }
+            .lyrics-grid .container {
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+            }
+            .lyric-card {
+                padding: 16px 18px;
+            }
+            .lyric-card .song-title {
+                font-size: 1.05rem;
+            }
+            .filters-bar .container {
+                gap: 8px;
+            }
+            .filter-btn {
+                font-size: 0.7rem;
+                padding: 4px 12px;
+            }
+            .filter-search {
+                min-width: 120px;
+            }
+            .filter-search input {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .marketplace-hero {
+                padding: 25px 0 18px;
+            }
+            .marketplace-hero h1 {
+                font-size: 1.6rem;
+            }
+            .marketplace-hero p {
+                font-size: 0.85rem;
+            }
+            .lyrics-grid .container {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .lyric-card {
+                padding: 14px 16px;
+            }
+            .lyric-card .song-title {
+                font-size: 1rem;
+            }
+            .hero-actions .btn-sell {
+                font-size: 0.78rem;
+                padding: 8px 20px;
+            }
+            .filter-divider {
+                display: none;
+            }
+            .filter-group {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .marketplace-hero h1 {
+                font-size: 1.4rem;
+            }
+            .marketplace-hero p {
+                font-size: 0.8rem;
+            }
+            .btn-sell {
+                font-size: 0.7rem !important;
+                padding: 6px 14px !important;
+            }
+        }
+
+        /* ===== CART BUTTON IN NAV ===== */
+        .btn-cart-header {
+            position: relative;
+            background: transparent;
+            border: 1px solid #ede8ff;
+            color: #4b2aad;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .btn-cart-header:hover {
+            background: #f0edff;
+            border-color: #4b2aad;
+            transform: translateY(-2px);
+        }
+        .btn-cart-header i { font-size: 0.95rem; }
+        .cart-count {
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+        @media (max-width: 480px) {
+            .btn-cart-header .cart-text { display: none; }
+            .btn-cart-header { padding: 5px 9px; }
+        }
+
+        /* ===== ADD TO CART BUTTON ON CARDS ===== */
+        .btn-add-cart {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        .btn-add-cart:hover {
+            background: #3a1f8a;
+            transform: scale(1.03);
+        }
+
+        /* ===== CART / CHECKOUT ===== */
+        .cart-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            z-index: 9995;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .cart-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 420px;
+            max-width: 92vw;
+            height: 100dvh;
+            background: #fff;
+            box-shadow: -4px 0 30px rgba(0,0,0,0.18);
+            z-index: 9999;
+            transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .cart-overlay.open { right: 0; }
+
+        .cart-overlay .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.1rem 1.4rem;
+            border-bottom: 1px solid #ede8ff;
+            background: #faf9fe;
+            flex-shrink: 0;
+            min-height: 58px;
+        }
+        .cart-overlay .cart-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            color: #1a1a2e;
+        }
+        .cart-overlay .cart-header h2 i {
+            color: #4b2aad;
+            margin-right: 6px;
+        }
+        .cart-close {
+            background: #f0edff;
+            color: #4b2aad;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+        .cart-close:hover { background: #4b2aad; color: #fff; }
+
+        .cart-overlay .cart-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            padding: 0.8rem 1.4rem;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 0.9rem;
+            align-items: flex-start;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0edf5;
+        }
+        .cart-item .item-cover {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f0edff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cart-item .item-cover .no-cover {
+            color: #4b2aad;
+            opacity: 0.5;
+            font-size: 1.1rem;
+        }
+        .cart-item .item-info { flex: 1; min-width: 0; }
+        .cart-item .item-title {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: #1a1a2e;
+        }
+        .cart-item .item-author {
+            font-size: 0.78rem;
+            color: #6a5f55;
+        }
+        .cart-item .item-price {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #4b2aad;
+            margin-top: 2px;
+        }
+        .cart-item .conversion-info {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #b0a89a;
+        }
+        .cart-item .item-owned {
+            font-size: 0.7rem;
+            color: #155724;
+            background: #d4edda;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .cart-item .item-owned i { font-size: 0.6rem; }
+        .cart-item .item-actions { display: flex; align-items: center; gap: 4px; }
+        .btn-remove {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 4px;
+            transition: 0.3s;
+        }
+        .btn-remove:hover { text-decoration: underline; }
+
+        .empty-cart {
+            text-align: center;
+            padding: 40px 10px;
+            color: #b0a89a;
+        }
+        .empty-cart i {
+            font-size: 2.4rem;
+            color: #ede8ff;
+            margin-bottom: 10px;
+        }
+        .empty-cart p {
+            font-size: 1rem;
+            color: #1a1a2e;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .cart-overlay .cart-footer {
+            padding: 1rem 1.4rem;
+            border-top: 1px solid #ede8ff;
+            background: #faf9fe;
+            flex-shrink: 0;
+        }
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 0.6rem;
+        }
+        .cart-total span:last-child {
+            color: #4b2aad;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .btn-checkout {
+            width: 100%;
+            padding: 0.8rem;
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-checkout:hover:not(:disabled) {
+            background: #3a1f8a;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(75, 42, 173, 0.25);
+        }
+        .btn-checkout:disabled {
+            background: #d3c8f0;
+            cursor: not-allowed;
+        }
+
+        .cart-payment-processing {
+            display: none;
+            text-align: center;
+            padding: 0.4rem;
+        }
+        .cart-payment-processing.active { display: block; }
+        .cart-payment-processing .spinner-small {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border: 3px solid #ede8ff;
+            border-top: 3px solid #4b2aad;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .cart-payment-processing p {
+            margin-top: 0.3rem;
+            color: #6a5f55;
+            font-size: 0.82rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translate(-50%, 100px);
+            background: #4b2aad;
+            color: #fff;
+            padding: 12px 26px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: all 0.35s ease;
+            z-index: 10000;
+            max-width: 90vw;
+            text-align: center;
+            pointer-events: none;
+        }
+        #toast.active { opacity: 1; }
+
+        @media (max-width: 480px) {
+            .cart-overlay {
+                width: 100%;
+                max-width: 100vw;
+                right: -100vw;
+            }
+            .cart-overlay.open { right: 0; }
+            .cart-overlay .cart-body { padding: 0.6rem 1rem; }
+            .cart-overlay .cart-footer { padding: 0.7rem 1rem; }
+        }
+
+        /* ===== HERO UPGRADE ===== */
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #4b2aad, #7a5cff);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 6px 16px;
+            border-radius: 30px;
+            box-shadow: 0 6px 20px rgba(75,42,173,0.25);
+            margin-bottom: 14px;
+        }
+        .marketplace-hero p { max-width: 560px; }
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+        .btn-hero-primary {
+            background: #4b2aad !important;
+            color: #fff !important;
+            box-shadow: 0 10px 30px rgba(75,42,173,0.28);
+        }
+        .btn-hero-secondary {
+            background: #fff !important;
+            color: #4b2aad !important;
+            border: 1.5px solid #4b2aad !important;
+            box-shadow: none !important;
+        }
+        .btn-hero-secondary:hover { background: #f0edff !important; }
+        .hero-stats {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 34px;
+            width: 100%;
+        }
+        .hero-stat { text-align: center; min-width: 120px; }
+        .hero-stat strong {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.7rem;
+            color: #1a1a2e;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .hero-stat strong i { color: #B8860B; font-size: 1.3rem; }
+        .hero-stat span {
+            font-size: 0.72rem;
+            color: #6a5f55;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== SECTION HEADINGS ===== */
+        .section-heading { text-align: left; margin-bottom: 16px; }
+        .section-heading h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-heading .heading-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4b2aad, #7a5cff);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        .section-heading .section-sub {
+            display: block;
+            color: #6a5f55;
+            font-size: 0.88rem;
+            margin-top: 2px;
+        }
+
+        /* ===== FEATURED STRIP ===== */
+        .featured-strip { padding: 26px 0 6px; background: #faf9fe; }
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .featured-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 14px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .featured-card:hover {
+            border-color: #4b2aad;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(75,42,173,0.08);
+        }
+        .featured-card .cover-tile {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            margin-bottom: 0;
+        }
+        .featured-card .cover-tile i { font-size: 1rem; }
+        .featured-card .f-title { font-weight: 600; font-size: 0.88rem; color: #1a1a2e; }
+        .featured-card .f-meta {
+            font-size: 0.72rem;
+            color: #6a5f55;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .featured-card .f-meta i { color: #4b2aad; opacity: 0.6; }
+        .featured-card .f-price {
+            margin-left: auto;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #4b2aad;
+            white-space: nowrap;
+        }
+        .featured-card .f-price.free { color: #28a745; }
+
+        /* ===== COVER TILE / CARD BADGES ===== */
+        .cover-tile {
+            height: 96px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            margin-bottom: -6px;
+        }
+        .cover-tile i { font-size: 1.5rem; color: #fff; opacity: 0.9; }
+        .cover-tile .ct-genre {
+            background: rgba(255,255,255,0.22);
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+        .card-badges {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            display: flex;
+            gap: 6px;
+            z-index: 2;
+        }
+        .badge-tag {
+            background: rgba(0,0,0,0.35);
+            color: #fff;
+            font-size: 0.58rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 3px 9px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            backdrop-filter: blur(4px);
+        }
+        .badge-tag.new { background: rgba(40,167,69,0.9); }
+        .badge-tag.popular { background: rgba(184,134,11,0.95); }
+
+        /* ===== FILTERS SORT ===== */
+        .sort-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+        .sort-wrap .filter-label { margin-right: 0; }
+        .sort-select {
+            background: #faf9fe;
+            border: 1px solid #ede8ff;
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            color: #1a1a2e;
+            cursor: pointer;
+            outline: none;
+        }
+        .sort-select:focus { border-color: #4b2aad; }
+
+        /* ===== TRUST STRIP ===== */
+        .trust-strip { background: #1a1a2e; padding: 22px 0; }
+        .trust-strip .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px 26px;
+        }
+        .trust-item { display: flex; align-items: center; gap: 12px; color: #cdc6e8; }
+        .trust-item > i {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            background: rgba(75,42,173,0.35);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .trust-item strong { display: block; color: #fff; font-size: 0.88rem; }
+        .trust-item span { font-size: 0.75rem; color: #9a93c4; }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-it-works { padding: 46px 0 20px; background: #faf9fe; }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+        .step-card {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 16px;
+            padding: 26px 22px;
+            position: relative;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+        .step-card:hover {
+            border-color: #4b2aad;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 36px rgba(75,42,173,0.08);
+        }
+        .step-num {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f0edff;
+            color: #4b2aad;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+        }
+        .step-card > i {
+            font-size: 1.5rem;
+            color: #4b2aad;
+            background: #f0edff;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .step-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.05rem;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .step-card p { font-size: 0.85rem; color: #6a5f55; line-height: 1.65; }
+
+        /* ===== LICENSE INFO ===== */
+        .license-info { padding: 40px 0 54px; background: #faf9fe; }
+        .license-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 18px;
+        }
+        .license-card {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .license-card > i {
+            color: #4b2aad;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: inline-flex;
+            width: 40px;
+            height: 40px;
+            background: #f0edff;
+            border-radius: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+        .license-card h4 { font-size: 0.95rem; color: #1a1a2e; margin-bottom: 4px; }
+        .license-card p { font-size: 0.82rem; color: #6a5f55; line-height: 1.6; }
+        .license-main {
+            background: linear-gradient(135deg, #f0edff, #faf9fe);
+            border-color: #4b2aad;
+        }
+        .license-main h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .license-main p { font-size: 0.85rem; margin-bottom: 10px; }
+        .license-main a { color: #4b2aad; font-weight: 600; }
+
+        /* ===== QUICK VIEW MODAL ===== */
+        .qv-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(26,26,46,0.6);
+            z-index: 9997;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .qv-backdrop.show { opacity: 1; pointer-events: auto; }
+        .qv-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -46%) scale(0.97);
+            width: min(680px, 92vw);
+            max-height: 85vh;
+            background: #fff;
+            border-radius: 18px;
+            z-index: 9998;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+        }
+        .qv-modal.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .qv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid #ede8ff;
+            background: #faf9fe;
+            flex-shrink: 0;
+        }
+        .qv-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .qv-header h2 i { color: #4b2aad; }
+        .qv-close {
+            background: #f0edff;
+            color: #4b2aad;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .qv-close:hover { background: #4b2aad; color: #fff; }
+        .qv-body { padding: 1.3rem 1.5rem; overflow-y: auto; }
+        .qv-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .qv-artist {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6a5f55;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .qv-artist .genre-tag { font-size: 0.62rem; }
+        .qv-lyrics {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1rem;
+            line-height: 2;
+            color: #333;
+            background: #faf9fe;
+            border: 1px solid #ede8ff;
+            border-radius: 14px;
+            padding: 20px 22px;
+            white-space: pre-wrap;
+            margin: 6px 0 14px;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+        .qv-desc { font-size: 0.88rem; color: #444; margin-bottom: 14px; }
+        .qv-desc strong { color: #1a1a2e; }
+        .qv-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.75rem;
+            color: #b0a89a;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .qv-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid #f0edf5;
+        }
+        .qv-actions .btn-add-cart { font-size: 0.8rem; padding: 10px 22px; }
+        .btn-details {
+            background: #fff;
+            color: #4b2aad;
+            border: 1.5px solid #4b2aad;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-details:hover { background: #f0edff; }
+        .qv-price {
+            margin-left: auto;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #4b2aad;
+        }
+        .qv-price.free { color: #28a745; }
+
+        @media (max-width: 520px) {
+            .qv-body { padding: 1rem 1.1rem; }
+            .qv-lyrics { font-size: 0.92rem; }
+            .featured-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 380px) {
+            .featured-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+    <nav>
+        <a href="/" class="logo">
+            <img src="https://volantpoetry.vercel.app/images/logokk.png" alt="Volant Lyrics Logo" />
+            <span class="logo-text"><span class="logo-highlight">Volant</span> Lyrics</span>
+        </a>
+
+
+    <div class="container">
+        <div class="filter-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search by title, artist..." oninput="searchLyrics()" />
+        </div>
+    </div>
+
+
+        <ul class="nav-links" id="navLinks">
+                                        <li><a href="submit.html" class="nav-cta">Sell Lyrics</a></li>
+                     <li><a href="library.html">My Library</a></li>
+                </ul>
+
+        <div class="nav-right">
+            <button class="btn-cart-header" id="cartOpenBtn" title="Cart">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-text">Cart</span>
+                <span class="cart-count">0</span>
+            </button>
+            <div class="user-badge" id="userBadge">
+                <div class="avatar-small" id="userAvatar"></div>
+                <span id="userName">Guest</span>
+            </div>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+</header>
+
+<!-- ===== CART BACKDROP ===== -->
+<div class="cart-backdrop" id="cartBackdrop"></div>
+
+<!-- ===== CART OVERLAY ===== -->
+<div class="cart-overlay" id="cartOverlay">
+    <div class="cart-header">
+        <h2><i class="fas fa-music"></i>Your Cart</h2>
+        <button class="cart-close" id="cartCloseBtn">&times;</button>
+    </div>
+    <div class="cart-body" id="cartBody">
+        <!-- rendered by JS -->
+    </div>
+    <div class="cart-footer">
+        <div class="cart-total">
+            <span>Total</span>
+            <span id="cartTotalAmount">GHS 0.00</span>
+        </div>
+        <div class="cart-payment-processing" id="cartPaymentProcessing">
+            <div class="spinner-small"></div>
+            <p>Processing your payment...</p>
+        </div>
+        <button class="btn-checkout" id="checkoutBtn" disabled>Checkout with Paystack</button>
+    </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast"></div>
+
+<!-- ===== QUICK VIEW MODAL ===== -->
+<div class="qv-backdrop" id="qvBackdrop"></div>
+<div class="qv-modal" id="qvModal" role="dialog" aria-modal="true">
+    <div class="qv-header">
+        <h2 id="qvTitle"></h2>
+        <button class="qv-close" id="qvCloseBtn" aria-label="Close preview"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="qv-body" id="qvBody"></div>
+</div>
+
+<!-- ===== MARKETPLACE HERO ===== -->
+<section class="marketplace-hero">
+    <div class="container">
+        <span class="hero-badge"><i class="fas fa-check-circle"></i> Premium Lyrics Marketplace</span>
+        <h1>Discover <span class="highlight">Original</span> Lyrics</h1>
+        <p>Find the perfect lyrics for your next song — written by real songwriters. Buy with confidence, sell with ease.</p>
+        <div class="hero-actions">
+            <a href="#lyricsGrid" class="btn-sell btn-hero-primary"><i class="fas fa-compact-disc"></i> Browse Lyrics</a>
+            <a href="submit.html" class="btn-sell btn-hero-secondary"><i class="fas fa-feather-alt"></i> Sell Your Lyrics</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><strong id="statLyrics">0</strong><span>Lyrics Listed</span></div>
+            <div class="hero-stat"><strong id="statViews">0</strong><span>Total Views</span></div>
+            <div class="hero-stat"><strong><i class="fas fa-bolt"></i></strong><span>Instant Delivery</span></div>
+            <div class="hero-stat"><strong><i class="fas fa-shield-alt"></i></strong><span>Secure Payments</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FEATURED STRIP ===== -->
+<section class="featured-strip">
+    <div class="container">
+        <div class="section-heading">
+            <h2><span class="heading-icon"><i class="fas fa-star"></i></span> Featured Lyrics</h2>
+            <span class="section-sub">The most-loved listings on the marketplace</span>
+        </div>
+        <div class="featured-grid" id="featuredGrid"></div>
+    </div>
+</section>
+
+<section class="filters-bar">
+    <div class="container">
+        <div class="filter-group" id="filterGroup">
+            <span class="filter-label">Genre</span>
+            <button class="filter-btn active" data-filter="all" onclick="filterLyrics('all')">All</button>
+        </div>
+        <div class="filter-group" id="priceFilterGroup">
+            <span class="filter-label">Price</span>
+            <button class="filter-btn active" data-price="all" onclick="filterByPrice('all')">All</button>
+            <button class="filter-btn" data-price="free" onclick="filterByPrice('free')">Free</button>
+            <button class="filter-btn" data-price="paid" onclick="filterByPrice('paid')">Paid</button>
+        </div>
+        <div class="sort-wrap">
+            <span class="filter-label">Sort</span>
+            <select id="sortSelect" class="sort-select" onchange="changeSort()">
+                <option value="newest">Newest First</option>
+                <option value="popular">Most Viewed</option>
+                <option value="low">Price: Low to High</option>
+                <option value="high">Price: High to Low</option>
+            </select>
+        </div>
+    </div>
+</section>
+
+<!-- ===== LYRICS GRID ===== -->
+<section class="lyrics-grid" id="lyricsGrid">
+    <div class="container" id="lyricsContainer">
+        <div class="loading-skeleton" id="loadingSkeleton">
+            <div class="spinner"></div>
+            <p>Loading lyrics</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== TRUST STRIP ===== -->
+<section class="trust-strip">
+    <div class="container">
+        <div class="trust-item">
+            <i class="fas fa-lock"></i>
+            <div><strong>Secure Payments</strong><span>Pay safely via Paystack</span></div>
+        </div>
+        <div class="trust-item">
+            <i class="fas fa-bolt"></i>
+            <div><strong>Instant Delivery</strong><span>Full lyrics, right after payment</span></div>
+        </div>
+        <div class="trust-item">
+            <i class="fas fa-feather-alt"></i>
+            <div><strong>Sell Your Work</strong><span>Earn from every sale, direct payout</span></div>
+        </div>
+        <div class="trust-item">
+            <i class="fas fa-headset"></i>
+            <div><strong>Fair Terms</strong><span>Clear licensing, fair buyer/seller rules</span></div>
+        </div>
+        <div class="trust-item">
+            <i class="fas fa-shield-alt"></i>
+            <div><strong>Buyer Protection</strong><span>Verified purchases, download history</span></div>
+        </div>
+        <div class="trust-item">
+            <i class="fas fa-star"></i>
+            <div><strong>0% Listing Fee</strong><span>Keep what you earn — we only take a fair 10%</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="how-it-works">
+    <div class="container">
+        <div class="section-heading">
+            <h2><span class="heading-icon"><i class="fas fa-compass"></i></span> How It Works</h2>
+            <span class="section-sub">Getting started takes less than a minute</span>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <span class="step-num">1</span>
+                <i class="fas fa-search"></i>
+                <h3>Browse or Search</h3>
+                <p>Explore lyrics by genre, price or popularity. Preview the songwriting before you decide.</p>
+            </div>
+            <div class="step-card">
+                <span class="step-num">2</span>
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Checkout Securely</h3>
+                <p>Add to cart and pay safely with Paystack — cards, mobile money or bank transfer.</p>
+            </div>
+            <div class="step-card">
+                <span class="step-num">3</span>
+                <i class="fas fa-download"></i>
+                <h3>Instant Access</h3>
+                <p>The full lyrics unlock in your Library immediately after payment. No waiting, no emails.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== WHAT YOU GET / LICENSE ===== -->
+<section class="license-info">
+    <div class="container">
+        <div class="section-heading">
+            <h2><span class="heading-icon"><i class="fas fa-file-contract"></i></span> What You Get</h2>
+            <span class="section-sub">Licensing made clear before you buy</span>
+        </div>
+        <div class="license-grid">
+            <div class="license-card license-main">
+                <i class="fas fa-award"></i>
+                <h3>Ownership License</h3>
+                <p>Every purchase includes full rights to <strong>record and release</strong> the song with the lyricist credited. Buy once, use forever.</p>
+                <a href="submit.html"><i class="fas fa-arrow-right"></i> Learn about selling</a>
+            </div>
+            <div class="license-card">
+                <i class="fas fa-file-audio"></i>
+                <h4>Recording Rights</h4>
+                <p>Record, produce and release your version of the lyric, including for commercial distribution.</p>
+            </div>
+            <div class="license-card">
+                <i class="fas fa-user-edit"></i>
+                <h4>Writer Credit</h4>
+                <p>You must credit the original lyricist as co-writer on releases and metadata.</p>
+            </div>
+            <div class="license-card">
+                <i class="fas fa-share-alt"></i>
+                <h4>Non-Transferable</h4>
+                <p>Licenses are for your own recording only. Re-selling or republishing the raw lyrics is prohibited.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer id="volant-footer">
+    <div id="volant-footer-container">
+        <div class="volant-footer-col volant-footer-brand">
+            <div class="logo">
+                <img src="https://volantpoetry.vercel.app/images/logokk.png" alt="Volant Lyrics Logo" />
+                <span class="logo-text">
+                    <span class="logo-highlight">Volant</span> Lyrics
+                </span>
+            </div>
+            <p class="volant-footer-desc">A marketplace for original song lyrics. Discover, purchase, and sell lyrics from talented songwriters.</p>
+        </div>
+
+        <div class="volant-footer-col">
+            <h4>Explore</h4>
+            <a href="index.html">Marketplace</a>
+            <a href="library.html">My Library</a>
+            <a href="submit.html">Sell Lyrics</a>
+            <a href="https://volantpoetry.vercel.app/shared/about.html">About</a>
+            <a href="mailto:reach.volant@gmail.com">Contact</a>
+        </div>
+
+        <div class="volant-footer-col">
+            <h4>Platforms</h4>
+            <a href="https://volantpoetry.vercel.app/volant_foundry/">Volant Foundry</a>
+            <a href="https://volantpoetry.vercel.app/">Volant Poetry</a>
+            <a href="https://volantpoetry.vercel.app/store/">Volant Reads</a>
+            <a href="https://volantcodes.vercel.app/">Volant Codes</a>
+        </div>
+
+        <div class="volant-footer-col">
+            <h4>Connect</h4>
+            <div class="volant-footer-contact-list">
+                <li><i class="fas fa-envelope"></i> <a href="mailto:reach.volant@gmail.com">reach.volant@gmail.com</a></li>
+                <li><i class="fas fa-phone"></i> <a href="tel:+233245691423">+233 24 569 1423</a></li>
+                <li><i class="fas fa-map-marker-alt"></i> Kumasi, Ghana</li>
+            </div>
+        </div>
+    </div>
+
+    <div id="volant-footer-bottom">
+        <p style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-bottom:6px;">
+            <a href="https://volantpoetry.vercel.app/volant_foundry/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">🏛️ Volant Foundry</a>
+            <a href="https://volantpoetry.vercel.app/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">📖 Volant Poetry</a>
+            <a href="https://volantpoetry.vercel.app/store/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">📚 Volant Reads</a>
+            <a href="https://volantcodes.vercel.app/" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">💻 Volant Codes</a>
+        </p>
+        <p style="margin:4px 0;">
+            <span class="platform-badge">🎵 Volant Lyrics — Marketplace</span>
+        </p>
+        <p style="margin-top:6px;font-size:0.75rem;color:#6a5f55;">&copy; 2026 <strong style="color:#c4b8aa;">Volant Lyrics</strong>. All Rights Reserved.</p>
+    </div>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+    // ===== FIREBASE CONFIG =====
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4DHI8aBVY4JjTvJ-r-TGIDPsewtEWxzU",
+        authDomain: "silent-depth.firebaseapp.com",
+        projectId: "silent-depth",
+        storageBucket: "silent-depth.appspot.com",
+        messagingSenderId: "78008755450",
+        appId: "1:78008755450:web:3fd0f0f298a08820935543"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // ===== STATE =====
+    let allLyrics = [];
+    let currentFilter = 'all';
+    let currentSearch = '';
+    let currentPrice = 'all';
+    let currentSort = 'newest';
+    let statsLoaded = false;
+    let isLoading = true;
+    let availableGenres = [];
+
+    // ===== ESCAPE HTML =====
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ===== FORMAT PRICE =====
+    function formatPrice(price, currency) {
+        if (!price || price === 0) return 'Free';
+        if (currency === 'USD') return `$${price.toFixed(2)}`;
+        return `GHS ${price.toFixed(2)}`;
+    }
+
+    // ===== GET INITIALS =====
+    function getInitials(name) {
+        if (!name || name === 'Anonymous') return '?';
+        const parts = name.trim().split(' ');
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    // ===== COLOR FROM NAME =====
+    function colorFromName(name) {
+        if (!name) return '#4b2aad';
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = Math.abs(hash) % 360;
+        return `hsl(${hue}, 65%, 50%)`;
+    }
+
+    // ===== RENDER FILTERS =====
+    function renderFilters(genres) {
+        const filterGroup = document.getElementById('filterGroup');
+        if (!filterGroup) return;
+        
+        let html = `<span class="filter-label">Genre</span>`;
+        html += `<button class="filter-btn active" data-filter="all" onclick="filterLyrics('all')">All</button>`;
+        
+        genres.forEach(genre => {
+            const displayName = genre.charAt(0).toUpperCase() + genre.slice(1);
+            html += `<button class="filter-btn" data-filter="${escapeHtml(genre)}" onclick="filterLyrics('${escapeHtml(genre)}')">${escapeHtml(displayName)}</button>`;
+        });
+        
+        filterGroup.innerHTML = html;
+    }
+
+    // ===== UPDATE USER AVATAR =====
+    function updateUserAvatar(userData, user) {
+        const avatarEl = document.getElementById('userAvatar');
+        const nameEl = document.getElementById('userName');
+        
+        if (!avatarEl || !nameEl) return;
+        
+        let displayName = 'Guest';
+        let photoURL = null;
+        
+        if (user) {
+            if (userData) {
+                displayName = userData.username || userData.authorName || user.displayName || user.email?.split('@')[0] || 'User';
+                photoURL = userData.photoURL || userData.cachedAvatarURL || null;
+            } else {
+                displayName = user.displayName || user.email?.split('@')[0] || 'User';
+            }
+        }
+        
+        nameEl.textContent = displayName;
+        
+        if (photoURL) {
+            avatarEl.style.backgroundImage = `url(${photoURL})`;
+            avatarEl.style.backgroundSize = 'cover';
+            avatarEl.style.backgroundPosition = 'center';
+            avatarEl.textContent = '';
+        } else {
+            const initials = getInitials(displayName);
+            const bgColor = colorFromName(displayName);
+            avatarEl.style.backgroundImage = 'none';
+            avatarEl.style.background = bgColor;
+            avatarEl.textContent = initials;
+            avatarEl.style.color = 'white';
+            avatarEl.style.display = 'flex';
+            avatarEl.style.alignItems = 'center';
+            avatarEl.style.justifyContent = 'center';
+            avatarEl.style.fontWeight = '700';
+            avatarEl.style.fontSize = '0.65rem';
+        }
+    }
+
+    // ===== FETCH LYRICS =====
+    async function fetchLyrics(searchTerm = '', genre = 'all') {
+        const container = document.getElementById('lyricsContainer');
+        const loadingSkeleton = document.getElementById('loadingSkeleton');
+        
+        if (!container || !loadingSkeleton) return;
+        
+        isLoading = true;
+        loadingSkeleton.style.display = 'block';
+        
+        try {
+            // Build query
+            let query = db.collection('volant-lyrics');
+            
+            // Always filter by status = active (single-field query, no composite index needed)
+            query = query.where('status', '==', 'active');
+
+            // NOTE: genre is filtered client-side in renderMarketplace() so we
+            // avoid composite-index requirements and get instant filtering.
+
+            // Get results
+            const snapshot = await query.limit(200).get();
+            
+            allLyrics = [];
+            const genreSet = new Set();
+            
+            if (snapshot.empty) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-feather-alt"></i>
+                        <h3>No lyrics yet</h3>
+                        <p>Be the first to share your lyrics with the world.</p>
+                        <a href="submit.html" class="btn-submit-cta">Sell Your Lyrics</a>
+                    </div>
+                `;
+                isLoading = false;
+                renderFilters([]);
+                return;
+            }
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const genreVal = data.genre || 'other';
+                genreSet.add(genreVal);
+                
+                allLyrics.push({
+                    id: doc.id,
+                    title: data.title || 'Untitled',
+                    artist: data.artist || 'Anonymous',
+                    genre: genreVal,
+                    lyrics: data.lyrics || 'No lyrics available',
+                    views: data.views || 0,
+                    price: data.price || 0,
+                    priceCurrency: data.priceCurrency || 'GHS',
+                    description: data.description || '',
+                    submittedBy: data.submittedBy || '',
+                    submittedByName: data.submittedByName || '',
+                    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt) || new Date()
+                });
+            });
+            
+            // Sort genres alphabetically
+            availableGenres = Array.from(genreSet).sort();
+            renderFilters(availableGenres);
+            
+            // Initialize hero stats once (full catalog, unfiltered)
+            if (!statsLoaded) {
+                statsLoaded = true;
+                const elLyrics = document.getElementById('statLyrics');
+                const elViews = document.getElementById('statViews');
+                if (elLyrics) elLyrics.textContent = allLyrics.length.toLocaleString();
+                if (elViews) elViews.textContent = allLyrics.reduce((sum, l) => sum + (l.views || 0), 0).toLocaleString();
+            }
+
+            // Featured picks + client-side filters/sort
+            renderFeatured(allLyrics);
+            renderMarketplace();
+            
+        } catch (error) {
+            console.error('Error fetching lyrics:', error);
+            container.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Unable to load lyrics</h3>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+            renderFilters([]);
+        }
+        
+        isLoading = false;
+    }
+
+    // ===== RENDER LYRICS =====
+    function renderLyrics(data) {
+        const container = document.getElementById('lyricsContainer');
+        const loadingSkeleton = document.getElementById('loadingSkeleton');
+        
+        if (!container || !loadingSkeleton) return;
+        
+        loadingSkeleton.style.display = 'none';
+        
+        if (data.length === 0) {
+            container.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-feather-alt"></i>
+                    <h3>No lyrics found</h3>
+                    <p>Try adjusting your search or filters.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = data.map((lyric, index) => {
+            const priceDisplay = formatPrice(lyric.price, lyric.priceCurrency);
+            const isFree = !lyric.price || lyric.price === 0;
+            const priceClass = isFree ? 'free' : '';
+            const genreDisplay = lyric.genre.charAt(0).toUpperCase() + lyric.genre.slice(1);
+            const preview = lyric.lyrics.length > 120 ? lyric.lyrics.substring(0, 120) + '...' : lyric.lyrics;
+            const isNew = lyric.createdAt && (Date.now() - new Date(lyric.createdAt).getTime()) < 14 * 24 * 60 * 60 * 1000;
+            const isPopular = (lyric.views || 0) >= 500;
+
+            return `
+                <div class="lyric-card" onclick="location.href='details.html?id=${encodeURIComponent(lyric.id)}'">
+                    <div class="cover-tile" style="background:${genreGradient(lyric.genre)};">
+                        <i class="fas fa-music"></i>
+                        <span class="ct-genre">${escapeHtml(genreDisplay)}</span>
+                        <div class="card-badges">
+                            ${isNew ? `<span class="badge-tag new"><i class="fas fa-bolt"></i> New</span>` : ''}
+                            ${isPopular ? `<span class="badge-tag popular"><i class="fas fa-star"></i> Best Seller</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="card-top" style="margin-top:10px;">
+                        <div class="song-title">
+                            <span class="icon"><i class="fas fa-music"></i></span>
+                            ${escapeHtml(lyric.title)}
+                        </div>
+                        <span class="price-tag ${priceClass}">${priceDisplay}</span>
+                    </div>
+                    <div class="artist-name">
+                        <i class="fas fa-user"></i> ${escapeHtml(lyric.artist)}
+                    </div>
+                    <div class="lyric-preview">${escapeHtml(preview)}</div>
+                    <div class="card-footer">
+                        <div class="views">
+                            <i class="fas fa-eye"></i> ${(lyric.views || 0).toLocaleString()}
+                        </div>
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <button class="btn-preview" onclick="event.stopPropagation(); viewLyric('${lyric.id}')">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                            <button class="btn-add-cart" data-index="${index}">
+                                <i class="fas fa-cart-plus"></i> Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.btn-add-cart').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const idx = parseInt(this.dataset.index);
+                if (data[idx]) addToCart(data[idx]);
+            });
+        });
+    }
+
+    // ===== GENRE GRADIENT =====
+    function genreGradient(genre) {
+        const g = (genre || '').toLowerCase().trim();
+        const map = {
+            'pop': 'linear-gradient(135deg,#e91e63,#ff6090)',
+            'rock': 'linear-gradient(135deg,#37474f,#78909c)',
+            'hip-hop': 'linear-gradient(135deg,#f9a825,#ff6f00)',
+            'hiphop': 'linear-gradient(135deg,#f9a825,#ff6f00)',
+            'r&b': 'linear-gradient(135deg,#ad1457,#ea80fc)',
+            'rnb': 'linear-gradient(135deg,#ad1457,#ea80fc)',
+            'gospel': 'linear-gradient(135deg,#2e7d32,#81c784)',
+            'afrobeat': 'linear-gradient(135deg,#c62828,#ff8a65)',
+            'jazz': 'linear-gradient(135deg,#283593,#82b1ff)',
+            'country': 'linear-gradient(135deg,#795548,#d7ccc8)',
+            'electronic': 'linear-gradient(135deg,#00acc1,#4dd0e1)',
+            'folk': 'linear-gradient(135deg,#558b2f,#aed581)',
+            'other': 'linear-gradient(135deg,#4b2aad,#7a5cff)'
+        };
+        return map[g] || 'linear-gradient(135deg,#4b2aad,#7a5cff)';
+    }
+
+    // ===== RENDER FEATURED =====
+    function renderFeatured(all) {
+        const grid = document.getElementById('featuredGrid');
+        if (!grid) return;
+        if (!all || all.length === 0) {
+            grid.innerHTML = '';
+            return;
+        }
+        const picks = [...all]
+            .sort((a, b) => (b.views || 0) - (a.views || 0))
+            .slice(0, 6);
+
+        grid.innerHTML = picks.map(lyric => {
+            const isFree = !lyric.price || lyric.price === 0;
+            const priceDisplay = formatPrice(lyric.price, lyric.priceCurrency);
+            return `
+                <div class="featured-card" onclick="location.href='details.html?id=${encodeURIComponent(lyric.id)}'">
+                    <div class="cover-tile" style="background:${genreGradient(lyric.genre)};">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div style="min-width:0;flex:1;">
+                        <div class="f-title">${escapeHtml(lyric.title)}</div>
+                        <div class="f-meta"><i class="fas fa-user"></i> ${escapeHtml(lyric.artist)}</div>
+                        <div class="f-meta"><i class="fas fa-eye"></i> ${(lyric.views || 0).toLocaleString()} views</div>
+                    </div>
+                    <div class="f-price ${isFree ? 'free' : ''}">${priceDisplay}</div>
+                </div>
+            `;
+        }).join('');
+
+        const strip = grid.closest('.featured-strip');
+        if (strip) strip.style.display = picks.length ? '' : 'none';
+    }
+
+    // ===== CLIENT-SIDE FILTERS + SORT =====
+    function renderMarketplace() {
+        let filtered = allLyrics;
+
+        // Apply genre filter (client-side)
+        if (currentFilter !== 'all') {
+            filtered = filtered.filter(l => l.genre === currentFilter);
+        }
+
+        // Apply search filter
+        if (currentSearch) {
+            const search = currentSearch;
+            filtered = filtered.filter(lyric =>
+                lyric.title.toLowerCase().includes(search) ||
+                lyric.artist.toLowerCase().includes(search) ||
+                lyric.genre.toLowerCase().includes(search) ||
+                lyric.lyrics.toLowerCase().includes(search) ||
+                lyric.description.toLowerCase().includes(search)
+            );
+        }
+
+        // Apply price filter
+        if (currentPrice === 'free') {
+            filtered = filtered.filter(l => !l.price || l.price === 0);
+        } else if (currentPrice === 'paid') {
+            filtered = filtered.filter(l => l.price && l.price > 0);
+        }
+
+        // Apply sort
+        if (currentSort === 'popular') {
+            filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+        } else if (currentSort === 'low') {
+            filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+        } else if (currentSort === 'high') {
+            filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+        } else {
+            filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        }
+
+        renderLyrics(filtered);
+    }
+
+    // ===== PRICE FILTER =====
+    function filterByPrice(priceType) {
+        currentPrice = priceType;
+        document.querySelectorAll('#priceFilterGroup .filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.price === priceType);
+        });
+        renderMarketplace();
+    }
+
+    // ===== SORT CHANGE =====
+    function changeSort() {
+        const sel = document.getElementById('sortSelect');
+        currentSort = sel ? sel.value : 'newest';
+        renderMarketplace();
+    }
+
+    // ===== VIEW LYRIC (QUICK VIEW MODAL) =====
+    async function viewLyric(docId) {
+        try {
+            const doc = await db.collection('volant-lyrics').doc(docId).get();
+            if (!doc.exists) {
+                showToast('Lyrics not found.', 'error');
+                return;
+            }
+
+            const data = doc.data();
+            const priceDisplay = formatPrice(data.price, data.priceCurrency);
+            const isFree = !data.price || data.price === 0;
+            const genreDisplay = (data.genre || 'Other').charAt(0).toUpperCase() + (data.genre || 'Other').slice(1);
+            const isOwned = currentUser ? await checkPurchaseStatus(currentUser.uid, docId) : false;
+
+            document.getElementById('qvTitle').innerHTML = `<i class="fas fa-music"></i> ${escapeHtml(data.title || 'Untitled')}`;
+            document.getElementById('qvBody').innerHTML = `
+                <div class="qv-top">
+                    <span class="price-tag ${isFree ? 'free' : ''}" style="font-size:0.8rem;">${priceDisplay}</span>
+                    <button class="btn-details" onclick="event.stopPropagation(); location.href='details.html?id=${encodeURIComponent(docId)}'">
+                        <i class="fas fa-book-open"></i> Full Details
+                    </button>
+                </div>
+                <div class="qv-artist">
+                    <i class="fas fa-user"></i> ${escapeHtml(data.artist || 'Anonymous')}
+                    <span class="genre-tag">${escapeHtml(genreDisplay)}</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>
+                </div>
+                <div class="qv-lyrics">${escapeHtml(data.lyrics || 'No lyrics available')}</div>
+                ${data.description ? `<div class="qv-desc"><strong>About this lyric:</strong> ${escapeHtml(data.description)}</div>` : ''}
+                ${isOwned ? `<div class="item-owned"><i class="fas fa-check-circle"></i> Already Owned — view it in <strong>My Library</strong></div>` : ''}
+                <div class="qv-actions">
+                    <button class="btn-add-cart" id="qvAddCart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                    <span class="qv-price ${isFree ? 'free' : ''}">${priceDisplay}</span>
+                </div>
+            `;
+
+            const item = {
+                id: docId,
+                title: data.title || 'Untitled',
+                artist: data.artist || 'Anonymous',
+                price: data.price || 0,
+                currency: data.priceCurrency || 'GHS'
+            };
+
+            const qvAddBtn = document.getElementById('qvAddCart');
+            if (isOwned) {
+                qvAddBtn.style.display = 'none';
+            } else {
+                qvAddBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    addToCart(item);
+                });
+            }
+
+            document.getElementById('qvBackdrop').classList.add('show');
+            document.getElementById('qvModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            await db.collection('volant-lyrics').doc(docId).update({
+                views: firebase.firestore.FieldValue.increment(1)
+            });
+
+            // Reflect updated view count in-memory without a full reload
+            const lyricInList = allLyrics.find(l => l.id === docId);
+            if (lyricInList) lyricInList.views = (lyricInList.views || 0) + 1;
+            renderMarketplace();
+
+        } catch (error) {
+            console.error('Error viewing lyric:', error);
+            showToast('Unable to load lyrics.', 'error');
+        }
+    }
+
+    // ===== CLOSE QUICK VIEW =====
+    function closeQuickView() {
+        document.getElementById('qvBackdrop').classList.remove('show');
+        document.getElementById('qvModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ===== SEARCH LYRICS =====
+    function searchLyrics() {
+        const input = document.getElementById('searchInput');
+        if (!input) return;
+        currentSearch = input.value.toLowerCase().trim();
+        renderMarketplace();
+    }
+
+    // ===== FILTER LYRICS =====
+    function filterLyrics(genre) {
+        currentFilter = genre;
+        
+        document.querySelectorAll('#filterGroup .filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.filter === genre) {
+                btn.classList.add('active');
+            }
+        });
+        
+        renderMarketplace();
+    }
+
+    // ===== MOBILE MENU =====
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    let menuOpen = false;
+    
+    if (menuToggle && navLinks) {
+        menuToggle.addEventListener('click', () => {
+            menuOpen = !menuOpen;
+            navLinks.classList.toggle('open');
+            menuToggle.innerHTML = menuOpen ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+        });
+        
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+                menuOpen = false;
+                if (menuToggle) menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+            });
+        });
+    }
+
+    // ===== USER AUTH =====
+    auth.onAuthStateChanged(async (user) => {
+        currentUser = user;
+        if (user) {
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    updateUserAvatar(data, user);
+                } else {
+                    updateUserAvatar(null, user);
+                }
+            } catch (err) {
+                console.warn('Error fetching user:', err);
+                updateUserAvatar(null, user);
+            }
+        } else {
+            updateUserAvatar(null, null);
+        }
+    });
+
+    // ===== PAYSTACK CONFIGURATION =====
+    const PAYSTACK_PUBLIC_KEY = 'pk_live_8296b2ad3250800c9846bb2368be1bbda3933cd8';
+
+    // ===== CART DOM ELEMENTS =====
+    const cartOverlay = document.getElementById('cartOverlay');
+    const cartBackdrop = document.getElementById('cartBackdrop');
+    const cartBody = document.getElementById('cartBody');
+    const cartTotalAmount = document.getElementById('cartTotalAmount');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const cartCloseBtn = document.getElementById('cartCloseBtn');
+    const cartPaymentProcessing = document.getElementById('cartPaymentProcessing');
+    const toast = document.getElementById('toast');
+
+    // ===== CART STATE =====
+    const LYRICS_CART_KEY = 'volant_lyrics_cart_items';
+    const LYRICS_CART_COUNT_KEY = 'volant_lyrics_cart_count';
+    let cartCount = getCartCount();
+    let toastTimeout = null;
+    let isProcessingPayment = false;
+
+    // ===== CART SYSTEM =====
+    function getCartItems() {
+        try { return JSON.parse(localStorage.getItem(LYRICS_CART_KEY)) || []; } catch { return []; }
+    }
+
+    function saveCartItems(items) {
+        localStorage.setItem(LYRICS_CART_KEY, JSON.stringify(items));
+        localStorage.setItem(LYRICS_CART_COUNT_KEY, String(items.length));
+        updateCartBadge();
+        try { localStorage.setItem('volant_lyrics_cart_updated', Date.now().toString()); } catch {}
+        cartCount = items.length;
+    }
+
+    function getCartCount() {
+        try { return parseInt(localStorage.getItem(LYRICS_CART_COUNT_KEY)) || 0; } catch { return 0; }
+    }
+
+    function updateCartBadge() {
+        const badge = document.querySelector('.cart-count');
+        if (badge) badge.textContent = cartCount;
+    }
+
+    // ===== ADD TO CART =====
+    function addToCart(item) {
+        const cartItems = getCartItems();
+        const existing = cartItems.find(ci => ci.id === item.id);
+        if (existing) {
+            showToast(`"${item.title}" is already in your cart.`, 'info');
+            openCart();
+            return;
+        }
+        cartItems.push({
+            id: item.id,
+            title: item.title || 'Untitled',
+            artist: item.artist || 'Anonymous',
+            price: item.price || 0,
+            currency: item.priceCurrency || 'GHS'
+        });
+        saveCartItems(cartItems);
+        cartCount = cartItems.length;
+        updateCartBadge();
+        showToast(`✅ "${item.title}" added to cart!`, 'success');
+    }
+
+    // ===== CURRENCY CONVERSION FUNCTION =====
+    async function convertToGHS(amount, fromCurrency) {
+        if (!amount || amount <= 0) return 0;
+        if (!fromCurrency || fromCurrency.toUpperCase() === 'GHS') return amount;
+
+        try {
+            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+            const data = await response.json();
+            if (data && data.rates) {
+                const rates = data.rates;
+                const currencyCode = fromCurrency.toUpperCase();
+                if (rates[currencyCode]) {
+                    let usdAmount = currencyCode !== 'USD' ? amount / rates[currencyCode] : amount;
+                    const ghsAmount = usdAmount * rates['GHS'];
+                    return Math.round(ghsAmount * 100) / 100;
+                }
+            }
+            const fallbackRates = { GHS: 15.5, USD: 1, EUR: 0.92, GBP: 0.79, NGN: 1550, KES: 130, ZAR: 18.5 };
+            const currencyCode = fromCurrency.toUpperCase();
+            if (fallbackRates[currencyCode]) {
+                let usdAmount = currencyCode !== 'USD' ? amount / fallbackRates[currencyCode] : amount;
+                const ghsAmount = usdAmount * fallbackRates['GHS'];
+                return Math.round(ghsAmount * 100) / 100;
+            }
+            return amount;
+        } catch (error) {
+            console.error('Error converting currency:', error);
+            return amount;
+        }
+    }
+
+    // ===== TOAST =====
+    function showToast(message, type = 'info') {
+        toast.textContent = message;
+        toast.style.background = type === 'error' ? '#b76e4b' : (type === 'success' ? '#28a745' : '#4b2aad');
+        toast.classList.add('active');
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toast.classList.remove('active');
+        }, 4000);
+    }
+
+    // ===== PURCHASE STATUS =====
+    async function checkPurchaseStatus(userId, itemId) {
+        try {
+            const purchaseSnap = await db.collection('purchases').doc(`${userId}_${itemId}`).get();
+            if (purchaseSnap.exists) {
+                const data = purchaseSnap.data();
+                return data.status === 'completed' && data.verified === true;
+            }
+            return false;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    // ===== RECORD PURCHASE =====
+    async function recordPurchase(userId, lyricId, transactionRef, paymentData = {}) {
+        try {
+            const purchaseRef = db.collection('purchases').doc(`${userId}_${lyricId}`);
+            const purchaseSnap = await purchaseRef.get();
+
+            const data = {
+                status: 'completed',
+                verified: true,
+                purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                transactionRef: transactionRef || 'paystack',
+                amount: paymentData.amount || 0,
+                currency: paymentData.currency || 'GHS',
+                customerEmail: paymentData.customerEmail || currentUser?.email || '',
+                paymentMethod: 'paystack',
+                downloadCount: 0,
+                lastDownloadedAt: null,
+                itemType: 'lyric',
+                authorId: paymentData.authorId || null,
+                lyricTitle: paymentData.lyricTitle || null
+            };
+
+            if (purchaseSnap.exists) {
+                await purchaseRef.update({
+                    ...data,
+                    purchaseCount: firebase.firestore.FieldValue.increment(1),
+                    userId: userId,
+                    bookId: lyricId
+                });
+            } else {
+                await purchaseRef.set({
+                    ...data,
+                    userId: userId,
+                    bookId: lyricId,
+                    purchaseCount: 1
+                });
+            }
+            console.log('✅ Purchase recorded successfully');
+            return true;
+        } catch (err) {
+            console.error('❌ Error recording purchase:', err);
+            return false;
+        }
+    }
+
+    // ===== INITIATE CART PAYMENT =====
+    async function initiateCartPayment(amount, email, items) {
+        if (isProcessingPayment) return;
+
+        if (typeof PaystackPop === 'undefined') {
+            showToast('⏳ Payment system is loading. Please wait a moment.', 'info');
+            return;
+        }
+
+        if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('xxxxxxxx')) {
+            showToast('⚠️ Paystack is not properly configured. Please contact support.', 'error');
+            return;
+        }
+
+        // ===== CONVERT ALL ITEMS TO GHS =====
+        let totalGHS = 0;
+        const convertedItems = [];
+
+        for (const item of items) {
+            const originalCurrency = item.currency || 'GHS';
+            let itemAmount = item.price || 0;
+            if (originalCurrency.toUpperCase() !== 'GHS') {
+                try {
+                    itemAmount = await convertToGHS(itemAmount, originalCurrency);
+                } catch (error) {
+                    console.warn(`Currency conversion failed for ${item.title}:`, error);
+                }
+            }
+            totalGHS += itemAmount;
+            convertedItems.push({
+                ...item,
+                priceInGHS: itemAmount,
+                originalCurrency: originalCurrency,
+                originalAmount: item.price || 0
+            });
+        }
+
+        if (totalGHS <= 0) {
+            showToast('⚠️ Invalid total amount. Please try again.', 'error');
+            return;
+        }
+
+        // ===== GET AUTHOR SUBACCOUNTS FOR EACH ITEM =====
+        const authorGroups = {};
+        let hasAllSubaccounts = true;
+        const missingAuthors = [];
+
+        isProcessingPayment = true;
+        cartPaymentProcessing.classList.add('active');
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying songwriters...';
+
+        for (const item of convertedItems) {
+            try {
+                const lyricRef = db.collection('volant-lyrics').doc(item.id);
+                const lyricSnap = await lyricRef.get();
+
+                if (!lyricSnap.exists) {
+                    showToast(`⚠️ Lyrics "${item.title}" not found.`, 'error');
+                    resetCheckoutButton();
+                    return;
+                }
+
+                const lyricData = lyricSnap.data();
+                const authorId = lyricData.submittedBy;
+
+                if (!authorId) {
+                    missingAuthors.push(item.title);
+                    hasAllSubaccounts = false;
+                    continue;
+                }
+
+                const authorDoc = await db.collection('users').doc(authorId).get();
+                if (!authorDoc.exists) {
+                    missingAuthors.push(item.title);
+                    hasAllSubaccounts = false;
+                    continue;
+                }
+
+                const subaccountCode = authorDoc.data().subaccountCode;
+
+                if (!subaccountCode) {
+                    missingAuthors.push(item.title);
+                    hasAllSubaccounts = false;
+                    continue;
+                }
+
+                if (!authorGroups[authorId]) {
+                    authorGroups[authorId] = {
+                        subaccount: subaccountCode,
+                        total: 0,
+                        items: [],
+                        authorName: lyricData.author || 'Unknown Songwriter'
+                    };
+                }
+                authorGroups[authorId].total += (item.priceInGHS || 0);
+                authorGroups[authorId].items.push(item.title);
+            } catch (error) {
+                console.error('Error fetching author subaccount:', error);
+                showToast('⚠️ Error processing payment. Please try again.', 'error');
+                resetCheckoutButton();
+                return;
+            }
+        }
+
+        if (!hasAllSubaccounts && missingAuthors.length > 0) {
+            showToast(`⚠️ Some songwriters haven't set up payout accounts: ${missingAuthors.join(', ')}. Please contact support.`, 'error');
+            resetCheckoutButton();
+            return;
+        }
+
+        // ===== CREATE SPLIT CONFIGURATION =====
+        let splitConfig = null;
+
+        if (Object.keys(authorGroups).length > 1) {
+            const shares = [];
+            for (const [authorId, data] of Object.entries(authorGroups)) {
+                const sharePercentage = (data.total / totalGHS) * 100;
+                shares.push({
+                    subaccount: data.subaccount,
+                    share: Math.round(sharePercentage * 100) / 100
+                });
+            }
+            splitConfig = {
+                type: 'percentage',
+                bearer: 'account',
+                subaccounts: shares
+            };
+            console.log('📊 Multi-author split:', shares);
+        } else {
+            const authorId = Object.keys(authorGroups)[0];
+            splitConfig = {
+                subaccount: authorGroups[authorId].subaccount,
+                bearer: 'account'
+            };
+            console.log('📊 Single author subaccount:', authorGroups[authorId].subaccount);
+        }
+
+        const itemTitles = items.map(item => item.title).join(', ');
+
+        try {
+            const paymentConfig = {
+                key: PAYSTACK_PUBLIC_KEY,
+                email: email,
+                amount: Math.round(totalGHS * 100),
+                currency: 'GHS',
+                bearer: 'account',
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Items", variable_name: "items", value: itemTitles },
+                        { display_name: "Item Count", variable_name: "item_count", value: String(items.length) },
+                        { display_name: "Customer ID", variable_name: "customer_id", value: currentUser?.uid || 'guest' },
+                        { display_name: "Payment Type", variable_name: "payment_type", value: "lyrics_cart_checkout" }
+                    ]
+                },
+                callback: function(response) {
+                    handleCartPaymentCallback(response, items);
+                },
+                onClose: function() {
+                    resetCheckoutButton();
+                    showToast('Payment cancelled. You can try again.', 'info');
+                }
+            };
+
+            if (splitConfig.type === 'percentage' && splitConfig.subaccounts) {
+                paymentConfig.split = {
+                    type: 'percentage',
+                    bearer: 'account',
+                    subaccounts: splitConfig.subaccounts
+                };
+                console.log('✅ Using split for multiple songwriters');
+            } else if (splitConfig.subaccount) {
+                paymentConfig.subaccount = splitConfig.subaccount;
+                console.log('✅ Using subaccount for single songwriter');
+            }
+
+            const handler = PaystackPop.setup(paymentConfig);
+            handler.openIframe();
+        } catch (error) {
+            console.error('Payment error:', error);
+            showToast('⚠️ Payment error. Please try again.', 'error');
+            resetCheckoutButton();
+        }
+    }
+
+    function resetCheckoutButton() {
+        isProcessingPayment = false;
+        cartPaymentProcessing.classList.remove('active');
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = 'Checkout with Paystack';
+    }
+
+    // ===== HANDLE CART PAYMENT CALLBACK =====
+    async function handleCartPaymentCallback(response, items) {
+        if (!currentUser) {
+            showToast('⚠️ User not found. Please try again.', 'error');
+            resetCheckoutButton();
+            return;
+        }
+
+        let allValid = true;
+        const invalidItems = [];
+        const authorIds = {};
+        const itemTitles = {};
+
+        for (const item of items) {
+            try {
+                const lyricRef = db.collection('volant-lyrics').doc(item.id);
+                const lyricSnap = await lyricRef.get();
+
+                if (!lyricSnap.exists) {
+                    allValid = false;
+                    invalidItems.push(item.title || 'Unknown');
+                    continue;
+                }
+
+                const lyricData = lyricSnap.data();
+                authorIds[item.id] = lyricData.submittedBy;
+                itemTitles[item.id] = lyricData.title || item.title || 'Unknown';
+            } catch (error) {
+                console.error('Error getting lyric data:', error);
+                allValid = false;
+                invalidItems.push(item.title || 'Unknown');
+            }
+        }
+
+        if (!allValid) {
+            showToast(`⚠️ Some lyrics not found: ${invalidItems.join(', ')}`, 'error');
+            resetCheckoutButton();
+            return;
+        }
+
+        for (const item of items) {
+            try {
+                const lyricRef = db.collection('volant-lyrics').doc(item.id);
+                const lyricSnap = await lyricRef.get();
+
+                if (!lyricSnap.exists) {
+                    allValid = false;
+                    invalidItems.push(item.title || 'Unknown');
+                    continue;
+                }
+
+                const lyricData = lyricSnap.data();
+
+                const verificationResponse = await fetch('/api/verify-paystack-transaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reference: response.reference,
+                        amount: lyricData.price || 0,
+                        email: currentUser.email,
+                        bookId: item.id,
+                        authorId: lyricData.submittedBy
+                    })
+                });
+
+                const verificationResult = await verificationResponse.json();
+
+                if (!verificationResult.success) {
+                    allValid = false;
+                    invalidItems.push(lyricData.title || 'Unknown');
+                }
+            } catch (error) {
+                console.error('Verification error for item:', item.id, error);
+                allValid = false;
+                invalidItems.push(item.title || 'Unknown');
+            }
+        }
+
+        if (!allValid) {
+            showToast(`⚠️ Payment verification failed for: ${invalidItems.join(', ')}. Please contact support.`, 'error');
+            resetCheckoutButton();
+            return;
+        }
+
+        const transactionRef = response.reference || 'paystack_' + Date.now();
+        let allSuccess = true;
+        const successfulItems = [];
+
+        for (const item of items) {
+            try {
+                const authorId = authorIds[item.id] || null;
+                const lyricTitle = itemTitles[item.id] || item.title || 'Unknown';
+
+                const success = await recordPurchase(
+                    currentUser.uid,
+                    item.id,
+                    transactionRef,
+                    {
+                        amount: item.price || 0,
+                        currency: item.currency || 'GHS',
+                        customerEmail: response.customer?.email || currentUser.email,
+                        verifiedBy: 'serverless-api',
+                        authorId: authorId,
+                        lyricTitle: lyricTitle
+                    }
+                );
+                if (success) {
+                    successfulItems.push(lyricTitle);
+                } else {
+                    allSuccess = false;
+                }
+            } catch (error) {
+                console.error('Error recording purchase for item:', item.id, error);
+                allSuccess = false;
+            }
+        }
+
+        if (allSuccess) {
+            showToast(`✅ Payment verified! ${successfulItems.length} lyric(s) added to your library. 🎉`, 'success');
+            saveCartItems([]);
+            cartCount = 0;
+            updateCartBadge();
+            await renderCart();
+            closeCart();
+        } else {
+            showToast('⚠️ Some purchases failed to save. Please contact support.', 'error');
+        }
+
+        resetCheckoutButton();
+    }
+
+    // ===== RENDER CART =====
+    async function renderCart() {
+        const items = getCartItems();
+        if (items.length === 0) {
+            cartBody.innerHTML = `
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Your cart is empty</p>
+                    <span style="font-size:0.85rem;color:#b0a89a;">Browse our collection and add some lyrics!</span>
+                </div>
+            `;
+            cartTotalAmount.textContent = 'GHS 0.00';
+            checkoutBtn.disabled = true;
+            return;
+        }
+
+        let html = '';
+        let totalGHS = 0;
+        let hasUnpurchasedItems = false;
+
+        for (let index = 0; index < items.length; index++) {
+            const item = items[index];
+            const currency = item.currency || 'GHS';
+            const amount = item.price || 0;
+
+            let ghsAmount = amount;
+            let priceDisplay = '';
+
+            if (currency.toUpperCase() === 'GHS') {
+                priceDisplay = `GHS ${amount.toFixed(2)}`;
+                totalGHS += amount;
+            } else {
+                try {
+                    ghsAmount = await convertToGHS(amount, currency);
+                    totalGHS += ghsAmount;
+                    priceDisplay = `
+                        ${currency} ${amount.toFixed(2)}
+                        <span class="conversion-info">(≈ GHS ${ghsAmount.toFixed(2)})</span>
+                    `;
+                } catch (error) {
+                    console.warn('Conversion failed:', error);
+                    priceDisplay = `${currency} ${amount.toFixed(2)}`;
+                    totalGHS += amount;
+                }
+            }
+
+            let isOwned = false;
+            if (currentUser) {
+                isOwned = await checkPurchaseStatus(currentUser.uid, item.id);
+                if (!isOwned) hasUnpurchasedItems = true;
+            } else {
+                hasUnpurchasedItems = true;
+            }
+
+            html += `
+                <div class="cart-item">
+                    <div class="item-cover">
+                        <div class="no-cover"><i class="fas fa-music"></i></div>
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">${item.title || 'Untitled'}</div>
+                        <div class="item-author">${item.artist || 'Anonymous'}</div>
+                        <div class="item-price">${priceDisplay}</div>
+                        ${isOwned ? `<div class="item-owned"><i class="fas fa-check-circle"></i> Already Owned</div>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-remove" data-index="${index}"><i class="fas fa-trash-alt"></i> Remove</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        cartBody.innerHTML = html;
+        cartTotalAmount.textContent = `GHS ${totalGHS.toFixed(2)}`;
+        checkoutBtn.disabled = !hasUnpurchasedItems || items.length === 0 || isProcessingPayment;
+
+        document.querySelectorAll('.btn-remove').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const index = parseInt(this.dataset.index);
+                const cartItems = getCartItems();
+                const item = cartItems[index];
+                if (confirm(`Remove "${item.title || 'these lyrics'}" from cart?`)) {
+                    cartItems.splice(index, 1);
+                    saveCartItems(cartItems);
+                    cartCount = cartItems.length;
+                    updateCartBadge();
+                    renderCart();
+                    showToast('🗑️ Removed from cart.', 'info');
+                }
+            });
+        });
+    }
+
+    // ===== TOGGLE CART =====
+    function openCart() {
+        cartOverlay.classList.add('open');
+        cartBackdrop.classList.add('show');
+        renderCart();
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCart() {
+        cartOverlay.classList.remove('open');
+        cartBackdrop.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    cartCloseBtn.addEventListener('click', closeCart);
+    cartBackdrop.addEventListener('click', closeCart);
+    document.getElementById('cartOpenBtn').addEventListener('click', openCart);
+
+    // ===== QUICK VIEW MODAL CONTROLS =====
+    document.getElementById('qvCloseBtn').addEventListener('click', closeQuickView);
+    document.getElementById('qvBackdrop').addEventListener('click', closeQuickView);
+
+    // ===== CHECKOUT BUTTON =====
+    checkoutBtn.addEventListener('click', async function() {
+        if (!currentUser) {
+            showToast('🔐 Please sign in to checkout.', 'error');
+            window.location.href = 'https://volantpoetry.vercel.app/shared/universal-login.html?platform=lyrics&redirect=' + encodeURIComponent('lyrics/index.html');
+            return;
+        }
+
+        const items = getCartItems();
+        if (items.length === 0) {
+            showToast('Your cart is empty.', 'info');
+            return;
+        }
+
+        const purchasableItems = [];
+        for (const item of items) {
+            const purchased = await checkPurchaseStatus(currentUser.uid, item.id);
+            if (!purchased) {
+                purchasableItems.push(item);
+            }
+        }
+
+        if (purchasableItems.length === 0) {
+            showToast('✅ All lyrics in your cart are already purchased!', 'success');
+            closeCart();
+            return;
+        }
+
+        const total = purchasableItems.reduce((sum, item) => sum + (item.price || 0), 0);
+        if (total <= 0) {
+            let allSuccess = true;
+            for (const item of purchasableItems) {
+                const success = await recordPurchase(currentUser.uid, item.id, 'free_lyric', {
+                    amount: 0,
+                    currency: item.currency || 'GHS',
+                    authorId: item.authorId || null,
+                    lyricTitle: item.title || 'Unknown'
+                });
+                if (!success) allSuccess = false;
+            }
+            if (allSuccess) {
+                showToast(`✅ ${purchasableItems.length} free lyric(s) added to your library!`, 'success');
+                const newCart = items.filter(item => !purchasableItems.some(pi => pi.id === item.id));
+                saveCartItems(newCart);
+                await renderCart();
+                updateCartBadge();
+            }
+            return;
+        }
+
+        const email = currentUser.email || currentUser.displayName || 'customer@example.com';
+        await initiateCartPayment(total, email, purchasableItems);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('qvModal').classList.contains('open')) {
+                closeQuickView();
+            } else if (cartOverlay.classList.contains('open')) {
+                closeCart();
+            }
+        }
+    });
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'volant_lyrics_cart_updated') {
+            const newCount = getCartCount();
+            if (newCount !== cartCount) {
+                cartCount = newCount;
+                updateCartBadge();
+            }
+            if (cartOverlay.classList.contains('open')) {
+                renderCart();
+            }
+        }
+    });
+
+    // ===== INITIAL LOAD =====
+    updateCartBadge();
+    fetchLyrics();
+
+    // ===== OPEN CART FROM URL (?open=cart) =====
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('open') === 'cart') {
+        setTimeout(() => { openCart(); }, 1200);
+    }
+</script>
+
+</body>
+</html>

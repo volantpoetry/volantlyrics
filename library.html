@@ -164,11 +164,12 @@
         }
         @media (max-width: 768px) {
             nav { padding: 0 1.5rem !important; }
-            .logo .logo-text { font-size: 1.4rem !important; }
-            .logo img { width: 34px !important; height: 34px !important; }
+            .logo .logo-text { font-size: 1.1rem !important; }
+            .logo img { width: 28px !important; height: 28px !important; border-radius: 0 !important; object-fit: contain !important; }
             .logo { gap: 0.5rem !important; }
+            header { height: 60px !important; }
             .menu-toggle { display: block; }
-            .nav-links { display: none; flex-direction: column; gap: 12px; padding: 20px; background: white; position: absolute; top: 66px; left: 0; right: 0; border-bottom: 1px solid #eee; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06); }
+            .nav-links { display: none; flex-direction: column; gap: 12px; padding: 20px; background: white; position: absolute; top: 60px; left: 0; right: 0; border-bottom: 1px solid #eee; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06); }
             .nav-links.open { display: flex; }
             .nav-links a { padding: 10px 0; font-size: 1rem; width: 100%; color: #4b2aad !important; font-weight: 500; }
             .nav-links a:hover { background: #f5f0ff; padding-left: 8px; border-radius: 4px; }
@@ -177,9 +178,11 @@
         }
         @media (max-width: 480px) {
             nav { padding: 0 0.8rem !important; gap: 0.5rem !important; }
-            .logo .logo-text { font-size: 1.3rem !important; }
-            .logo img { width: 30px !important; height: 30px !important; }
+            .logo .logo-text { font-size: 1.1rem !important; }
+            .logo img { width: 22px !important; height: 22px !important; border-radius: 0 !important; object-fit: contain !important; }
             .logo { gap: 0.4rem !important; }
+            header { height: 44px !important; }
+            .nav-links { top: 44px !important; }
             .user-badge { font-size: 0.7rem; padding: 2px; }
             .user-badge .avatar-small { width: 22px; height: 22px; font-size: 0.55rem; }
             .btn-cart-header .cart-text { display: none; }
@@ -580,14 +583,21 @@
         .volant-footer-bottom { border-top: 1px solid #2a2a44; max-width: 1200px; margin: 0 auto; padding: 14px 20px 0; text-align: left !important; }
         .volant-footer-bottom small { font-size: 0.8rem; color: #6b6b8e; }
         @media (max-width: 768px) {
-            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 25px; }
+            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+            .volant-footer-brand { grid-column: 1 / -1; text-align: left !important; margin-bottom: 0.2rem; }
+            #volant-footer .logo { justify-content: flex-start !important; }
+            .volant-footer-desc { max-width: 100%; }
             .lib-row { flex-wrap: wrap; }
             .lib-actions { width: 100%; }
             .lib-actions .btn-expand, .lib-actions .btn-view { flex: 1; justify-content: center; }
             .lib-actions .btn-trash { flex: 0 0 auto; padding: 8px 14px; }
         }
         @media (max-width: 480px) {
-            #volant-footer-container { grid-template-columns: 1fr; }
+            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+            .volant-footer-desc { font-size: 0.8rem; }
+            .volant-footer-col h4 { font-size: 0.85rem !important; }
+            .volant-footer-col a { font-size: 0.78rem !important; }
+            .volant-footer-contact-list li { font-size: 0.78rem; }
         }
     </style>
 </head>

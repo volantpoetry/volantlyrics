@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Volant Lyrics — Manage My Lyrics</title>
+    <meta name="description" content="View and update the lyrics you've listed on the Volant Lyrics marketplace." />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #faf9fe;
+            color: #1a1a2e;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+        a { text-decoration: none; color: inherit; }
+        img { max-width: 100%; height: auto; display: block; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f0edf5; }
+        ::-webkit-scrollbar-thumb { background: #4b2aad; border-radius: 10px; }
+
+        /* ===== HEADER (same as all Volant Lyrics pages) ===== */
+        header {
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 !important;
+        }
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4rem;
+            width: 100%;
+            height: 100%;
+            gap: 1.5rem;
+            position: relative;
+        }
+        .logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.6rem !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+        }
+        .logo .logo-text {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.6rem !important;
+            font-weight: 700 !important;
+            color: #4b2aad !important;
+        }
+        .logo .logo-highlight {
+            color: #ffffff !important;
+            text-shadow: 0 0 2px #4b2aad, 0 0 4px #4b2aad, 0 0 6px #4b2aad !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+        .logo img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .nav-links { display: flex; gap: 24px; list-style: none; align-items: center; }
+        .nav-links a { font-weight: 650; color: #4b2aad; transition: color 0.3s; position: relative; font-size: 0.92rem; padding: 4px 0; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #4b2aad; transition: width 0.3s; }
+        .nav-links a:hover { color: #4b2aad; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a.active::after { width: 100%; }
+        .menu-toggle { display: none; font-size: 1.6rem; cursor: pointer; background: none; border: none; color: #4b2aad !important; padding: 8px; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 4px;
+            border-radius: 30px;
+            background: #f5f0ff;
+            border: 1px solid #ede8ff;
+            color: #4b2aad;
+            transition: all 0.3s ease;
+        }
+        .user-badge #userName { display: none; }
+        .user-badge .avatar-small {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #4b2aad;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.65rem;
+            color: white;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .btn-cart-header {
+            position: relative;
+            background: transparent;
+            border: 1px solid #ede8ff;
+            color: #4b2aad;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .btn-cart-header:hover { background: #f0edff; border-color: #4b2aad; transform: translateY(-2px); }
+        .btn-cart-header i { font-size: 0.95rem; }
+        .cart-count {
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+            position: absolute;
+            top: -5px; right: -5px;
+        }
+        .btn-signout-nav {
+            display: none;
+            background: none;
+            border: none;
+            color: #4b2aad !important;
+            font-size: 1.15rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s ease, background 0.3s ease;
+        }
+        .btn-signout-nav:hover { background: #f5f0ff !important; color: #3a1f8a !important; }
+        .nav-links .nav-sign-out { display: none; }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 1.5rem !important; }
+            .logo .logo-text { font-size: 1.4rem !important; }
+            .logo img { width: 34px !important; height: 34px !important; }
+            .logo { gap: 0.5rem !important; }
+            .menu-toggle { display: block; }
+            .btn-signout-nav { display: none !important; }
+            .nav-links { display: none; flex-direction: column; gap: 12px; padding: 20px; background: white; position: absolute; top: 66px; left: 0; right: 0; border-bottom: 1px solid #eee; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06); }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 10px 0; font-size: 1rem; width: 100%; color: #4b2aad !important; font-weight: 500; }
+            .nav-links a:hover { background: #f5f0ff; padding-left: 8px; border-radius: 4px; }
+            .nav-links a::after { display: none; }
+            .nav-links .nav-sign-out { display: block; }
+        }
+        @media (max-width: 480px) {
+            nav { padding: 0 0.8rem !important; gap: 0.5rem !important; }
+            .logo .logo-text { font-size: 1.3rem !important; }
+            .logo img { width: 30px !important; height: 30px !important; }
+            .logo { gap: 0.4rem !important; }
+            .user-badge .avatar-small { width: 22px; height: 22px; font-size: 0.55rem; }
+            .btn-cart-header .cart-text { display: none; }
+            .btn-cart-header { padding: 5px 9px; }
+        }
+
+        /* ===== MANAGE PAGE ===== */
+        .manage-page { padding: 40px 0 60px; }
+        .page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 26px; }
+        .page-head h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .page-head h1 i {
+            width: 46px; height: 46px;
+            background: linear-gradient(135deg, #4b2aad, #7a5cff);
+            color: #fff;
+            font-size: 1.1rem;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-head .count-chip {
+            background: #4b2aad;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 30px;
+        }
+        .lib-greeting {
+            font-size: 1.05rem;
+            color: #6a5f78;
+            margin: 0 0 8px;
+            font-weight: 500;
+        }
+        .lib-greeting strong { color: #4b2aad; font-weight: 700; font-size: 1.15rem; }
+
+        .manage-list { display: grid; gap: 16px; }
+        .manage-card {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .manage-card:hover { border-color: #4b2aad; box-shadow: 0 12px 36px rgba(75,42,173,0.07); }
+        .manage-card.editing { border-color: #4b2aad; box-shadow: 0 12px 36px rgba(75,42,173,0.1); }
+        .manage-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
+        }
+        .cover-tile {
+            width: 58px; height: 58px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cover-tile i { font-size: 1.3rem; color: #fff; opacity: 0.9; }
+        .manage-info { flex: 1; min-width: 0; }
+        .manage-title { font-weight: 700; color: #1a1a2e; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .manage-artist { font-size: 0.82rem; color: #6a5f55; display: flex; align-items: center; gap: 6px; }
+        .manage-artist i { color: #4b2aad; }
+        .manage-meta { display: flex; gap: 16px; font-size: 0.74rem; color: #9a8f82; flex-wrap: wrap; margin-top: 3px; }
+        .manage-meta span { display: inline-flex; align-items: center; gap: 5px; }
+        .manage-meta i { color: #4b2aad; opacity: 0.7; }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .status-badge.active { background: #e8f5e9; color: #2e7d32; }
+        .status-badge.hidden { background: #fdecea; color: #b76e4b; }
+        .manage-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-view {
+            background: #fff;
+            color: #4b2aad;
+            border: 1.5px solid #4b2aad;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-view:hover { background: #f0edff; }
+        .btn-edit {
+            background: #f0edff;
+            color: #4b2aad;
+            border: 1px solid #ede8ff;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-edit:hover { background: #4b2aad; color: #fff; border-color: #4b2aad; }
+        .btn-toggle-status {
+            background: #fff;
+            color: #b76e4b;
+            border: 1.5px solid #e0b8a8;
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-toggle-status:hover { background: #fdecea; border-color: #b76e4b; }
+        .btn-danger-icon {
+            background: #fff;
+            color: #e74c3c;
+            border: 1.5px solid #f3cfcb;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .btn-danger-icon:hover { background: #fdecea; border-color: #e74c3c; transform: translateY(-1px); }
+
+        /* ===== EDITOR ===== */
+        .manage-editor { display: none; border-top: 1px solid #f0edf5; background: #faf9fe; padding: 22px 24px; }
+        .manage-editor.open { display: block; }
+        .manage-editor .editor-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4b2aad;
+            margin-bottom: 16px;
+        }
+        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .edit-field label { display: block; font-size: 0.76rem; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; }
+        .edit-field input,
+        .edit-field select,
+        .edit-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #e5e0f0;
+            border-radius: 10px;
+            font-size: 0.86rem;
+            font-family: 'Inter', sans-serif;
+            color: #1a1a2e;
+            background: #fff;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .edit-field input:focus,
+        .edit-field select:focus,
+        .edit-field textarea:focus {
+            outline: none;
+            border-color: #4b2aad;
+            box-shadow: 0 0 0 3px rgba(75,42,173,0.12);
+        }
+        .edit-field.full { grid-column: 1 / -1; }
+        .edit-field textarea { resize: vertical; min-height: 120px; line-height: 1.7; }
+        .audio-device-row { margin-top: 10px; }
+        .audio-file-input { display: none; }
+        .audio-file-pick {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f3f0ff;
+            color: #4b2aad;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 9px;
+            border: 1px dashed #c3b3f2;
+            cursor: pointer;
+        }
+        .audio-file-pick:hover { background: #e9e3ff; }
+        .audio-msg {
+            display: none;
+            margin-top: 10px;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            border-radius: 9px;
+            padding: 9px 12px;
+        }
+        .audio-msg.show { display: block; }
+        .audio-msg.info { background: #f0edff; color: #4b2aad; }
+        .audio-msg.warn { background: #fdecea; color: #b76e4b; }
+        .audio-msg.success { background: #e8f5e9; color: #2e7d32; }
+
+        /* ===== MODAL ===== */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,10,30,0.55);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+        }
+        .modal-backdrop.show { opacity: 1; visibility: visible; }
+        .modal-card {
+            background: #fff;
+            border-radius: 18px;
+            max-width: 420px;
+            width: 100%;
+            padding: 30px 26px;
+            text-align: center;
+            transform: translateY(14px) scale(0.97);
+            transition: transform 0.25s ease;
+            border: 1px solid #ede8ff;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+        }
+        .modal-backdrop.show .modal-card { transform: none; }
+        .modal-icon {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: #fdecea;
+            color: #e74c3c;
+            font-size: 1.4rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .modal-card h3 { font-family: 'Playfair Display', serif; color: #1a1a2e; margin-bottom: 8px; }
+        .modal-card p { color: #6a5f55; font-size: 0.88rem; margin-bottom: 22px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .btn-danger {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 11px 26px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-cancel-modal {
+            background: #f0edff;
+            color: #4b2aad;
+            border: none;
+            padding: 11px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-cancel-modal:hover { background: #e2dcf8; }
+
+        /* ===== SETTINGS ===== */
+        .manage-tabs {
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid #ede8ff;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .manage-tab {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #6a5f78;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.3s ease;
+        }
+        .manage-tab i { color: #b3a8e8; }
+        .manage-tab:hover { color: #4b2aad; }
+        .manage-tab.active { color: #4b2aad; border-bottom-color: #4b2aad; }
+        .manage-tab.active i { color: #4b2aad; }
+
+        .settings-wrap { display: grid; gap: 20px; }
+        .settings-card {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 16px;
+            padding: 26px;
+        }
+        .settings-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .settings-card h3 i { color: #4b2aad; font-size: 1rem; }
+        .settings-card .sc-sub { color: #6a5f78; font-size: 0.83rem; margin-bottom: 20px; }
+        .settings-group { margin-bottom: 16px; }
+        .settings-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #1a1a2e; margin-bottom: 6px; }
+        .settings-group label .req { color: #e74c3c; }
+        .settings-group input,
+        .settings-group select,
+        .settings-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e5e0f0;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            color: #1a1a2e;
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+        .settings-group input:focus,
+        .settings-group select:focus,
+        .settings-group textarea:focus {
+            outline: none;
+            border-color: #4b2aad;
+            box-shadow: 0 0 0 3px rgba(75,42,173,0.12);
+        }
+        .settings-group input:disabled {
+            background: #f5f3fa;
+            color: #9a8f82;
+            cursor: not-allowed;
+        }
+        .settings-group textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+        .settings-group .hint { font-size: 0.74rem; color: #9a8f82; margin-top: 5px; }
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .settings-grid .full { grid-column: 1 / -1; }
+        .btn-settings-save {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 11px 26px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .btn-settings-save:hover { background: #3a1f8a; }
+        .btn-settings-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .payout-type-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+        .payout-type-row label { flex: 1; min-width: 140px; cursor: pointer; }
+        .payout-type-row input { display: none; }
+        .payout-type-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border: 1.5px solid #e5e0f0;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1a1a2e;
+            transition: all 0.3s ease;
+        }
+        .payout-type-row input:checked + .payout-type-box {
+            border-color: #4b2aad;
+            background: #f5f0ff;
+            color: #4b2aad;
+        }
+        .payout-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
+            border-radius: 30px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 18px;
+        }
+        .payout-status-badge.active { background: #e8f5e9; color: #2e7d32; }
+        .payout-status-badge.missing { background: #fef3e2; color: #a8640b; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-tile {
+            background: #f8f6ff;
+            border: 1px solid #ede8ff;
+            border-radius: 14px;
+            padding: 18px 14px;
+            text-align: center;
+        }
+        .stat-tile .stat-num { font-size: 1.5rem; font-weight: 800; color: #4b2aad; font-family: 'Playfair Display', serif; }
+        .stat-tile .stat-label { font-size: 0.74rem; color: #6a5f78; margin-top: 3px; }
+        .account-note {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #faf9fe;
+            border: 1px solid #ede8ff;
+            border-radius: 14px;
+            padding: 18px;
+        }
+        .account-note .av {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: #4b2aad;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .account-note .info { flex: 1; min-width: 0; }
+        .account-note .info .nm { font-weight: 700; color: #1a1a2e; }
+        .account-note .info .em { font-size: 0.8rem; color: #6a5f78; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        @media (max-width: 480px) {
+            .settings-card { padding: 18px; }
+            .settings-grid { grid-template-columns: 1fr; }
+            .manage-tab { padding: 10px 14px; font-size: 0.82rem; }
+        }
+        .edit-row { display: flex; gap: 10px; }
+        .edit-row select { width: auto; }
+        .editor-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+        .btn-save {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.84rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 26px rgba(75,42,173,0.22);
+        }
+        .btn-save:hover { background: #3a1f8a; transform: translateY(-2px); }
+        .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-cancel {
+            background: #fff;
+            color: #6a5f55;
+            border: 1.5px solid #e5e0f0;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.84rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-cancel:hover { border-color: #4b2aad; color: #4b2aad; }
+
+        /* ===== STATES ===== */
+        .center-state { text-align: center; padding: 80px 20px; }
+        .spinner {
+            width: 44px; height: 44px;
+            border: 4px solid #e8e4f5;
+            border-top-color: #4b2aad;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+            margin: 0 auto 18px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .center-state .state-icon {
+            width: 78px; height: 78px;
+            border-radius: 50%;
+            background: #f0edff;
+            color: #4b2aad;
+            font-size: 1.7rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+        .center-state h2 { font-family: 'Playfair Display', serif; color: #1a1a2e; margin-bottom: 8px; }
+        .center-state p { color: #6a5f55; font-size: 0.9rem; margin-bottom: 22px; max-width: 420px; margin-left: auto; margin-right: auto; }
+        .btn-primary {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(75,42,173,0.22);
+        }
+        .btn-primary:hover { background: #3a1f8a; transform: translateY(-2px); }
+        .btn-outline {
+            background: #fff;
+            color: #4b2aad;
+            border: 1.5px solid #4b2aad;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-outline:hover { background: #f0edff; }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 26px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1a1a2e;
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            max-width: 90vw;
+        }
+        .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        .toast i { color: #4caf50; }
+
+        /* ===== FOOTER ===== */
+        #volant-footer { background: #1a1a2e; color: #aaa; padding: 1.5rem 0 20px; }
+        #volant-footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 1.5rem 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 35px;
+            text-align: left !important;
+        }
+        .volant-footer-col { text-align: left !important; }
+        .volant-footer-col h4 { color: white; margin-bottom: 12px; font-size: 0.95rem; font-weight: 600; text-align: left !important; }
+        .volant-footer-col a { display: block; color: #aaa; margin-bottom: 6px; transition: color 0.3s; font-size: 0.88rem; text-decoration: none; text-align: left !important; }
+        .volant-footer-col a:hover { color: white; }
+        #volant-footer .logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.6rem !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+            margin-bottom: 8px;
+            justify-content: flex-start !important;
+        }
+        #volant-footer .logo .logo-text {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.3rem !important;
+            font-weight: 700 !important;
+            color: #ffffff !important;
+        }
+        #volant-footer .logo .logo-highlight {
+            color: #ffffff !important;
+            text-shadow: 0 0 2px #4b2aad, 0 0 4px #4b2aad, 0 0 6px #4b2aad !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+        #volant-footer .logo img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+        .volant-footer-desc { font-size: 0.88rem; line-height: 1.6; color: #aaa; max-width: 320px; text-align: left !important; }
+        .volant-footer-contact-list li { list-style: none; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.85rem; color: #aaa; text-align: left !important; }
+        .volant-footer-contact-list li i { color: #4b2aad; min-width: 16px; }
+        .volant-footer-bottom { border-top: 1px solid #2a2a44; max-width: 1200px; margin: 0 auto; padding: 14px 20px 0; text-align: left !important; }
+        .volant-footer-bottom small { font-size: 0.8rem; color: #6b6b8e; }
+        @media (max-width: 768px) {
+            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 25px; }
+            .manage-page { padding: 26px 0 48px; }
+            .page-head h1 { font-size: 1.55rem; }
+            .page-head h1 i { width: 40px; height: 40px; font-size: 1rem; border-radius: 12px; }
+            .manage-row { flex-wrap: wrap; }
+            .manage-actions { width: 100%; display: flex; flex-wrap: wrap; }
+            .manage-actions .btn-view,
+            .manage-actions .btn-edit,
+            .manage-actions .btn-toggle-status { flex: 1 1 calc(50% - 4px); justify-content: center; }
+            .manage-actions .btn-danger-icon { margin-left: auto; }
+            .edit-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            #volant-footer-container { grid-template-columns: 1fr; }
+            .manage-page { padding: 20px 0 40px; }
+            .page-head { margin-bottom: 18px; }
+            .page-head .count-chip { font-size: 0.7rem; padding: 5px 12px; }
+            .lib-greeting { font-size: 0.98rem; }
+            .lib-greeting strong { font-size: 1.08rem; }
+            .manage-row { padding: 14px; gap: 12px; }
+            .cover-tile { width: 48px; height: 48px; border-radius: 10px; }
+            .manage-meta { gap: 10px 14px; }
+            .manage-actions .btn-view,
+            .manage-actions .btn-edit,
+            .manage-actions .btn-toggle-status { font-size: 0.74rem; padding: 8px 12px; }
+            .manage-editor { padding: 16px; }
+            .modal-card { padding: 26px 20px; }
+            .modal-card p { font-size: 0.82rem; }
+            .modal-actions .btn-danger,
+            .modal-actions .btn-cancel-modal { flex: 1; justify-content: center; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="index.html" class="logo">
+                <img src="https://volantpoetry.vercel.app/images/logokk.png" alt="Volant Lyrics Logo" />
+                <span class="logo-text"><span class="logo-highlight">Volant</span> Lyrics</span>
+            </a>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Marketplace</a></li>
+                <li><a href="library.html">My Library</a></li>
+                <li><a href="submit.html">Sell Lyrics</a></li>
+                <li class="nav-sign-out"><a href="#" id="mobileSignOutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</a></li>
+            </ul>
+
+            <div class="nav-right">
+                <button class="btn-signout-nav" id="desktopSignOutBtn" title="Sign out">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <div class="user-badge" id="userBadge">
+                    <div class="avatar-small" id="userAvatar"></div>
+                    <span id="userName">Guest</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="manage-page" id="managePage">
+        <div class="container">
+            <div class="center-state" id="stateArea">
+                <div class="spinner"></div>
+                <h2>Loading your listings...</h2>
+            </div>
+        </div>
+    </main>
+
+    <footer id="volant-footer">
+        <div id="volant-footer-container">
+            <div class="volant-footer-col volant-footer-brand">
+                <div class="logo">
+                    <img src="https://volantpoetry.vercel.app/images/logokk.png" alt="Volant Lyrics Logo" />
+                    <span class="logo-text"><span class="logo-highlight">Volant</span> Lyrics</span>
+                </div>
+                <p class="volant-footer-desc">A marketplace for original song lyrics. Discover, purchase, and sell lyrics from talented songwriters.</p>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Explore</h4>
+                <a href="index.html">Marketplace</a>
+                <a href="library.html">My Library</a>
+                <a href="submit.html">Sell Lyrics</a>
+                <a href="mailto:reach.volant@gmail.com">Contact</a>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Platforms</h4>
+                <a href="https://volantpoetry.vercel.app/volant_foundry/">Volant Foundry</a>
+                <a href="https://volantpoetry.vercel.app/">Volant Poetry</a>
+                <a href="https://volantpoetry.vercel.app/store/">Volant Reads</a>
+                <a href="https://volantcodes.vercel.app/">Volant Codes</a>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Connect</h4>
+                <div class="volant-footer-contact-list">
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:reach.volant@gmail.com">reach.volant@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <a href="tel:+233245691423">+233 24 569 1423</a></li>
+                    <li><i class="fas fa-map-marker-alt"></i> Kumasi, Ghana</li>
+                </div>
+            </div>
+        </div>
+        <div class="volant-footer-bottom">
+            <small>&copy; <span id="year"></span> Volant Lyrics. All rights reserved.</small>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
+
+    <!-- ===== DELETE CONFIRM MODAL ===== -->
+    <div class="modal-backdrop" id="deleteModal">
+        <div class="modal-card">
+            <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+            <h3>Delete this listing?</h3>
+            <p>This permanently removes <strong id="deleteTitle"></strong> from the marketplace. Books already purchased stay with their owners. This cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn-cancel-modal" onclick="closeDeleteModal()"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteListing()"><i class="fas fa-trash-alt"></i> Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== FIREBASE CONFIG =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4DHI8aBVY4JjTvJ-r-TGIDPsewtEWxzU",
+            authDomain: "silent-depth.firebaseapp.com",
+            projectId: "silent-depth",
+            storageBucket: "silent-depth.appspot.com",
+            messagingSenderId: "78008755450",
+            appId: "1:78008755450:web:3fd0f0f298a08820935543"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // ===== STATE =====
+        let currentUser = null;
+        let currentDisplayName = '';
+        let userDocData = null;
+
+        // ===== UTILITIES =====
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+
+        function formatPrice(price, currency) {
+            const p = Number(price);
+            if (!p || p <= 0) return 'Free';
+            if (currency === 'USD') return `$${p.toFixed(2)}`;
+            return `GHS ${p.toFixed(2)}`;
+        }
+
+        function genreGradient(genre) {
+            const g = (genre || '').toLowerCase().trim();
+            const map = {
+                'pop': 'linear-gradient(135deg,#e91e63,#ff6090)',
+                'rock': 'linear-gradient(135deg,#37474f,#78909c)',
+                'hiphop': 'linear-gradient(135deg,#f9a825,#ff6f00)',
+                'hip-hop': 'linear-gradient(135deg,#f9a825,#ff6f00)',
+                'rnb': 'linear-gradient(135deg,#ad1457,#ea80fc)',
+                'r&b': 'linear-gradient(135deg,#ad1457,#ea80fc)',
+                'gospel': 'linear-gradient(135deg,#2e7d32,#81c784)',
+                'afrobeat': 'linear-gradient(135deg,#c62828,#ff8a65)',
+                'jazz': 'linear-gradient(135deg,#283593,#82b1ff)',
+                'country': 'linear-gradient(135deg,#795548,#d7ccc8)',
+                'electronic': 'linear-gradient(135deg,#00acc1,#4dd0e1)',
+                'folk': 'linear-gradient(135deg,#558b2f,#aed581)',
+                'other': 'linear-gradient(135deg,#4b2aad,#7a5cff)'
+            };
+            return map[g] || 'linear-gradient(135deg,#4b2aad,#7a5cff)';
+        }
+
+        function genreDisplay(genre) {
+            const g = (genre || 'other').toLowerCase().trim();
+            const map = {
+                'pop': 'Pop',
+                'rock': 'Rock',
+                'hiphop': 'Hip-Hop',
+                'hip-hop': 'Hip-Hop',
+                'rnb': 'R&B / Soul',
+                'r&b': 'R&B / Soul',
+                'gospel': 'Gospel',
+                'afrobeat': 'Afrobeat',
+                'jazz': 'Jazz',
+                'country': 'Country',
+                'electronic': 'Electronic',
+                'folk': 'Folk'
+            };
+            return map[g] || genre;
+        }
+
+        function getInitials(name) {
+            if (!name || name === 'Anonymous') return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        function colorFromName(name) {
+            if (!name) return '#4b2aad';
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = Math.abs(hash) % 360;
+            return `hsl(${hue}, 65%, 50%)`;
+        }
+
+        function dateLabel(ts) {
+            if (!ts || !ts.toDate) return '—';
+            return ts.toDate().toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // ===== TOAST =====
+        let toastTimer = null;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMsg');
+            if (!toast || !msgEl) return;
+            msgEl.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ===== SIGN OUT =====
+        function setSignOutVisibility(hasUser) {
+            const desktopBtn = document.getElementById('desktopSignOutBtn');
+            const mobileBtn = document.getElementById('mobileSignOutBtn');
+            if (desktopBtn) desktopBtn.style.display = hasUser ? 'inline-flex' : 'none';
+            const mobileLi = mobileBtn ? mobileBtn.closest('.nav-sign-out') : null;
+            if (mobileLi) mobileLi.style.display = hasUser ? '' : 'none';
+        }
+        function signOutUser() {
+            if (auth && auth.signOut) {
+                auth.signOut()
+                    .then(() => { window.location.reload(); })
+                    .catch(() => { window.location.reload(); });
+            } else {
+                window.location.reload();
+            }
+        }
+        const desktopSignOutBtn = document.getElementById('desktopSignOutBtn');
+        if (desktopSignOutBtn) desktopSignOutBtn.addEventListener('click', signOutUser);
+        const mobileSignOutBtn = document.getElementById('mobileSignOutBtn');
+        if (mobileSignOutBtn) mobileSignOutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            signOutUser();
+        });
+
+        // ===== USER AVATAR =====
+        function updateUserAvatar(userData, user) {
+            const avatarEl = document.getElementById('userAvatar');
+            const nameEl = document.getElementById('userName');
+            if (!avatarEl || !nameEl) return;
+
+            let displayName = 'Guest';
+            let photoURL = null;
+
+            if (user) {
+                if (userData) {
+                    displayName = userData.username || userData.authorName || user.displayName || user.email?.split('@')[0] || 'User';
+                    photoURL = userData.photoURL || userData.cachedAvatarURL || null;
+                } else {
+                    displayName = user.displayName || user.email?.split('@')[0] || 'User';
+                    photoURL = user.photoURL || null;
+                }
+            }
+
+            currentDisplayName = displayName;
+            nameEl.textContent = displayName;
+
+            const badgeEl = avatarEl.closest('.user-badge');
+            if (badgeEl) badgeEl.title = displayName;
+
+            if (photoURL) {
+                avatarEl.style.backgroundImage = `url('${photoURL}')`;
+                avatarEl.style.backgroundSize = 'cover';
+                avatarEl.style.backgroundPosition = 'center';
+                avatarEl.textContent = '';
+            } else {
+                avatarEl.style.backgroundImage = '';
+                avatarEl.style.background = colorFromName(displayName);
+                avatarEl.textContent = getInitials(displayName === 'Guest' ? '?' : displayName);
+                avatarEl.style.color = 'white';
+                avatarEl.style.fontSize = '0.65rem';
+            }
+        }
+
+        // ===== RENDER =====
+        function renderListings(items) {
+            const page = document.getElementById('managePage');
+            const liveCount = items.filter(i => i.status === 'active').length;
+
+            page.innerHTML = `
+                <div class="container">
+                    <div class="page-head">
+                        <div>
+                            <p class="lib-greeting">Welcome back, <strong>${escapeHtml(currentDisplayName || 'there')}</strong></p>
+                            <h1><i class="fas fa-edit"></i> Manage My Lyrics</h1>
+                        </div>
+                        <span class="count-chip">${liveCount} live / ${items.length} total</span>
+                    </div>
+
+                    ${tabsHTML('lyrics')}
+
+                    <div class="manage-list">
+                        ${items.map(item => `
+                            <div class="manage-card ${item.editing ? 'editing' : ''}" id="card-${item.id}">
+                                <div class="manage-row">
+                                    <div class="cover-tile" style="background:${genreGradient(item.genre)};">
+                                        <i class="fas fa-music"></i>
+                                    </div>
+                                    <div class="manage-info">
+                                        <div class="manage-title">${escapeHtml(item.title)}</div>
+                                        <div class="manage-artist"><i class="fas fa-user"></i> ${escapeHtml(item.artist)}</div>
+                                        <div class="manage-meta">
+                                            <span><i class="fas fa-calendar-alt"></i> ${escapeHtml(dateLabel(item.createdAt))}</span>
+                                            <span><i class="fas fa-tag"></i> ${escapeHtml(genreDisplay(item.genre))}</span>
+                                            <span><i class="fas fa-receipt"></i> ${escapeHtml(formatPrice(item.price, item.currency))}</span>
+                                            ${item.audioSampleUrl ? `<span><i class="fas fa-headphones"></i> Audio sample</span>` : ''}
+                                        </div>
+                                    </div>
+                                    <span class="status-badge ${item.status === 'active' ? 'active' : 'hidden'}">
+                                        ${item.status === 'active' ? 'Listed' : 'Hidden'}
+                                    </span>
+                                    <div class="manage-actions">
+                                        <button class="btn-view" onclick="location.href='details.html?id=${encodeURIComponent(item.id)}'">
+                                            <i class="fas fa-external-link-alt"></i> View
+                                        </button>
+                                        <button class="btn-edit" onclick="toggleEditor('${item.id}')">
+                                            <i class="fas fa-pen"></i> ${item.editing ? 'Close' : 'Edit'}
+                                        </button>
+                                        <button class="btn-toggle-status" onclick="delistOrRelist('${item.id}')" title="${item.status === 'active' ? 'Hide from marketplace' : 'Show on marketplace'}">
+                                            <i class="fas ${item.status === 'active' ? 'fa-eye-slash' : 'fa-eye'}"></i> ${item.status === 'active' ? 'Delist' : 'Relist'}
+                                        </button>
+                                        <button class="btn-danger-icon" title="Delete listing" onclick="openDeleteModal('${item.id}')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="manage-editor ${item.editing ? 'open' : ''}">
+                                    <div class="editor-head"><i class="fas fa-pen"></i> Update Listing</div>
+                                    <form id="edit-${item.id}" onsubmit="event.preventDefault(); saveListing('${item.id}', this)">
+                                        <div class="edit-grid">
+                                            <div class="edit-field">
+                                                <label>Song Title</label>
+                                                <input type="text" name="title" value="${escapeHtml(item.title)}" required maxlength="120" />
+                                            </div>
+                                            <div class="edit-field">
+                                                <label>Artist / Writer Name</label>
+                                                <input type="text" name="artist" value="${escapeHtml(item.artist)}" required maxlength="120" />
+                                            </div>
+                                            <div class="edit-field">
+                                                <label>Genre</label>
+                                                <select name="genre">
+                                                    ${genreOptions(item.genre)}
+                                                </select>
+                                            </div>
+                                            <div class="edit-field">
+                                                <label>Price</label>
+                                                <div class="edit-row">
+                                                    <input type="number" name="price" value="${Number(item.price) || ''}" min="0.01" step="0.01" required style="flex:1;min-width:0;" />
+                                                    <select name="currency">
+                                                        <option value="GHS" ${item.currency === 'USD' ? '' : 'selected'}>GHS</option>
+                                                        <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="edit-field">
+                                                <label>Listing Status</label>
+                                                <select name="status">
+                                                    <option value="active" ${item.status === 'active' ? 'selected' : ''}>Listed (visible on marketplace)</option>
+                                                    <option value="hidden" ${item.status === 'hidden' ? 'selected' : ''}>Hidden (not visible)</option>
+                                                </select>
+                                            </div>
+                                            <div class="edit-field">
+                                                <label>Description</label>
+                                                <input type="text" name="description" value="${escapeHtml(item.description || '')}" maxlength="300" />
+                                            </div>
+                                            <div class="edit-field full">
+                                                <label>Full Lyrics</label>
+                                                <textarea name="lyrics" required minlength="20">${escapeHtml(item.lyrics || '')}</textarea>
+                                            </div>
+                                            <div class="edit-field full">
+                                                <label>Audio Sample Link <span style="font-weight:400;font-size:0.7rem;color:#9a8f82;">(optional)</span></label>
+                                                <input type="url" name="audioUrl" value="${escapeHtml(item.audioSampleUrl || '')}" placeholder="https://your-sample.mp3" />
+                                                <div class="audio-device-row">
+                                                    <label class="audio-file-pick" for="audioFileEdit-${item.id}"><i class="fas fa-cloud-upload-alt"></i> Upload from device</label>
+                                                    <input type="file" id="audioFileEdit-${item.id}" class="audio-file-input" accept="audio/*" onchange="audioFileEditSelected('${item.id}', this)" />
+                                                </div>
+                                                <div class="audio-msg" id="audioMsgEdit-${item.id}"></div>
+                                                <div class="hint">Paste a link or upload a short preview from your device (max 5 MB; larger files are auto-trimmed to 30 seconds). Leave the link empty to remove the sample.</div>
+                                            </div>
+                                        </div>
+                                        <div class="editor-actions">
+                                            <button type="submit" class="btn-save" id="save-${item.id}"><i class="fas fa-check"></i> Save Changes</button>
+                                            <button type="button" class="btn-cancel" onclick="toggleEditor('${item.id}')"><i class="fas fa-times"></i> Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function genreOptions(selected) {
+            const list = [
+                ['pop', 'Pop'],
+                ['rock', 'Rock'],
+                ['hiphop', 'Hip-Hop'],
+                ['rnb', 'R&B / Soul'],
+                ['gospel', 'Gospel'],
+                ['afrobeat', 'Afrobeat'],
+                ['jazz', 'Jazz'],
+                ['country', 'Country'],
+                ['electronic', 'Electronic'],
+                ['folk', 'Folk'],
+                ['other', 'Other']
+            ];
+            const sel = (selected || 'other').toLowerCase().trim();
+            return list.map(([v, label]) =>
+                `<option value="${v}" ${sel === v ? 'selected' : ''}>${label}</option>`
+            ).join('');
+        }
+
+        let listingCache = [];
+
+        async function delistOrRelist(id) {
+            const entry = listingCache.find(i => i.id === id);
+            if (!entry) return;
+            const next = entry.status === 'active' ? 'hidden' : 'active';
+            try {
+                await db.collection('volant-lyrics').doc(id).update({
+                    status: next,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                entry.status = next;
+                entry.editing = false;
+                renderListings(listingCache);
+                showToast(next === 'active' ? 'Listing is now live on the marketplace.' : 'Listing delisted (hidden from marketplace).');
+            } catch (error) {
+                console.error('Error toggling listing status:', error);
+                showToast('Could not update. Please try again.');
+            }
+        }
+
+        let pendingDeleteId = null;
+        function openDeleteModal(id) {
+            pendingDeleteId = id;
+            const entry = listingCache.find(i => i.id === id);
+            const titleEl = document.getElementById('deleteTitle');
+            if (titleEl) titleEl.textContent = entry ? `"${entry.title}"` : 'this listing';
+            const modal = document.getElementById('deleteModal');
+            if (modal) modal.classList.add('show');
+        }
+        function closeDeleteModal() {
+            pendingDeleteId = null;
+            const modal = document.getElementById('deleteModal');
+            if (modal) modal.classList.remove('show');
+        }
+        async function confirmDeleteListing() {
+            if (!pendingDeleteId) return;
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            try {
+                await db.collection('volant-lyrics').doc(pendingDeleteId).delete();
+                listingCache = listingCache.filter(i => i.id !== pendingDeleteId);
+                closeDeleteModal();
+                if (listingCache.length === 0) {
+                    renderEmpty();
+                } else {
+                    renderListings(listingCache);
+                }
+                showToast('Listing deleted.');
+            } catch (error) {
+                console.error('Error deleting listing:', error);
+                showToast('Could not delete. Please try again.');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+        }
+
+        function renderEmpty() {
+            const page = document.getElementById('managePage');
+            page.innerHTML = `
+                <div class="container">
+                    ${tabsHTML('lyrics')}
+                    <div class="center-state">
+                        <div class="state-icon"><i class="fas fa-pen-nib"></i></div>
+                        <h2>You haven't listed any lyrics yet</h2>
+                        <p>When you submit lyrics for sale they will appear here, ready to edit whenever you need.</p>
+                        <a href="submit.html" class="btn-primary"><i class="fas fa-paper-plane"></i> List Your First Lyric</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleEditor(id) {
+            const card = document.getElementById('card-' + id);
+            if (!card) return;
+            const entry = listingCache.find(i => i.id === id);
+            if (entry) entry.editing = !entry.editing;
+            renderListings(listingCache);
+        }
+
+        // ===== AUDIO SAMPLE (EDIT PANEL) =====
+        const PAYSTACK_API_BASE = 'https://volantpoetry.vercel.app/api';
+        const AUDIO_MAX_BYTES = 5 * 1024 * 1024;
+        const AUDIO_MAX_DURATION_SEC = 30;
+        const AUDIO_CLOUD_NAME = 'dzoq4pgjn';
+        const AUDIO_UPLOAD_PRESET = 'audio_samples';
+
+        function setAudioMsg(id, type, text) {
+            const el = document.getElementById('audioMsgEdit-' + id);
+            if (!el) return;
+            if (text) {
+                el.className = 'audio-msg ' + type + ' show';
+                el.innerHTML = text;
+            } else {
+                el.className = 'audio-msg';
+                el.textContent = '';
+            }
+        }
+
+        function audioFileEditSelected(id, input) {
+            const file = input.files && input.files[0];
+            const urlBox = document.querySelector('form#edit-' + id + ' input[name="audioUrl"]');
+            if (!file) return;
+
+            const isAudioType = file.type.startsWith('audio/');
+            const isAudioName = /\.(mp3|m4a|aac|wav|ogg|oga|flac|wma|aiff|opus|webm)$/i.test(file.name);
+            if (!isAudioType && !isAudioName) {
+                setAudioMsg(id, 'warn', 'Please choose an audio file (MP3, M4A, WAV...).');
+                input.value = '';
+                return;
+            }
+            if (file.size <= AUDIO_MAX_BYTES) {
+                uploadAudioForEdit(id, input, file);
+                return;
+            }
+            setAudioMsg(id, 'info', '<i class="fas fa-spinner fa-spin"></i> Over 5 MB — trimming to the first 30 seconds...');
+            trimAndCompressAudio(file)
+                .then(trimmed => {
+                    uploadAudioForEdit(id, input, trimmed);
+                })
+                .catch(() => {
+                    input.value = '';
+                    setAudioMsg(id, 'warn', '<i class="fas fa-exclamation-circle"></i> This file is <strong>over the 5 MB limit</strong>. Trim it to 15–30 seconds on your device and re-select, or paste a hosted link instead.');
+                });
+        }
+
+        function uploadAudioForEdit(id, input, file) {
+            const urlBox = document.querySelector('form#edit-' + id + ' input[name="audioUrl"]');
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', AUDIO_UPLOAD_PRESET);
+            setAudioMsg(id, 'info', '<i class="fas fa-spinner fa-spin"></i> Uploading your sample...');
+            fetch('https://api.cloudinary.com/v1_1/' + AUDIO_CLOUD_NAME + '/video/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('upload failed');
+                    return res.json();
+                })
+                .then(data => {
+                    urlBox.value = data.secure_url;
+                    input.value = '';
+                    const mb = (file.size / (1024 * 1024)).toFixed(2);
+                    setAudioMsg(id, 'success', '<i class="fas fa-check"></i> Sample attached (' + file.name + ', ' + mb + ' MB). <a href="javascript:void(0)" onclick="clearAudioEdit(\'' + id + '\')" style="color:inherit;text-decoration:underline;">Remove</a>');
+                })
+                .catch(() => {
+                    input.value = '';
+                    setAudioMsg(id, 'warn', '<i class="fas fa-times-circle"></i> Could not upload your sample. Please paste a hosted link instead.');
+                });
+        }
+
+        function clearAudioEdit(id) {
+            const urlBox = document.querySelector('form#edit-' + id + ' input[name="audioUrl"]');
+            const fileInput = document.getElementById('audioFileEdit-' + id);
+            if (urlBox) urlBox.value = '';
+            if (fileInput) fileInput.value = '';
+            setAudioMsg(id, '', '');
+        }
+
+        // Trims audio to the first 30 seconds and re-encodes to a compact webm/opus file.
+        function trimAndCompressAudio(file) {
+            return new Promise((resolve, reject) => {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext || !window.MediaRecorder) { reject(new Error('unsupported')); return; }
+                try {
+                    const ctx = new AudioContext();
+                    file.arrayBuffer()
+                        .then(buf => new Promise((res, rej) => ctx.decodeAudioData(buf, res, rej)))
+                        .then(async (buffer) => {
+                            const dur = Math.min(buffer.duration, AUDIO_MAX_DURATION_SEC);
+                            const channels = Math.max(1, Math.min(buffer.numberOfChannels, 2));
+                            const length = Math.floor(buffer.sampleRate * dur);
+                            const trimmed = ctx.createBuffer(channels, length, buffer.sampleRate);
+                            const t0 = trimmed.getChannelData(0);
+                            const src0 = buffer.getChannelData(0);
+                            for (let i = 0; i < length; i++) t0[i] = src0[i];
+                            if (channels === 2 && buffer.numberOfChannels >= 2) {
+                                const t1 = trimmed.getChannelData(1);
+                                const src1 = buffer.getChannelData(1);
+                                for (let i = 0; i < length; i++) t1[i] = src1[i];
+                            }
+                            const source = ctx.createBufferSource();
+                            source.buffer = trimmed;
+                            const dest = ctx.createMediaStreamDestination();
+                            source.connect(dest);
+                            source.start(0);
+                            try { await ctx.resume(); } catch (e) { }
+                            const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+                            let mimeType = '';
+                            for (const mt of mimeTypes) {
+                                if (window.MediaRecorder.isTypeSupported(mt)) { mimeType = mt; break; }
+                            }
+                            const rec = new MediaRecorder(dest.stream, mimeType ? { mimeType: mimeType } : undefined);
+                            const chunks = [];
+                            rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+                            rec.onstop = () => {
+                                const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+                                source.stop();
+                                ctx.close().catch(() => {});
+                                if (blob.size > 0 && blob.size < AUDIO_MAX_BYTES) {
+                                    const ext = /mp4/.test(blob.type) ? '.m4a' : '.webm';
+                                    resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + ext, { type: blob.type }));
+                                } else {
+                                    reject(new Error('compressed too large'));
+                                }
+                            };
+                            rec.onerror = () => { source.stop(); ctx.close().catch(() => {}); reject(new Error('recorder error')); };
+                            rec.start();
+                            setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, Math.ceil(dur * 1000) + 500);
+                        })
+                        .catch(reject);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        async function saveListing(id, form) {
+            const btn = document.getElementById('save-' + id);
+            if (!btn) return;
+
+            const title = form.title.value.trim();
+            const artist = form.artist.value.trim();
+            const price = parseFloat(form.price.value);
+            const currency = form.currency.value;
+            const lyrics = form.lyrics.value.trim();
+            const status = form.status.value;
+            const audioUrl = (form.audioUrl ? form.audioUrl.value.trim() : '') || null;
+
+            if (!title) { showToast('Song title is required.'); return; }
+            if (!artist) { showToast('Artist name is required.'); return; }
+            if (!price || price <= 0) { showToast('Please enter a valid price.'); return; }
+            if (lyrics.length < 20) { showToast('Full lyrics must be at least 20 characters.'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                await db.collection('volant-lyrics').doc(id).update({
+                    title,
+                    artist,
+                    genre: form.genre.value,
+                    price,
+                    priceCurrency: currency,
+                    lyrics,
+                    description: form.description.value.trim() || '',
+                    status,
+                    hasAudio: !!audioUrl,
+                    audioSampleUrl: audioUrl,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                const entry = listingCache.find(i => i.id === id);
+                if (entry) {
+                    entry.title = title;
+                    entry.artist = artist;
+                    entry.genre = form.genre.value;
+                    entry.price = price;
+                    entry.currency = currency;
+                    entry.lyrics = lyrics;
+                    entry.description = form.description.value.trim() || '';
+                    entry.status = status;
+                    entry.hasAudio = !!audioUrl;
+                    entry.audioSampleUrl = audioUrl;
+                    entry.editing = false;
+                }
+
+                renderListings(listingCache);
+                showToast('Listing updated successfully.');
+            } catch (error) {
+                console.error('Error updating listing:', error);
+                showToast('Could not update. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Save Changes';
+            }
+        }
+
+        // ===== SETTINGS VIEW =====
+        function tabsHTML(active) {
+            return `
+                <div class="manage-tabs">
+                    <button class="manage-tab ${active === 'lyrics' ? 'active' : ''}" onclick="showView('lyrics')"><i class="fas fa-edit"></i> My Lyrics</button>
+                    <button class="manage-tab ${active === 'settings' ? 'active' : ''}" onclick="showView('settings')"><i class="fas fa-cog"></i> Account Settings</button>
+                </div>
+            `;
+        }
+
+        function showView(view) {
+            if (view === 'settings') {
+                renderSettings();
+            } else {
+                if (listingCache.length === 0) renderEmpty();
+                else renderListings(listingCache);
+            }
+        }
+
+        function countryOptions(selected) {
+            const list = ['Ghana', 'Nigeria', 'South Africa', 'Kenya', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'France', 'Spain', 'Italy', 'Portugal', 'Brazil', 'Mexico', 'India', 'Other'];
+            const sel = (selected || '').trim().toLowerCase();
+            return `<option value="">Select country</option>` + list.map(c =>
+                `<option value="${c}" ${sel === c.toLowerCase() ? 'selected' : ''}>${c}</option>`
+            ).join('');
+        }
+
+        function bankOptions(selected) {
+            const list = [
+                ['gcb', 'GCB Bank'], ['ecobank', 'Ecobank Ghana'], ['standard chartered', 'Standard Chartered'],
+                ['absa', 'ABSA Bank'], ['republic', 'Republic Bank'], ['fidelity', 'Fidelity Bank'],
+                ['first atlantic', 'First Atlantic Bank'], ['access', 'Access Bank'], ['zenith', 'Zenith Bank'],
+                ['uba', 'UBA Ghana'], ['gtbank', 'GTBank'], ['stanbic', 'Stanbic Bank'],
+                ['prudential', 'Prudential Bank'], ['fbn', 'FBN Bank'], ['bank of africa', 'Bank of Africa']
+            ];
+            const sel = (selected || '').toLowerCase().trim();
+            return `<option value="">Select your bank</option>` + list.map(([v, label]) =>
+                `<option value="${v}" ${sel === v ? 'selected' : ''}>${label}</option>`
+            ).join('');
+        }
+
+        function getBankCode(bankName) {
+            const codes = {
+                'gcb': '058', 'ecobank': '050', 'standard chartered': '052', 'absa': '070',
+                'republic': '061', 'fidelity': '059', 'first atlantic': '054', 'access': '064',
+                'zenith': '057', 'uba': '075', 'gtbank': '056', 'stanbic': '076',
+                'prudential': '060', 'fbn': '071', 'bank of africa': '066'
+            };
+            return codes[(bankName || '').toLowerCase().trim()] || null;
+        }
+
+        function renderSettings() {
+            const page = document.getElementById('managePage');
+            const ud = userDocData || {};
+            const liveCount = listingCache.filter(i => i.status === 'active').length;
+            const hiddenCount = listingCache.filter(i => i.status === 'hidden').length;
+            const totalValue = listingCache.reduce((s, i) => s + (Number(i.price) || 0), 0);
+            const payout = ud.payoutDetails || null;
+            const hasSub = !!(ud.lyricsSubaccountCode);
+            const displayName = currentDisplayName || (currentUser && currentUser.email ? currentUser.email.split('@')[0] : 'User');
+            const accountPhoto = ud.photoURL || ud.cachedAvatarURL || null;
+
+            page.innerHTML = `
+                <div class="container">
+                    <div class="page-head">
+                        <div>
+                            <p class="lib-greeting">Welcome back, <strong>${escapeHtml(currentDisplayName || 'there')}</strong></p>
+                            <h1><i class="fas fa-cog"></i> Manage My Lyrics</h1>
+                        </div>
+                        <span class="count-chip">${liveCount} live / ${listingCache.length} total</span>
+                    </div>
+
+                    ${tabsHTML('settings')}
+
+                    <div class="settings-wrap">
+
+                        <div class="settings-card">
+                            <h3><i class="fas fa-user-circle"></i> Profile Settings</h3>
+                            <p class="sc-sub">Your public profile across Volant platforms.</p>
+                            <div class="settings-grid">
+                                <div class="settings-group">
+                                    <label>Username <span class="req">*</span></label>
+                                    <input type="text" id="setUsername" value="${escapeHtml(ud.username || '')}" placeholder="3-11 characters" maxlength="11" />
+                                    <div class="hint">Shown in the marketplace and on your songwriter card.</div>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Email Address</label>
+                                    <input type="email" id="setEmail" value="${escapeHtml((currentUser && currentUser.email) || '')}" disabled />
+                                    <div class="hint">Your login email — managed by Volant.</div>
+                                </div>
+                                <div class="settings-group full">
+                                    <label>Bio</label>
+                                    <textarea id="setBio" placeholder="A short note about you...">${escapeHtml(ud.bio || '')}</textarea>
+                                </div>
+                            </div>
+                            <button class="btn-settings-save" id="saveProfileBtn" onclick="saveProfileSettings()"><i class="fas fa-save"></i> Save Profile</button>
+                        </div>
+
+                        <div class="settings-card">
+                            <h3><i class="fas fa-feather-alt"></i> Songwriter Profile</h3>
+                            <p class="sc-sub">How you appear as a songwriter on listings and detail pages.</p>
+                            <div class="settings-grid">
+                                <div class="settings-group">
+                                    <label>Songwriter Name <span class="req">*</span></label>
+                                    <input type="text" id="setAuthorName" value="${escapeHtml(ud.authorName || '')}" placeholder="Pen name or your name" maxlength="40" />
+                                    <div class="hint">This name is shown as the songwriter on your sold lyrics.</div>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Country</label>
+                                    <select id="setCountry">${countryOptions(ud.country)}</select>
+                                </div>
+                                <div class="settings-group full">
+                                    <label>Songwriter Bio</label>
+                                    <textarea id="setAuthorBio" placeholder="Tell buyers about you as a songwriter...">${escapeHtml(ud.lyricsBio || '')}</textarea>
+                                    <div class="hint">Shown only on Volant Lyrics — doesn't affect your bio on other Volant platforms.</div>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Phone Contact</label>
+                                    <input type="tel" id="setPhone" value="${escapeHtml(ud.phoneNumber || '')}" placeholder="+233 24 444 4444" />
+                                </div>
+                                <div class="settings-group">
+                                    <label>Buyer Contact Email</label>
+                                    <input type="email" id="setGmail" value="${escapeHtml(ud.gmail || '')}" placeholder="contact@example.com" />
+                                    <div class="hint">Buyers can reach you here about purchased lyrics.</div>
+                                </div>
+                            </div>
+                            <button class="btn-settings-save" id="saveSongwriterBtn" onclick="saveSongwriterSettings()"><i class="fas fa-save"></i> Save Songwriter Profile</button>
+                        </div>
+
+                        <div class="settings-card">
+                            <h3><i class="fas fa-wallet"></i> Payout &amp; Earnings</h3>
+                            <p class="sc-sub">Receive your earnings from lyric sales. You keep 90% of every sale (10% platform commission).</p>
+
+                            <div class="stats-grid">
+                                <div class="stat-tile"><div class="stat-num">${listingCache.length}</div><div class="stat-label">Total Listings</div></div>
+                                <div class="stat-tile"><div class="stat-num">${liveCount}</div><div class="stat-label">Live Now</div></div>
+                                <div class="stat-tile"><div class="stat-num">${hiddenCount}</div><div class="stat-label">Hidden</div></div>
+                                <div class="stat-tile"><div class="stat-num">${formatPrice(totalValue, 'GHS').replace('GHS ', '')}</div><div class="stat-label">Listed Value (GHS)</div></div>
+                            </div>
+
+                            <div class="payout-status-badge ${hasSub ? 'active' : 'missing'}">
+                                <i class="fas ${hasSub ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                                ${hasSub ? 'Payout account active' : 'No payout account set up yet'}
+                            </div>
+
+                            <div class="payout-type-row">
+                                <label>
+                                    <input type="radio" name="payoutType" value="bank" ${!payout || payout.type === 'bank' ? 'checked' : ''} />
+                                    <span class="payout-type-box"><i class="fas fa-university"></i> Bank Account</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="payoutType" value="momo" ${payout && payout.type === 'momo' ? 'checked' : ''} />
+                                    <span class="payout-type-box"><i class="fas fa-mobile-alt"></i> Mobile Money</span>
+                                </label>
+                            </div>
+
+                            <div id="bankFields" style="margin-top:16px;">
+                                <div class="settings-grid">
+                                    <div class="settings-group">
+                                        <label>Bank Name</label>
+                                        <select id="setBankName">${bankOptions(payout && payout.bankName)}</select>
+                                    </div>
+                                    <div class="settings-group">
+                                        <label>Account Number</label>
+                                        <input type="text" id="setAccountNumber" value="${escapeHtml((payout && payout.accountNumber) || '')}" placeholder="0123456789" />
+                                    </div>
+                                    <div class="settings-group">
+                                        <label>Account Holder Name</label>
+                                        <input type="text" id="setAccountHolder" value="${escapeHtml((payout && payout.accountHolderName) || '')}" placeholder="Full name on account" />
+                                    </div>
+                                    <div class="settings-group">
+                                        <label>Bank Code</label>
+                                        <input type="text" id="setBankCode" value="${escapeHtml((payout && payout.bankCode) || '')}" placeholder="Auto-detected from bank name" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="momoFields" style="margin-top:16px;display:none;">
+                                <div class="settings-grid">
+                                    <div class="settings-group">
+                                        <label>Mobile Money Network</label>
+                                        <select id="setMomoNetwork">
+                                            <option value="mtn" ${payout && payout.network === 'mtn' ? 'selected' : ''}>MTN MoMo</option>
+                                            <option value="vodafone" ${payout && payout.network === 'vodafone' ? 'selected' : ''}>Vodafone Cash</option>
+                                            <option value="tigo" ${payout && payout.network === 'tigo' ? 'selected' : ''}>AirtelTigo Money</option>
+                                        </select>
+                                    </div>
+                                    <div class="settings-group">
+                                        <label>Phone Number</label>
+                                        <input type="tel" id="setMomoNumber" value="${escapeHtml((payout && payout.phoneNumber) || '')}" placeholder="024XXXXXXX" maxlength="10" />
+                                        <div class="hint">e.g., 024XXXXXXX</div>
+                                    </div>
+                                    <div class="settings-group">
+                                        <label>Account Holder Name</label>
+                                        <input type="text" id="setMomoHolder" value="${escapeHtml((payout && payout.accountHolderName) || '')}" placeholder="Full name on MoMo account" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="btn-settings-save" id="savePayoutBtn" onclick="savePayoutSettings()" style="background:#2d7d46;">${hasSub ? '<i class="fas fa-sync-alt"></i> Update Payout Account' : '<i class="fas fa-check-circle"></i> Activate Payout Account'}</button>
+                        </div>
+
+                        <div class="settings-card">
+                            <h3><i class="fas fa-shield-alt"></i> Your Account</h3>
+                            <p class="sc-sub">Session and login details.</p>
+                            <div class="account-note">
+                                <div class="av" ${accountPhoto ? `style="background-image:url('${accountPhoto}');background-size:cover;background-position:center;"` : ''}>${accountPhoto ? '' : getInitials(displayName)}</div>
+                                <div class="info">
+                                    <div class="nm">${escapeHtml(displayName)}</div>
+                                    <div class="em">${escapeHtml((currentUser && currentUser.email) || 'No email on file')}</div>
+                                </div>
+                            </div>
+                            <button class="btn-settings-save" onclick="signOutUser()" style="background:#b76e4b;margin-top:16px;"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const bankFields = document.getElementById('bankFields');
+            const momoFields = document.getElementById('momoFields');
+            function syncPayoutType() {
+                const checked = document.querySelector('input[name="payoutType"]:checked');
+                const val = checked ? checked.value : 'bank';
+                bankFields.style.display = val === 'bank' ? '' : 'none';
+                momoFields.style.display = val === 'momo' ? '' : 'none';
+            }
+            document.querySelectorAll('input[name="payoutType"]').forEach(r => r.addEventListener('change', syncPayoutType));
+            syncPayoutType();
+        }
+
+        async function saveProfileSettings() {
+            const btn = document.getElementById('saveProfileBtn');
+            const username = document.getElementById('setUsername').value.trim();
+            const bio = document.getElementById('setBio').value.trim();
+            if (!currentUser) { showToast('Please sign in first.'); return; }
+            if (username.length < 3) { showToast('Please enter a username (min 3 characters).'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    username: username,
+                    bio: bio,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                userDocData = Object.assign({}, userDocData || {}, { username: username, bio: bio });
+                currentDisplayName = username;
+                showToast('Profile settings saved.');
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                showToast('Could not save profile. Please try again.');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Profile';
+            renderSettings();
+        }
+
+        async function saveSongwriterSettings() {
+            const btn = document.getElementById('saveSongwriterBtn');
+            const authorName = document.getElementById('setAuthorName').value.trim();
+            const lyricsBio = document.getElementById('setAuthorBio').value.trim();
+            const phoneNumber = document.getElementById('setPhone').value.trim();
+            const gmail = document.getElementById('setGmail').value.trim();
+            const country = document.getElementById('setCountry').value;
+            if (!currentUser) { showToast('Please sign in first.'); return; }
+            if (!authorName) { showToast('Please enter your songwriter name.'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    authorName: authorName,
+                    lyricsBio: lyricsBio,
+                    phoneNumber: phoneNumber,
+                    gmail: gmail,
+                    country: country,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                userDocData = Object.assign({}, userDocData || {}, { authorName, lyricsBio, phoneNumber, gmail, country });
+                showToast('Songwriter profile saved.');
+            } catch (error) {
+                console.error('Error saving songwriter profile:', error);
+                showToast('Could not save songwriter profile. Please try again.');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Songwriter Profile';
+            renderSettings();
+        }
+
+        async function savePayoutSettings() {
+            const btn = document.getElementById('savePayoutBtn');
+            if (!currentUser) { showToast('Please sign in first.'); return; }
+            const type = document.querySelector('input[name="payoutType"]:checked').value;
+            let payoutData = { type: type };
+
+            if (type === 'bank') {
+                const bankName = document.getElementById('setBankName').value;
+                const accountNumber = document.getElementById('setAccountNumber').value.trim();
+                const accountHolderName = document.getElementById('setAccountHolder').value.trim();
+                if (!bankName || !accountNumber || !accountHolderName) { showToast('Please fill in all bank details.'); return; }
+                const code = getBankCode(bankName);
+                if (!code) { showToast('Please select a valid bank.'); return; }
+                payoutData.bankName = bankName;
+                payoutData.accountNumber = accountNumber;
+                payoutData.accountHolderName = accountHolderName;
+                payoutData.bankCode = code;
+            } else {
+                const network = document.getElementById('setMomoNetwork').value;
+                const phoneNumber = document.getElementById('setMomoNumber').value.trim().replace(/\s/g, '');
+                const accountHolderName = document.getElementById('setMomoHolder').value.trim();
+                if (!phoneNumber || !accountHolderName) { showToast('Please fill in all mobile money details.'); return; }
+                payoutData.network = network;
+                payoutData.phoneNumber = phoneNumber;
+                payoutData.accountHolderName = accountHolderName;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Activating...';
+            try {
+                const response = await fetch(PAYSTACK_API_BASE + '/lyrics-create-subaccount', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUser.uid,
+                        email: currentUser.email || '',
+                        payoutData: payoutData,
+                        username: currentDisplayName || 'Volant Songwriter'
+                    })
+                });
+                let result = {};
+                try { result = await response.json(); } catch (err) { /* ignore */ }
+                if (!response.ok) throw new Error(result.message || `Server error: ${response.status}`);
+                if (result.success) {
+                    const updateData = {
+                        payoutDetails: Object.assign({}, payoutData, { createdAt: new Date().toISOString() }),
+                        hasLyricsPayout: true,
+                        commissionRate: 10,
+                        feeBearer: 'account'
+                    };
+                    if (result.subaccountCode) updateData.lyricsSubaccountCode = result.subaccountCode;
+                    await db.collection('users').doc(currentUser.uid).update(updateData);
+                    userDocData = Object.assign({}, userDocData || {}, updateData);
+                    showToast('Payout account activated — you keep 90% of each sale.');
+                } else {
+                    showToast(result.message || 'Failed to activate payout account.');
+                }
+            } catch (error) {
+                console.error('Payout error:', error);
+                showToast('Could not activate payout. Check your details and try again.');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle"></i> Activate Payout Account';
+            renderSettings();
+        }
+
+        // ===== LOAD LISTINGS =====
+        async function loadListings() {
+            const page = document.getElementById('managePage');
+
+            if (!currentUser) {
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="center-state">
+                            <div class="state-icon"><i class="fas fa-lock"></i></div>
+                            <h2>Sign in to manage your lyrics</h2>
+                            <p>Log in to see, edit and control every lyric you've listed on the marketplace.</p>
+                            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                                <button class="btn-primary" onclick="goLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+                                <a href="index.html" class="btn-outline"><i class="fas fa-compact-disc"></i> Browse Lyrics</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            page.innerHTML = `
+                <div class="container">
+                    <div class="center-state">
+                        <div class="spinner"></div>
+                        <h2>Loading your listings...</h2>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const snap = await db.collection('volant-lyrics')
+                    .where('submittedBy', '==', currentUser.uid)
+                    .get();
+
+                const items = [];
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    items.push({
+                        id: doc.id,
+                        title: d.title || 'Untitled',
+                        artist: d.artist || 'Anonymous',
+                        genre: d.genre || 'other',
+                        price: d.price,
+                        currency: d.priceCurrency || 'GHS',
+                        lyrics: d.lyrics || '',
+                        description: d.description || '',
+                        status: d.status || 'active',
+                        hasAudio: !!(d.hasAudio || d.audioSampleUrl),
+                        audioSampleUrl: d.audioSampleUrl || null,
+                        createdAt: d.createdAt || null
+                    });
+                });
+
+                items.sort((a, b) => {
+                    const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : 0;
+                    const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : 0;
+                    return tb - ta;
+                });
+
+                listingCache = items;
+
+                if (items.length === 0) {
+                    renderEmpty();
+                    return;
+                }
+
+                renderListings(items);
+            } catch (error) {
+                console.error('Error loading listings:', error);
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="center-state">
+                            <div class="state-icon"><i class="fas fa-exclamation-circle" style="background:#fdecea;color:#b76e4b;"></i></div>
+                            <h2>Unable to load your listings</h2>
+                            <p>Something went wrong. Please try again.</p>
+                            <button class="btn-primary" onclick="loadListings()"><i class="fas fa-redo"></i> Try Again</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function goLogin() {
+            window.location.href = 'https://volantpoetry.vercel.app/shared/universal-login.html?platform=lyrics&redirect=' + encodeURIComponent('lyrics/manage.html');
+        }
+
+        // ===== INIT =====
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (menuToggle && navLinks) {
+            menuToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+                menuToggle.innerHTML = navLinks.classList.contains('open') ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+            });
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('open');
+                    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                });
+            });
+        }
+
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) closeDeleteModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDeleteModal();
+        });
+
+        // ===== SETUP AUTH =====
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            setSignOutVisibility(!!user);
+            if (user) {
+                db.collection('users').doc(user.uid).get()
+                    .then(userDoc => {
+                        userDocData = userDoc.exists ? userDoc.data() : null;
+                        updateUserAvatar(userDocData, user);
+                    })
+                    .catch(err => {
+                        console.warn('Error fetching user:', err);
+                        userDocData = null;
+                        updateUserAvatar(null, user);
+                    });
+            } else {
+                userDocData = null;
+                updateUserAvatar(null, null);
+            }
+            loadListings();
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Volant Lyrics — My Library</title>
+    <meta name="description" content="View all lyrics you've purchased on Volant Lyrics." />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #faf9fe;
+            color: #1a1a2e;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+        a { text-decoration: none; color: inherit; }
+        img { max-width: 100%; height: auto; display: block; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f0edf5; }
+        ::-webkit-scrollbar-thumb { background: #4b2aad; border-radius: 10px; }
+
+        /* ===== HEADER ===== */
+        header {
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 !important;
+        }
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4rem;
+            width: 100%;
+            height: 100%;
+            gap: 1.5rem;
+            position: relative;
+        }
+        .logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.6rem !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+        }
+        .logo .logo-text {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.6rem !important;
+            font-weight: 700 !important;
+            color: #4b2aad !important;
+        }
+        .logo .logo-highlight {
+            color: #ffffff !important;
+            text-shadow: 0 0 2px #4b2aad, 0 0 4px #4b2aad, 0 0 6px #4b2aad !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+        .logo img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .nav-links { display: flex; gap: 24px; list-style: none; align-items: center; }
+        .nav-links a { font-weight: 650; color: #4b2aad; transition: color 0.3s; position: relative; font-size: 0.92rem; padding: 4px 0; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #4b2aad; transition: width 0.3s; }
+        .nav-links a:hover { color: #4b2aad; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a.active::after { width: 100%; }
+        .nav-cta { background: #4b2aad !important; color: white !important; padding: 10px 22px !important; border-radius: 10px !important; font-weight: 600 !important; }
+        .nav-cta::after { display: none !important; }
+        .nav-cta:hover { background: #3a1f8a !important; transform: translateY(-2px); }
+        .menu-toggle { display: none; font-size: 1.6rem; cursor: pointer; background: none; border: none; color: #4b2aad !important; padding: 8px; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 4px;
+            border-radius: 30px;
+            background: #f5f0ff;
+            border: 1px solid #ede8ff;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #4b2aad;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .user-badge:hover { background: #ede8ff; border-color: #4b2aad; }
+        .user-badge #userName { display: none; }
+        .user-badge .avatar-small {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #4b2aad;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.65rem;
+            color: white;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .btn-cart-header {
+            position: relative;
+            background: transparent;
+            border: 1px solid #ede8ff;
+            color: #4b2aad;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .btn-cart-header:hover { background: #f0edff; border-color: #4b2aad; transform: translateY(-2px); }
+        .btn-cart-header i { font-size: 0.95rem; }
+        .cart-count {
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+            position: absolute;
+            top: -5px; right: -5px;
+        }
+        @media (max-width: 768px) {
+            nav { padding: 0 1.5rem !important; }
+            .logo .logo-text { font-size: 1.4rem !important; }
+            .logo img { width: 34px !important; height: 34px !important; }
+            .logo { gap: 0.5rem !important; }
+            .menu-toggle { display: block; }
+            .nav-links { display: none; flex-direction: column; gap: 12px; padding: 20px; background: white; position: absolute; top: 66px; left: 0; right: 0; border-bottom: 1px solid #eee; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06); }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 10px 0; font-size: 1rem; width: 100%; color: #4b2aad !important; font-weight: 500; }
+            .nav-links a:hover { background: #f5f0ff; padding-left: 8px; border-radius: 4px; }
+            .nav-links a::after { display: none; }
+            .nav-links .nav-cta { display: none !important; }
+        }
+        @media (max-width: 480px) {
+            nav { padding: 0 0.8rem !important; gap: 0.5rem !important; }
+            .logo .logo-text { font-size: 1.3rem !important; }
+            .logo img { width: 30px !important; height: 30px !important; }
+            .logo { gap: 0.4rem !important; }
+            .user-badge { font-size: 0.7rem; padding: 2px; }
+            .user-badge .avatar-small { width: 22px; height: 22px; font-size: 0.55rem; }
+            .btn-cart-header .cart-text { display: none; }
+            .btn-cart-header { padding: 5px 9px; }
+        }
+
+        /* ===== LIBRARY PAGE ===== */
+        .library-page { padding: 40px 0 60px; }
+        .page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 26px; }
+        .page-head h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .page-head h1 i {
+            width: 46px; height: 46px;
+            background: linear-gradient(135deg, #4b2aad, #7a5cff);
+            color: #fff;
+            font-size: 1.1rem;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-head .count-chip {
+            background: #4b2aad;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 30px;
+        }
+
+        .lib-greeting {
+            font-size: 0.85rem;
+            color: #6a5f78;
+            margin: 0 0 6px;
+            font-weight: 500;
+        }
+        .lib-greeting strong { color: #4b2aad; font-weight: 700; }
+
+        .library-grid { display: grid; gap: 16px; }
+        .lib-card {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .lib-card:hover { border-color: #4b2aad; box-shadow: 0 12px 36px rgba(75,42,173,0.07); }
+        .lib-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
+            cursor: pointer;
+        }
+        .cover-tile {
+            width: 58px; height: 58px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cover-tile i { font-size: 1.3rem; color: #fff; opacity: 0.9; }
+        .lib-info { flex: 1; min-width: 0; }
+        .lib-title { font-weight: 700; color: #1a1a2e; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lib-artist { font-size: 0.82rem; color: #6a5f55; display: flex; align-items: center; gap: 6px; }
+        .lib-artist i { color: #4b2aad; }
+        .lib-meta { display: flex; gap: 16px; font-size: 0.74rem; color: #9a8f82; flex-wrap: wrap; margin-top: 3px; }
+        .lib-meta span { display: inline-flex; align-items: center; gap: 5px; }
+        .lib-meta i { color: #4b2aad; opacity: 0.7; }
+        .lib-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-expand {
+            background: #f0edff;
+            color: #4b2aad;
+            border: 1px solid #ede8ff;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-expand:hover { background: #4b2aad; color: #fff; border-color: #4b2aad; }
+        .btn-view {
+            background: #fff;
+            color: #4b2aad;
+            border: 1.5px solid #4b2aad;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-view:hover { background: #f0edff; }
+        .lib-lyrics {
+            display: none;
+            border-top: 1px solid #f0edf5;
+            background: #faf9fe;
+            padding: 22px 24px;
+        }
+        .lib-lyrics.open { display: block; }
+        .lib-lyrics .lyrics-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4b2aad;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .lib-lyrics .lyrics-body {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 0.98rem;
+            line-height: 2;
+            color: #333;
+            white-space: pre-wrap;
+        }
+        .lib-lyrics .download-note {
+            margin-top: 16px;
+            font-size: 0.72rem;
+            color: #9a8f82;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lib-lyrics .download-note i { color: #28a745; }
+
+        /* ===== STATES ===== */
+        .center-state { text-align: center; padding: 80px 20px; }
+        .spinner {
+            width: 44px; height: 44px;
+            border: 4px solid #e8e4f5;
+            border-top-color: #4b2aad;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+            margin: 0 auto 18px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .center-state .state-icon {
+            width: 78px; height: 78px;
+            border-radius: 50%;
+            background: #f0edff;
+            color: #4b2aad;
+            font-size: 1.7rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+        .center-state h2 { font-family: 'Playfair Display', serif; color: #1a1a2e; margin-bottom: 8px; }
+        .center-state p { color: #6a5f55; font-size: 0.9rem; margin-bottom: 22px; max-width: 420px; margin-left: auto; margin-right: auto; }
+        .btn-primary {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(75,42,173,0.22);
+        }
+        .btn-primary:hover { background: #3a1f8a; transform: translateY(-2px); }
+        .btn-outline {
+            background: #fff;
+            color: #4b2aad;
+            border: 1.5px solid #4b2aad;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-outline:hover { background: #f0edff; }
+
+        /* ===== FOOTER ===== */
+        #volant-footer { background: #1a1a2e; color: #aaa; padding: 1.5rem 0 20px; }
+        #volant-footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 1.5rem 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 35px;
+            text-align: left !important;
+        }
+        .volant-footer-col { text-align: left !important; }
+        .volant-footer-col h4 { color: white; margin-bottom: 12px; font-size: 0.95rem; font-weight: 600; text-align: left !important; }
+        .volant-footer-col a { display: block; color: #aaa; margin-bottom: 6px; transition: color 0.3s; font-size: 0.88rem; text-decoration: none; text-align: left !important; }
+        .volant-footer-col a:hover { color: white; }
+        #volant-footer .logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.6rem !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+            margin-bottom: 8px;
+            justify-content: flex-start !important;
+        }
+        #volant-footer .logo .logo-text {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.3rem !important;
+            font-weight: 700 !important;
+            color: #ffffff !important;
+        }
+        #volant-footer .logo .logo-highlight {
+            color: #ffffff !important;
+            text-shadow: 0 0 2px #4b2aad, 0 0 4px #4b2aad, 0 0 6px #4b2aad !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+        #volant-footer .logo img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+        .volant-footer-desc { font-size: 0.88rem; line-height: 1.6; color: #aaa; max-width: 320px; text-align: left !important; }
+        .volant-footer-contact-list li { list-style: none; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.85rem; color: #aaa; text-align: left !important; }
+        .volant-footer-contact-list li i { color: #4b2aad; min-width: 16px; }
+        .volant-footer-bottom { border-top: 1px solid #2a2a44; max-width: 1200px; margin: 0 auto; padding: 14px 20px 0; text-align: left !important; }
+        .volant-footer-bottom small { font-size: 0.8rem; color: #6b6b8e; }
+        @media (max-width: 768px) {
+            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 25px; }
+            .lib-row { flex-wrap: wrap; }
+            .lib-actions { width: 100%; }
+            .lib-actions .btn-expand, .lib-actions .btn-view { flex: 1; justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            #volant-footer-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="index.html" class="logo">
+                <img src="https://volantpoetry.vercel.app/images/logokk.png" alt="Volant Lyrics Logo" />
+                <span class="logo-text"><span class="logo-highlight">Volant</span> Lyrics</span>
+            </a>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Marketplace</a></li>
+                <li><a href="submit.html">Sell Lyrics</a></li>
+                <li><a href="manage.html">Manage</a></li>
+            </ul>
+
+            <div class="nav-right">
+                <button class="btn-cart-header" id="cartOpenBtn" title="Open cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-text">Cart</span>
+                    <span class="cart-count">0</span>
+                </button>
+                <div class="user-badge" id="userBadge">
+                    <div class="avatar-small" id="userAvatar"></div>
+                    <span id="userName">Guest</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="library-page" id="libraryPage">
+        <div class="container">
+            <div class="center-state" id="stateArea">
+                <div class="spinner"></div>
+                <h2>Loading your library...</h2>
+            </div>
+        </div>
+    </main>
+
+    <footer id="volant-footer">
+        <div id="volant-footer-container">
+            <div class="volant-footer-col volant-footer-brand">
+                <div class="logo">
+                    <img src="https://volantpoetry.vercel.app/images/logokk.png" alt="Volant Lyrics Logo" />
+                    <span class="logo-text"><span class="logo-highlight">Volant</span> Lyrics</span>
+                </div>
+                <p class="volant-footer-desc">A marketplace for original song lyrics. Discover, purchase, and sell lyrics from talented songwriters.</p>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Explore</h4>
+                <a href="index.html">Marketplace</a>
+                <a href="library.html">My Library</a>
+                <a href="submit.html">Sell Lyrics</a>
+                <a href="mailto:reach.volant@gmail.com">Contact</a>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Platforms</h4>
+                <a href="https://volantpoetry.vercel.app/volant_foundry/">Volant Foundry</a>
+                <a href="https://volantpoetry.vercel.app/">Volant Poetry</a>
+                <a href="https://volantpoetry.vercel.app/store/">Volant Reads</a>
+                <a href="https://volantcodes.vercel.app/">Volant Codes</a>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Connect</h4>
+                <div class="volant-footer-contact-list">
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:reach.volant@gmail.com">reach.volant@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <a href="tel:+233245691423">+233 24 569 1423</a></li>
+                    <li><i class="fas fa-map-marker-alt"></i> Kumasi, Ghana</li>
+                </div>
+            </div>
+        </div>
+        <div class="volant-footer-bottom">
+            <small>&copy; <span id="year"></span> Volant Lyrics. All rights reserved.</small>
+        </div>
+    </footer>
+
+    <script>
+        // ===== FIREBASE CONFIG =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4DHI8aBVY4JjTvJ-r-TGIDPsewtEWxzU",
+            authDomain: "silent-depth.firebaseapp.com",
+            projectId: "silent-depth",
+            storageBucket: "silent-depth.appspot.com",
+            messagingSenderId: "78008755450",
+            appId: "1:78008755450:web:3fd0f0f298a08820935543"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // ===== STATE =====
+        let currentUser = null;
+        let currentDisplayName = '';
+        const LYRICS_CART_COUNT_KEY = 'volant_lyrics_cart_count';
+
+        // ===== UTILITIES =====
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatPrice(price, currency) {
+            if (!price || price === 0) return 'Free';
+            if (currency === 'USD') return `$${price.toFixed(2)}`;
+            return `GHS ${price.toFixed(2)}`;
+        }
+
+        function genreGradient(genre) {
+            const g = (genre || '').toLowerCase().trim();
+            const map = {
+                'pop': 'linear-gradient(135deg,#e91e63,#ff6090)',
+                'rock': 'linear-gradient(135deg,#37474f,#78909c)',
+                'hip-hop': 'linear-gradient(135deg,#f9a825,#ff6f00)',
+                'hiphop': 'linear-gradient(135deg,#f9a825,#ff6f00)',
+                'r&b': 'linear-gradient(135deg,#ad1457,#ea80fc)',
+                'rnb': 'linear-gradient(135deg,#ad1457,#ea80fc)',
+                'gospel': 'linear-gradient(135deg,#2e7d32,#81c784)',
+                'afrobeat': 'linear-gradient(135deg,#c62828,#ff8a65)',
+                'jazz': 'linear-gradient(135deg,#283593,#82b1ff)',
+                'country': 'linear-gradient(135deg,#795548,#d7ccc8)',
+                'electronic': 'linear-gradient(135deg,#00acc1,#4dd0e1)',
+                'folk': 'linear-gradient(135deg,#558b2f,#aed581)',
+                'other': 'linear-gradient(135deg,#4b2aad,#7a5cff)'
+            };
+            return map[g] || 'linear-gradient(135deg,#4b2aad,#7a5cff)';
+        }
+
+        function getInitials(name) {
+            if (!name || name === 'Anonymous') return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        function colorFromName(name) {
+            if (!name) return '#4b2aad';
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = Math.abs(hash) % 360;
+            return `hsl(${hue}, 65%, 50%)`;
+        }
+
+        // ===== CART BADGE =====
+        function getCartCount() {
+            try { return parseInt(localStorage.getItem(LYRICS_CART_COUNT_KEY)) || 0; } catch { return 0; }
+        }
+        function updateCartBadge() {
+            const badge = document.querySelector('.cart-count');
+            if (badge) badge.textContent = getCartCount();
+        }
+
+        // ===== RENDER LIBRARY =====
+        function renderLibrary(items) {
+            const page = document.getElementById('libraryPage');
+            if (items.length === 0) {
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="center-state">
+                            <div class="state-icon"><i class="fas fa-music"></i></div>
+                            <h2>Your library is empty</h2>
+                            <p>Lyrics you purchase will appear here, unlocked forever and instantly available.</p>
+                            <a href="index.html" class="btn-primary"><i class="fas fa-compact-disc"></i> Browse Lyrics</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            page.innerHTML = `
+                <div class="container">
+                    <div class="page-head">
+                        <div>
+                            ${currentUser ? `<p class="lib-greeting">Welcome back, <strong>${escapeHtml(currentDisplayName || 'there')}</strong></p>` : ''}
+                            <h1><i class="fas fa-book-open"></i> My Library</h1>
+                        </div>
+                        <span class="count-chip">${items.length} owned</span>
+                    </div>
+                    <div class="library-grid">
+                        ${items.map(item => `
+                            <div class="lib-card">
+                                <div class="lib-row" onclick="toggleLyrics(this)">
+                                    <div class="cover-tile" style="background:${genreGradient(item.genre)};">
+                                        <i class="fas fa-music"></i>
+                                    </div>
+                                    <div class="lib-info">
+                                        <div class="lib-title">${escapeHtml(item.title)}</div>
+                                        <div class="lib-artist"><i class="fas fa-user"></i> ${escapeHtml(item.artist)}</div>
+                                        <div class="lib-meta">
+                                            <span><i class="fas fa-calendar-alt"></i> ${escapeHtml(item.purchasedLabel)}</span>
+                                            <span><i class="fas fa-tag"></i> ${escapeHtml(item.genreDisplay)}</span>
+                                            ${item.amountLabel ? `<span><i class="fas fa-receipt"></i> ${escapeHtml(item.amountLabel)}</span>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="lib-actions">
+                                        <button class="btn-view" onclick="event.stopPropagation(); location.href='details.html?id=${encodeURIComponent(item.id)}'">
+                                            <i class="fas fa-external-link-alt"></i> View
+                                        </button>
+                                        <button class="btn-expand action-expand" onclick="event.stopPropagation(); toggleLyrics(this.closest('.lib-card').querySelector('.lib-row'))">
+                                            <i class="fas fa-chevron-down"></i> Lyrics
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="lib-lyrics">
+                                    <div class="lyrics-label"><i class="fas fa-feather-alt"></i> Full Lyrics</div>
+                                    <div class="lyrics-body">${escapeHtml(item.lyrics || 'Lyrics no longer available.')}</div>
+                                    <div class="download-note"><i class="fas fa-check-circle"></i> Permanently unlocked with your purchase. You may copy &amp; download this text.</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleLyrics(rowEl) {
+            const card = rowEl.closest('.lib-card');
+            const lyricsEl = card.querySelector('.lib-lyrics');
+            lyricsEl.classList.toggle('open');
+            const btnIcon = card.querySelector('.action-expand i');
+            const btn = card.querySelector('.action-expand');
+            if (lyricsEl.classList.contains('open')) {
+                btnIcon.className = 'fas fa-chevron-up';
+                btn.innerHTML = btn.innerHTML.replace('fa-chevron-down', 'fa-chevron-up');
+            } else {
+                btnIcon.className = 'fas fa-chevron-down';
+                btn.innerHTML = btn.innerHTML.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        }
+
+        // ===== LOAD PURCHASES =====
+        async function loadLibrary() {
+            const page = document.getElementById('libraryPage');
+
+            if (!currentUser) {
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="center-state">
+                            <div class="state-icon"><i class="fas fa-lock"></i></div>
+                            <h2>Sign in to view your library</h2>
+                            <p>Log in to see every lyric you've purchased — your collection follows your account.</p>
+                            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                                <button class="btn-primary" onclick="goLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+                                <a href="index.html" class="btn-outline"><i class="fas fa-compact-disc"></i> Browse Lyrics</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            page.innerHTML = `
+                <div class="container">
+                    <div class="center-state">
+                        <div class="spinner"></div>
+                        <h2>Loading your library...</h2>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const snap = await db.collection('purchases')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+
+                const purchases = [];
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const isLyric = d.itemType === 'lyric';
+                    if (isLyric && d.status === 'completed' && d.verified === true) {
+                        purchases.push(d);
+                    }
+                });
+
+                purchases.sort((a, b) => {
+                    const ta = a.purchasedAt ? (a.purchasedAt.toDate ? a.purchasedAt.toDate().getTime() : 0) : 0;
+                    const tb = b.purchasedAt ? (b.purchasedAt.toDate ? b.purchasedAt.toDate().getTime() : 0) : 0;
+                    return tb - ta;
+                });
+
+                const items = [];
+                for (const purchase of purchases) {
+                    try {
+                        const lyricDoc = await db.collection('volant-lyrics').doc(purchase.bookId).get();
+                        if (!lyricDoc.exists) {
+                            continue;
+                        }
+                        const lyric = lyricDoc.data();
+                        const purchasedAt = purchase.purchasedAt && purchase.purchasedAt.toDate
+                            ? purchase.purchasedAt.toDate()
+                            : null;
+
+                        items.push({
+                            id: purchase.bookId,
+                            title: lyric.title || purchase.lyricTitle || 'Untitled',
+                            artist: lyric.artist || 'Anonymous',
+                            genre: lyric.genre || 'other',
+                            genreDisplay: (lyric.genre || 'Other').charAt(0).toUpperCase() + (lyric.genre || 'Other').slice(1),
+                            lyrics: lyric.lyrics || '',
+                            purchasedLabel: purchasedAt ? purchasedAt.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '—',
+                            amountLabel: purchase.amount > 0 ? formatPrice(purchase.amount, purchase.currency) : 'Free'
+                        });
+                    } catch (err) {
+                        console.warn('Error loading lyric for purchase:', purchase.bookId, err);
+                    }
+                }
+
+                renderLibrary(items);
+            } catch (error) {
+                console.error('Error loading library:', error);
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="center-state">
+                            <div class="state-icon"><i class="fas fa-exclamation-circle" style="background:#fdecea;color:#b76e4b;"></i></div>
+                            <h2>Unable to load your library</h2>
+                            <p>Something went wrong. Please try again.</p>
+                            <button class="btn-primary" onclick="loadLibrary()"><i class="fas fa-redo"></i> Try Again</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function goLogin() {
+            window.location.href = 'https://volantpoetry.vercel.app/shared/universal-login.html?platform=lyrics&redirect=' + encodeURIComponent('lyrics/library.html');
+        }
+
+        // ===== USER AVATAR =====
+        function updateUserAvatar(userData, user) {
+            const avatarEl = document.getElementById('userAvatar');
+            const nameEl = document.getElementById('userName');
+            if (!avatarEl || !nameEl) return;
+
+            let displayName = 'Guest';
+            let photoURL = null;
+
+            if (user) {
+                if (userData) {
+                    displayName = userData.username || userData.authorName || user.displayName || user.email?.split('@')[0] || 'User';
+                    photoURL = userData.photoURL || userData.cachedAvatarURL || null;
+                } else {
+                    displayName = user.displayName || user.email?.split('@')[0] || 'User';
+                    photoURL = user.photoURL || null;
+                }
+            }
+
+            currentDisplayName = displayName;
+
+            nameEl.textContent = displayName;
+            const badgeEl = avatarEl.closest('.user-badge');
+            if (badgeEl) badgeEl.title = user ? displayName : 'My Library';
+
+            if (photoURL) {
+                avatarEl.style.backgroundImage = `url('${photoURL}')`;
+                avatarEl.textContent = '';
+            } else {
+                avatarEl.style.backgroundImage = '';
+                avatarEl.style.background = colorFromName(displayName);
+                avatarEl.textContent = getInitials(displayName === 'Guest' ? '?' : displayName);
+            }
+        }
+
+        // ===== INIT =====
+        document.getElementById('year').textContent = new Date().getFullYear();
+        updateCartBadge();
+
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (menuToggle && navLinks) {
+            menuToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => navLinks.classList.remove('open'));
+            });
+        }
+
+        document.getElementById('cartOpenBtn').addEventListener('click', () => {
+            window.location.href = 'index.html?open=cart';
+        });
+
+        window.addEventListener('storage', () => updateCartBadge());
+
+        // ===== SETUP AUTH =====
+        function setupAuth() {
+            auth.onAuthStateChanged((user) => {
+                currentUser = user;
+                if (user) {
+                    db.collection('users').doc(user.uid).get()
+                        .then(userDoc => updateUserAvatar(userDoc.exists ? userDoc.data() : null, user))
+                        .catch(() => updateUserAvatar(null, user));
+                } else {
+                    updateUserAvatar(null, null);
+                }
+                loadLibrary();
+            });
+        }
+        setupAuth();
+    </script>
+
+</body>
+</html>

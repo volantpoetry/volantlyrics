@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Volant Lyrics — Lyric Details</title>
+    <meta name="description" content="View full details of an original lyric on Volant Lyrics. See the full lyric, licensing and songwriter information." />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #faf9fe;
+            color: #1a1a2e;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+        a { text-decoration: none; color: inherit; }
+        img { max-width: 100%; height: auto; display: block; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f0edf5; }
+        ::-webkit-scrollbar-thumb { background: #4b2aad; border-radius: 10px; }
+
+        /* ===== HEADER ===== */
+        header {
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 !important;
+        }
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4rem;
+            width: 100%;
+            height: 100%;
+            gap: 1.5rem;
+            position: relative;
+        }
+        .logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.6rem !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+        }
+        .logo .logo-text {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.6rem !important;
+            font-weight: 700 !important;
+            color: #4b2aad !important;
+        }
+        .logo .logo-highlight {
+            color: #ffffff !important;
+            text-shadow: 0 0 2px #4b2aad, 0 0 4px #4b2aad, 0 0 6px #4b2aad !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+        .logo img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+            align-items: center;
+        }
+        .nav-links a {
+            font-weight: 650;
+            color: #4b2aad;
+            transition: color 0.3s;
+            position: relative;
+            font-size: 0.92rem;
+            padding: 4px 0;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 2px;
+            background: #4b2aad;
+            transition: width 0.3s;
+        }
+        .nav-links a:hover { color: #4b2aad; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-cta {
+            background: #4b2aad !important;
+            color: white !important;
+            padding: 10px 22px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+        }
+        .nav-cta::after { display: none !important; }
+        .nav-cta:hover { background: #3a1f8a !important; transform: translateY(-2px); }
+        .menu-toggle {
+            display: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #4b2aad !important;
+            padding: 8px;
+        }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px;
+            border-radius: 30px;
+            background: #f5f0ff;
+            border: 1px solid #ede8ff;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #4b2aad;
+            transition: all 0.3s ease;
+        }
+        .user-badge:hover { background: #ede8ff; border-color: #4b2aad; }
+        .user-badge #userName { display: none; }
+        .user-badge .avatar-small {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #4b2aad;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.65rem;
+            color: white;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .btn-cart-header {
+            position: relative;
+            background: transparent;
+            border: 1px solid #ede8ff;
+            color: #4b2aad;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .btn-cart-header:hover { background: #f0edff; border-color: #4b2aad; transform: translateY(-2px); }
+        .btn-cart-header i { font-size: 0.95rem; }
+        .cart-count {
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+            position: absolute;
+            top: -5px; right: -5px;
+        }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 1.5rem !important; }
+            .logo .logo-text { font-size: 1.4rem !important; }
+            .logo img { width: 34px !important; height: 34px !important; }
+            .logo { gap: 0.5rem !important; }
+            .menu-toggle { display: block; }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                gap: 12px;
+                padding: 20px;
+                background: white;
+                position: absolute;
+                top: 66px; left: 0; right: 0;
+                border-bottom: 1px solid #eee;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 10px 0; font-size: 1rem; width: 100%; color: #4b2aad !important; font-weight: 500; }
+            .nav-links a:hover { background: #f5f0ff; padding-left: 8px; border-radius: 4px; }
+            .nav-links a::after { display: none; }
+            .nav-links .nav-cta { display: none !important; }
+        }
+        @media (max-width: 480px) {
+            nav { padding: 0 0.8rem !important; gap: 0.5rem !important; }
+            .logo .logo-text { font-size: 1.3rem !important; }
+            .logo img { width: 30px !important; height: 30px !important; }
+            .logo { gap: 0.4rem !important; }
+            .user-badge { font-size: 0.7rem; padding: 2px 10px 2px 6px; }
+            .user-badge .avatar-small { width: 22px; height: 22px; font-size: 0.55rem; }
+            .btn-cart-header .cart-text { display: none; }
+            .btn-cart-header { padding: 5px 9px; }
+        }
+
+        /* ===== DETAIL PAGE ===== */
+        .detail-page { padding: 34px 0 60px; }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #4b2aad;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 22px;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover { gap: 12px; }
+
+        .cover-banner {
+            border-radius: 20px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 18px 46px rgba(75,42,173,0.18);
+            margin-bottom: 28px;
+        }
+        .cover-banner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.18), transparent 55%);
+        }
+        .cover-banner i {
+            font-size: 3.2rem;
+            color: #fff;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        .cover-banner .ct-genre {
+            position: relative;
+            z-index: 1;
+            background: rgba(255,255,255,0.24);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 5px 18px;
+            border-radius: 30px;
+        }
+        .banner-badges {
+            position: absolute;
+            top: 18px; right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 2;
+        }
+        .badge-tag {
+            background: rgba(0,0,0,0.35);
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            backdrop-filter: blur(4px);
+        }
+        .badge-tag.new { background: rgba(40,167,69,0.9); }
+        .badge-tag.popular { background: rgba(184,134,11,0.95); }
+
+        .detail-head { margin-bottom: 26px; }
+        .detail-head h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            line-height: 1.25;
+            margin-bottom: 6px;
+        }
+        .detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            color: #6a5f55;
+            font-size: 0.92rem;
+        }
+        .detail-meta i { color: #4b2aad; }
+        .genre-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0edff;
+            color: #4b2aad;
+            border: 1px solid #ede8ff;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 30px;
+        }
+
+        .purchase-box {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 18px;
+            padding: 24px 26px;
+            margin-bottom: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 30px rgba(75,42,173,0.05);
+        }
+        .purchase-price { font-size: 1.9rem; font-weight: 800; color: #4b2aad; }
+        .purchase-price.free { color: #28a745; }
+        .purchase-sub {
+            font-size: 0.75rem;
+            color: #6a5f55;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+        }
+        .purchase-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-add-cart {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 13px 30px;
+            border-radius: 30px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(75,42,173,0.25);
+        }
+        .btn-add-cart:hover { background: #3a1f8a; transform: translateY(-2px); }
+        .btn-buy-now {
+            background: #28a745;
+            color: #fff;
+            border: none;
+            padding: 13px 30px;
+            border-radius: 30px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(40,167,69,0.25);
+        }
+        .btn-buy-now:hover { background: #1e8336; transform: translateY(-2px); }
+        .btn-library {
+            background: #28a745;
+            color: #fff;
+            border: none;
+            padding: 13px 30px;
+            border-radius: 30px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-library:hover { background: #1e8336; transform: translateY(-2px); }
+        .owned-note {
+            display: none;
+            align-items: center;
+            gap: 9px;
+            color: #28a745;
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        .panel {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 18px;
+            padding: 26px;
+            margin-bottom: 22px;
+        }
+        .panel h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .panel h2 i { color: #4b2aad; }
+
+        .full-lyrics {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.05rem;
+            line-height: 2.1;
+            color: #333;
+            white-space: pre-wrap;
+        }
+        .desc-text { font-size: 0.95rem; color: #444; line-height: 1.8; }
+
+        .license-card {
+            background: linear-gradient(135deg, #f0edff, #faf9fe);
+            border: 1px solid #4b2aad;
+            border-radius: 16px;
+            padding: 20px 22px;
+            margin-bottom: 22px;
+        }
+        .license-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .license-card h3 i { color: #4b2aad; }
+        .license-card p { font-size: 0.87rem; color: #555; line-height: 1.7; }
+        .license-points { list-style: none; margin-top: 10px; }
+        .license-points li {
+            display: flex;
+            gap: 9px;
+            align-items: flex-start;
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .license-points li i { color: #4b2aad; margin-top: 3px; }
+
+        .songwriter-card {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+        }
+        .songwriter-avatar {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .songwriter-avatar.has-photo { background-size: cover; background-position: center; }
+        .songwriter-card .who { font-weight: 700; color: #1a1a2e; font-size: 1rem; }
+        .songwriter-card .role { font-size: 0.82rem; color: #6a5f55; }
+        .songwriter-card .sw-bio {
+            flex: 1 1 100%;
+            font-size: 0.86rem;
+            line-height: 1.65;
+            color: #4a4458;
+            background: #faf9fe;
+            border: 1px solid #ede8ff;
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+
+        .audio-sample-panel audio { width: 100%; height: 44px; }
+        .audio-sample-note { font-size: 0.82rem; color: #6a5f55; margin-bottom: 14px; }
+
+        .trust-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 26px;
+        }
+        .trust-chip {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .trust-chip i {
+            color: #4b2aad;
+            width: 34px; height: 34px;
+            background: #f0edff;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* ===== LOADING / ERROR ===== */
+        .center-state { text-align: center; padding: 90px 20px; }
+        .spinner {
+            width: 44px; height: 44px;
+            border: 4px solid #e8e4f5;
+            border-top-color: #4b2aad;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+            margin: 0 auto 18px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .center-state h2 { font-family: 'Playfair Display', serif; color: #1a1a2e; margin-bottom: 8px; }
+        .center-state p { color: #6a5f55; font-size: 0.9rem; margin-bottom: 18px; }
+        .btn-retry {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-retry:hover { background: #3a1f8a; }
+
+        /* ===== TOAST ===== */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translate(-50%, 100px);
+            background: #4b2aad;
+            color: #fff;
+            padding: 12px 26px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: all 0.35s ease;
+            z-index: 10000;
+            max-width: 90vw;
+            text-align: center;
+            pointer-events: none;
+        }
+        #toast.active { opacity: 1; }
+
+        /* ===== FOOTER ===== */
+        #volant-footer { background: #1a1a2e; color: #aaa; padding: 1.5rem 0 20px; }
+        #volant-footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 1.5rem 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 35px;
+            text-align: left !important;
+        }
+        .volant-footer-col { text-align: left !important; }
+        .volant-footer-col h4 { color: white; margin-bottom: 12px; font-size: 0.95rem; font-weight: 600; text-align: left !important; }
+        .volant-footer-col a { display: block; color: #aaa; margin-bottom: 6px; transition: color 0.3s; font-size: 0.88rem; text-decoration: none; text-align: left !important; }
+        .volant-footer-col a:hover { color: white; }
+        #volant-footer .logo {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.6rem !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+            margin-bottom: 8px;
+            justify-content: flex-start !important;
+        }
+        #volant-footer .logo .logo-text {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.3rem !important;
+            font-weight: 700 !important;
+            color: #ffffff !important;
+        }
+        #volant-footer .logo .logo-highlight {
+            color: #ffffff !important;
+            text-shadow: 0 0 2px #4b2aad, 0 0 4px #4b2aad, 0 0 6px #4b2aad !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+        #volant-footer .logo img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+        .volant-footer-desc { font-size: 0.88rem; line-height: 1.6; color: #aaa; max-width: 320px; text-align: left !important; }
+        .volant-footer-contact-list li {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #aaa;
+            text-align: left !important;
+        }
+        .volant-footer-contact-list li i { color: #4b2aad; min-width: 16px; }
+        .volant-footer-bottom {
+            border-top: 1px solid #2a2a44;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 14px 20px 0;
+            text-align: left !important;
+        }
+        .volant-footer-bottom small { font-size: 0.8rem; color: #6b6b8e; }
+        @media (max-width: 768px) {
+            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 25px; }
+            .detail-page { padding: 24px 0 46px; }
+            .detail-head h1 { font-size: 1.7rem; }
+            .purchase-box { flex-direction: column; align-items: stretch; text-align: center; }
+            .purchase-actions { justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            #volant-footer-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="index.html" class="logo">
+                <img src="https://volantpoetry.vercel.app/images/logokk.png" alt="Volant Lyrics Logo" />
+                <span class="logo-text"><span class="logo-highlight">Volant</span> Lyrics</span>
+            </a>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="nav-cta active">Marketplace</a></li>
+                <li><a href="library.html">My Library</a></li>
+                <li><a href="submit.html">Sell Lyrics</a></li>
+                <li><a href="manage.html">Manage</a></li>
+            </ul>
+
+            <div class="nav-right">
+                <button class="btn-cart-header" id="cartOpenBtn" title="Open cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-text">Cart</span>
+                    <span class="cart-count">0</span>
+                </button>
+                <div class="user-badge" id="userBadge">
+                    <div class="avatar-small" id="userAvatar"></div>
+                    <span id="userName">Guest</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="detail-page" id="detailPage">
+        <div class="container">
+            <div class="center-state" id="stateArea">
+                <div class="spinner"></div>
+                <h2>Loading lyric...</h2>
+            </div>
+        </div>
+    </main>
+
+    <footer id="volant-footer">
+        <div id="volant-footer-container">
+            <div class="volant-footer-col volant-footer-brand">
+                <div class="logo">
+                    <img src="https://volantpoetry.vercel.app/images/logokk.png" alt="Volant Lyrics Logo" />
+                    <span class="logo-text"><span class="logo-highlight">Volant</span> Lyrics</span>
+                </div>
+                <p class="volant-footer-desc">A marketplace for original song lyrics. Discover, purchase, and sell lyrics from talented songwriters.</p>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Explore</h4>
+                <a href="index.html">Marketplace</a>
+                <a href="library.html">My Library</a>
+                <a href="submit.html">Sell Lyrics</a>
+                <a href="mailto:reach.volant@gmail.com">Contact</a>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Platforms</h4>
+                <a href="https://volantpoetry.vercel.app/volant_foundry/">Volant Foundry</a>
+                <a href="https://volantpoetry.vercel.app/">Volant Poetry</a>
+                <a href="https://volantpoetry.vercel.app/store/">Volant Reads</a>
+                <a href="https://volantcodes.vercel.app/">Volant Codes</a>
+            </div>
+            <div class="volant-footer-col">
+                <h4>Connect</h4>
+                <div class="volant-footer-contact-list">
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:reach.volant@gmail.com">reach.volant@gmail.com</a></li>
+                    <li><i class="fas fa-phone"></i> <a href="tel:+233245691423">+233 24 569 1423</a></li>
+                    <li><i class="fas fa-map-marker-alt"></i> Kumasi, Ghana</li>
+                </div>
+            </div>
+        </div>
+        <div class="volant-footer-bottom">
+            <small>&copy; <span id="year"></span> Volant Lyrics. All rights reserved.</small>
+        </div>
+    </footer>
+
+    <div id="toast"></div>
+
+    <script>
+        // ===== FIREBASE CONFIG =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4DHI8aBVY4JjTvJ-r-TGIDPsewtEWxzU",
+            authDomain: "silent-depth.firebaseapp.com",
+            projectId: "silent-depth",
+            storageBucket: "silent-depth.appspot.com",
+            messagingSenderId: "78008755450",
+            appId: "1:78008755450:web:3fd0f0f298a08820935543"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // ===== STATE =====
+        let currentUser = null;
+        const LYRICS_CART_KEY = 'volant_lyrics_cart_items';
+        const LYRICS_CART_COUNT_KEY = 'volant_lyrics_cart_count';
+        let cartCount = getCartCount();
+
+        // ===== UTILITIES =====
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatPrice(price, currency) {
+            const n = Number(price) || 0;
+            if (n <= 0) return 'Free';
+            if (currency === 'USD') return `$${n.toFixed(2)}`;
+            return `GHS ${n.toFixed(2)}`;
+        }
+
+        function genreGradient(genre, tall) {
+            const g = (genre || '').toLowerCase().trim();
+            const map = {
+                'pop': 'linear-gradient(135deg,#e91e63,#ff6090)',
+                'rock': 'linear-gradient(135deg,#37474f,#78909c)',
+                'hip-hop': 'linear-gradient(135deg,#f9a825,#ff6f00)',
+                'hiphop': 'linear-gradient(135deg,#f9a825,#ff6f00)',
+                'r&b': 'linear-gradient(135deg,#ad1457,#ea80fc)',
+                'rnb': 'linear-gradient(135deg,#ad1457,#ea80fc)',
+                'gospel': 'linear-gradient(135deg,#2e7d32,#81c784)',
+                'afrobeat': 'linear-gradient(135deg,#c62828,#ff8a65)',
+                'jazz': 'linear-gradient(135deg,#283593,#82b1ff)',
+                'country': 'linear-gradient(135deg,#795548,#d7ccc8)',
+                'electronic': 'linear-gradient(135deg,#00acc1,#4dd0e1)',
+                'folk': 'linear-gradient(135deg,#558b2f,#aed581)',
+                'other': 'linear-gradient(135deg,#4b2aad,#7a5cff)'
+            };
+            return map[g] || 'linear-gradient(135deg,#4b2aad,#7a5cff)';
+        }
+
+        function getInitials(name) {
+            if (!name || name === 'Anonymous') return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        function colorFromName(name) {
+            if (!name) return '#4b2aad';
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = Math.abs(hash) % 360;
+            return `hsl(${hue}, 65%, 50%)`;
+        }
+
+        // ===== TOAST =====
+        const toastEl = document.getElementById('toast');
+        let toastTimeout = null;
+        function showToast(message, type = 'info') {
+            toastEl.textContent = message;
+            toastEl.style.background = type === 'error' ? '#b76e4b' : (type === 'success' ? '#28a745' : '#4b2aad');
+            toastEl.classList.add('active');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toastEl.classList.remove('active');
+            }, 4000);
+        }
+
+        // ===== CART SYSTEM (shared with index.html) =====
+        function getCartItems() {
+            try { return JSON.parse(localStorage.getItem(LYRICS_CART_KEY)) || []; } catch { return []; }
+        }
+
+        function saveCartItems(items) {
+            localStorage.setItem(LYRICS_CART_KEY, JSON.stringify(items));
+            localStorage.setItem(LYRICS_CART_COUNT_KEY, String(items.length));
+            updateCartBadge();
+            try { localStorage.setItem('volant_lyrics_cart_updated', Date.now().toString()); } catch {}
+            cartCount = items.length;
+        }
+
+        function getCartCount() {
+            try { return parseInt(localStorage.getItem(LYRICS_CART_COUNT_KEY)) || 0; } catch { return 0; }
+        }
+
+        function updateCartBadge() {
+            const badge = document.querySelector('.cart-count');
+            if (badge) badge.textContent = cartCount;
+        }
+
+        function addToCart(item) {
+            const cartItems = getCartItems();
+            const existing = cartItems.find(ci => ci.id === item.id);
+            if (existing) {
+                showToast(`"${item.title}" is already in your cart.`, 'info');
+                setTimeout(() => { window.location.href = 'index.html?open=cart'; }, 1200);
+                return;
+            }
+            cartItems.push({
+                id: item.id,
+                title: item.title || 'Untitled',
+                artist: item.artist || 'Anonymous',
+                price: item.price || 0,
+                currency: item.priceCurrency || 'GHS'
+            });
+            saveCartItems(cartItems);
+            cartCount = cartItems.length;
+            updateCartBadge();
+            showToast(`✅ "${item.title}" added to cart!`, 'success');
+        }
+
+        function buyNow(item) {
+            const cartItems = getCartItems();
+            const existing = cartItems.find(ci => ci.id === item.id);
+            if (!existing) {
+                cartItems.push({
+                    id: item.id,
+                    title: item.title || 'Untitled',
+                    artist: item.artist || 'Anonymous',
+                    price: item.price || 0,
+                    currency: item.priceCurrency || 'GHS'
+                });
+                saveCartItems(cartItems);
+            }
+            window.location.href = 'index.html?open=cart';
+        }
+
+        // ===== PURCHASE STATUS =====
+        async function checkPurchaseStatus(userId, itemId) {
+            try {
+                const purchaseSnap = await db.collection('purchases').doc(`${userId}_${itemId}`).get();
+                if (purchaseSnap.exists) {
+                    const data = purchaseSnap.data();
+                    return data.status === 'completed' && data.verified === true;
+                }
+                return false;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        // ===== RENDER DETAIL =====
+        function renderDetail(data, docId, isOwned, songwriterProfile) {
+            const main = document.getElementById('detailPage');
+            const genreDisplay = String(data.genre || 'Other').charAt(0).toUpperCase() + String(data.genre || 'Other').slice(1);
+            const priceDisplay = formatPrice(data.price, data.priceCurrency);
+            const isFree = !data.price || data.price === 0;
+            const isNew = data.createdAt && (Date.now() - new Date(data.createdAt).getTime()) < 14 * 24 * 60 * 60 * 1000;
+            const isPopular = Number(data.views || 0) >= 500;
+            const fallbackName = (data.submittedByName || data.submittedByEmail || '').split('@')[0] || 'Anonymous Songwriter';
+            const songwriter = (songwriterProfile && (songwriterProfile.username || songwriterProfile.authorName)) || fallbackName;
+            const swPhoto = (songwriterProfile && (songwriterProfile.photoURL || songwriterProfile.cachedAvatarURL)) || null;
+
+            main.innerHTML = `
+                <div class="container">
+
+                    <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Marketplace</a>
+
+                    <div class="cover-banner" style="background:${genreGradient(data.genre)};">
+                        <i class="fas fa-music"></i>
+                        <span class="ct-genre">${escapeHtml(genreDisplay)}</span>
+                        <div class="banner-badges">
+                            ${isNew ? `<span class="badge-tag new"><i class="fas fa-bolt"></i> New</span>` : ''}
+                            ${isPopular ? `<span class="badge-tag popular"><i class="fas fa-star"></i> Best Seller</span>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="detail-head">
+                        <h1>${escapeHtml(data.title || 'Untitled')}</h1>
+                        <div class="detail-meta">
+                            <span><i class="fas fa-user"></i> ${escapeHtml(data.artist || 'Anonymous')}</span>
+                            <span><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>
+                            <span class="genre-tag"><i class="fas fa-tag"></i> ${escapeHtml(genreDisplay)}</span>
+                        </div>
+                    </div>
+
+                    <div class="purchase-box">
+                        <div>
+                            <div class="purchase-price ${isFree ? 'free' : ''}">${priceDisplay}</div>
+                            <div class="purchase-sub">
+                                <i class="fas fa-lock"></i> Secure checkout via Paystack
+                            </div>
+                        </div>
+                        <div class="purchase-actions">
+                            ${isOwned ? `
+                                <a href="library.html" class="btn-library"><i class="fas fa-check-circle"></i> In Your Library — View</a>
+                            ` : `
+                                ${isFree ? '' : `<button class="btn-buy-now" id="buyNowBtn"><i class="fas fa-zap"></i> Buy Now</button>`}
+                                <button class="btn-add-cart" id="addCartBtn"><i class="fas fa-cart-plus"></i> ${isFree ? 'Get Free Copy' : 'Add to Cart'}</button>
+                            `}
+                        </div>
+                        <div class="owned-note" style="display:${isOwned ? 'flex' : 'none'};">
+                            <i class="fas fa-check-circle"></i> You own this lyric
+                        </div>
+                    </div>
+
+                    ${data.audioSampleUrl ? `
+                    <div class="panel audio-sample-panel">
+                        <h2><i class="fas fa-headphones"></i> Audio Sample</h2>
+                        <p class="audio-sample-note">A short preview of the song this lyric was written for.</p>
+                        <audio controls preload="none" src="${escapeHtml(data.audioSampleUrl)}"></audio>
+                    </div>
+                ` : ''}
+
+                    <div class="panel">
+                        <h2><i class="fas fa-feather-alt"></i> Full Lyrics</h2>
+                        <div class="full-lyrics">${escapeHtml(data.lyrics || 'No lyrics available.')}</div>
+                    </div>
+
+                    ${data.description ? `
+                        <div class="panel">
+                            <h2><i class="fas fa-book-open"></i> About This Lyric</h2>
+                            <p class="desc-text">${escapeHtml(data.description)}</p>
+                        </div>
+                    ` : ''}
+
+                    <div class="license-card">
+                        <h3><i class="fas fa-file-contract"></i> What You Get</h3>
+                        <p>By purchasing this lyric you receive an <strong>ownership license</strong>:</p>
+                        <ul class="license-points">
+                            <li><i class="fas fa-check-circle"></i> Full rights to record and release the song</li>
+                            <li><i class="fas fa-check-circle"></i> Credit the lyricist as co-writer on all releases</li>
+                            <li><i class="fas fa-check-circle"></i> Unlimited commercial use of your recording</li>
+                            <li><i class="fas fa-times-circle"></i> No re-selling or re-publishing of the raw lyrics</li>
+                        </ul>
+                    </div>
+
+                    <div class="panel songwriter-card">
+                        <div class="songwriter-avatar ${swPhoto ? 'has-photo' : ''}" ${swPhoto ? `style="background-image:url('${swPhoto}');"` : `style="background:${colorFromName(songwriter)};"`}>${swPhoto ? '' : getInitials(songwriter)}</div>
+                        <div>
+                            <div class="who">${escapeHtml(songwriter)}</div>
+                            <div class="role">Verified songwriter on Volant Lyrics</div>
+                        </div>
+                        ${songwriterProfile && songwriterProfile.lyricsBio ? `<div class="sw-bio">${escapeHtml(songwriterProfile.lyricsBio)}</div>` : ''}
+                    </div>
+
+                    <div class="trust-row">
+                        <div class="trust-chip"><i class="fas fa-lock"></i> Secure Payments</div>
+                        <div class="trust-chip"><i class="fas fa-bolt"></i> Instant Delivery</div>
+                        <div class="trust-chip"><i class="fas fa-feather-alt"></i> 0% Listing Fee</div>
+                        <div class="trust-chip"><i class="fas fa-shield-alt"></i> Buyer Protection</div>
+                    </div>
+                </div>
+            `;
+
+            if (!isOwned) {
+                const addBtn = document.getElementById('addCartBtn');
+                if (addBtn) {
+                    addBtn.addEventListener('click', () => {
+                        const item = {
+                            id: docId,
+                            title: data.title || 'Untitled',
+                            artist: data.artist || 'Anonymous',
+                            price: data.price || 0,
+                            currency: data.priceCurrency || 'GHS'
+                        };
+                        addToCart(item);
+                    });
+                }
+
+                const buyBtn = document.getElementById('buyNowBtn');
+                if (buyBtn) {
+                    buyBtn.addEventListener('click', () => {
+                        const item = {
+                            id: docId,
+                            title: data.title || 'Untitled',
+                            artist: data.artist || 'Anonymous',
+                            price: data.price || 0,
+                            currency: data.priceCurrency || 'GHS'
+                        };
+                        buyNow(item);
+                    });
+                }
+            }
+        }
+
+        // ===== LOAD LYRIC =====
+        async function loadLyric() {
+            const params = new URLSearchParams(window.location.search);
+            const docId = params.get('id');
+            const main = document.getElementById('detailPage');
+
+            if (!docId) {
+                main.innerHTML = `
+                    <div class="container">
+                        <div class="center-state">
+                            <i class="fas fa-exclamation-circle" style="font-size:2.4rem;color:#b76e4b;margin-bottom:14px;"></i>
+                            <h2>Lyric not found</h2>
+                            <p>No lyric was specified. Return to the marketplace to browse.</p>
+                            <a href="index.html" class="btn-retry">Browse Lyrics</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const doc = await db.collection('volant-lyrics').doc(docId).get();
+                if (!doc.exists) throw new Error('not found');
+
+                const data = doc.data();
+                let songwriterProfile = null;
+                if (data.submittedBy) {
+                    try {
+                        const profileDoc = await db.collection('users').doc(data.submittedBy).get();
+                        if (profileDoc.exists) songwriterProfile = profileDoc.data();
+                    } catch (err) {
+                        console.warn('Error fetching songwriter profile:', err);
+                    }
+                }
+                const isOwned = currentUser ? await checkPurchaseStatus(currentUser.uid, docId) : false;
+                renderDetail(data, docId, isOwned, songwriterProfile);
+            } catch (error) {
+                console.error('Error loading lyric:', error);
+                main.innerHTML = `
+                    <div class="container">
+                        <div class="center-state">
+                            <i class="fas fa-exclamation-circle" style="font-size:2.4rem;color:#b76e4b;margin-bottom:14px;"></i>
+                            <h2>Unable to load this lyric</h2>
+                            <p>It may have been removed or you may be offline.</p>
+                            <button class="btn-retry" onclick="loadLyric()">Try Again</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== USER AVATAR =====
+        function updateUserAvatar(userData, user) {
+            const avatarEl = document.getElementById('userAvatar');
+            const nameEl = document.getElementById('userName');
+            if (!avatarEl || !nameEl) return;
+
+            let displayName = 'Guest';
+            let photoURL = null;
+
+            if (user) {
+                if (userData) {
+                    displayName = userData.username || userData.authorName || user.displayName || user.email?.split('@')[0] || 'User';
+                    photoURL = userData.photoURL || userData.cachedAvatarURL || null;
+                } else {
+                    displayName = user.displayName || user.email?.split('@')[0] || 'User';
+                    photoURL = user.photoURL || null;
+                }
+            }
+
+            nameEl.textContent = displayName;
+            if (photoURL) {
+                avatarEl.style.backgroundImage = `url('${photoURL}')`;
+                avatarEl.textContent = '';
+            } else {
+                avatarEl.style.backgroundImage = '';
+                avatarEl.style.background = colorFromName(displayName);
+                avatarEl.textContent = getInitials(displayName === 'Guest' ? '?' : displayName);
+            }
+        }
+
+        // ===== INIT =====
+        document.getElementById('year').textContent = new Date().getFullYear();
+        updateCartBadge();
+
+        // Mobile menu
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (menuToggle && navLinks) {
+            menuToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => navLinks.classList.remove('open'));
+            });
+        }
+
+        // Cart button opens the cart on the marketplace
+        document.getElementById('cartOpenBtn').addEventListener('click', () => {
+            window.location.href = 'index.html?open=cart';
+        });
+
+        // Cross-tab sync of the cart badge
+        window.addEventListener('storage', () => {
+            cartCount = getCartCount();
+            updateCartBadge();
+        });
+
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (userDoc.exists) {
+                        updateUserAvatar(userDoc.data(), user);
+                    } else {
+                        updateUserAvatar(null, user);
+                    }
+                } catch (err) {
+                    console.warn('Error fetching user:', err);
+                    updateUserAvatar(null, user);
+                }
+            } else {
+                updateUserAvatar(null, null);
+            }
+            loadLyric();
+        });
+    </script>
+
+</body>
+</html>

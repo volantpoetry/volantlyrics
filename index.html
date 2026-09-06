@@ -176,6 +176,23 @@
             color: #3a1f8a !important;
         }
 
+        .btn-signout-nav {
+            display: none;
+            background: none;
+            border: none;
+            color: #4b2aad !important;
+            font-size: 1.15rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s ease, background 0.3s ease;
+        }
+        .btn-signout-nav:hover { background: #f5f0ff !important; color: #3a1f8a !important; }
+
+        .nav-links .nav-sign-out { display: none; }
+
         .nav-right {
             display: flex;
             align-items: center;
@@ -185,8 +202,8 @@
         .user-badge {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 4px 14px 4px 8px;
+            gap: 0;
+            padding: 4px;
             border-radius: 30px;
             background: #f5f0ff;
             border: 1px solid #ede8ff;
@@ -194,6 +211,7 @@
             font-weight: 500;
             color: #4b2aad;
             cursor: pointer;
+            text-decoration: none;
             transition: all 0.3s ease;
         }
         
@@ -201,6 +219,8 @@
             background: #ede8ff;
             border-color: #4b2aad;
         }
+
+        .user-badge #userName { display: none; }
         
         .user-badge .avatar-small {
             width: 28px;
@@ -275,6 +295,14 @@
             .nav-links .nav-cta {
                 display: none !important;
             }
+
+            .btn-signout-nav {
+                display: none !important;
+            }
+
+            .nav-links .nav-sign-out {
+                display: block;
+            }
         }
 
         @media (max-width: 480px) {
@@ -294,7 +322,7 @@
             }
             .user-badge {
                 font-size: 0.7rem;
-                padding: 2px 10px 2px 6px;
+                padding: 2px;
             }
             .user-badge .avatar-small {
                 width: 22px;
@@ -303,46 +331,95 @@
             }
         }
 
-        /* ===== MARKETPLACE HERO - CENTERED ===== */
+        /* ===== MARKETPLACE HERO ===== */
         .marketplace-hero {
-            padding: 50px 0 30px;
-            background: linear-gradient(135deg, #f8f5ff, #f0edff);
+            position: relative;
+            overflow: hidden;
+            padding: 64px 0 46px;
+            background:
+                radial-gradient(rgba(75, 42, 173, 0.08) 1px, transparent 1.5px),
+                linear-gradient(135deg, #faf7ff 0%, #f0ecff 55%, #f2f8ff 100%);
+            background-size: 26px 26px, auto;
             border-bottom: 1px solid #ede8ff;
             text-align: center;
         }
-        
+
         .marketplace-hero .container {
+            position: relative;
+            z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
-        
+
+        .hero-glow {
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .hero-glow--1 { top: -160px; left: -120px; background: #7a5cff; animation: heroDrift 16s ease-in-out infinite alternate; }
+        .hero-glow--2 { bottom: -190px; right: -130px; background: #b8860b; opacity: 0.3; animation: heroDrift 21s ease-in-out infinite alternate-reverse; }
+
+        .hero-note {
+            position: absolute;
+            color: #4b2aad;
+            opacity: 0.12;
+            font-size: 2.4rem;
+            pointer-events: none;
+            animation: heroFloat 7s ease-in-out infinite;
+        }
+        .hero-note--a { top: 12%; left: 7%; }
+        .hero-note--b { top: 24%; right: 8%; font-size: 1.8rem; animation-delay: 1.6s; }
+        .hero-note--c { bottom: 16%; left: 15%; font-size: 1.5rem; animation-delay: 3.1s; }
+
+        @keyframes heroDrift {
+            from { transform: translate3d(0, 0, 0) scale(1); }
+            to { transform: translate3d(28px, 22px, 0) scale(1.08); }
+        }
+        @keyframes heroFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .hero-glow, .hero-note { animation: none !important; }
+        }
+
         .marketplace-hero h1 {
             font-family: 'Playfair Display', serif;
-            font-size: 2.6rem;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            line-height: 1.08;
             font-weight: 700;
             color: #1a1a2e;
             margin-bottom: 0;
         }
-        
+
         .marketplace-hero h1 .highlight {
             color: #4b2aad;
+            background: linear-gradient(transparent 66%, rgba(123, 92, 255, 0.28) 66%);
+            padding: 0 2px;
         }
-        
+
         .marketplace-hero p {
             color: #6a5f55;
-            font-size: 1rem;
-            max-width: 500px;
+            font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+            max-width: 620px;
             margin: 0 auto;
+            line-height: 1.6;
         }
         
         .hero-actions {
             display: flex;
             align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
             gap: 12px;
-            margin-top: 4px;
+            margin-top: 24px;
         }
         
         .btn-sell {
@@ -425,22 +502,27 @@
         
       
         
+        .search-wrap {
+            flex: 1 1 280px;
+            max-width: 430px;
+            min-width: 200px;
+        }
+
         .filter-search {
             background: #faf9fe;
-            border: 1px solid #ede8ff;
+            border: 1px solid #e6e0fb;
             border-radius: 30px;
-            padding: 6px 16px 6px 18px;
+            padding: 7px 14px 7px 18px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 180px;
-            transition: all 0.3s ease;
+            gap: 9px;
+            height: 40px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
         }
         
         .filter-search:focus-within {
             border-color: #4b2aad;
-            box-shadow: 0 0 0 3px rgba(75, 42, 173, 0.06);
+            box-shadow: 0 0 0 3px rgba(75, 42, 173, 0.1);
             background: white;
         }
         
@@ -448,27 +530,67 @@
             background: transparent;
             border: none;
             color: #1a1a2e;
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             font-family: 'Inter', sans-serif;
-            padding: 6px 0;
+            padding: 0;
             width: 100%;
             outline: none;
+            min-width: 0;
         }
         
         .filter-search input::placeholder {
-            color: #b0a89a;
+            color: #a6a0b8;
         }
         
         .filter-search i {
             color: #4b2aad;
-            font-size: 0.8rem;
-            opacity: 0.6;
+            font-size: 0.82rem;
+            opacity: 0.7;
+            flex: none;
         }
+
+        .search-clear {
+            display: none;
+            background: none;
+            border: none;
+            padding: 0;
+            color: #b0a89a;
+            font-size: 0.85rem;
+            cursor: pointer;
+            flex: none;
+            transition: color 0.2s ease;
+        }
+        .search-clear:hover { color: #4b2aad; }
+        .search-wrap.has-value .search-clear { display: inline-flex; }
 
         /* ===== LYRICS GRID ===== */
         .lyrics-grid {
             padding: 24px 0 60px;
             background: #faf9fe;
+        }
+
+        .results-info {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 0.82rem;
+            color: #6b5fa8;
+            padding: 6px 2px 2px;
+        }
+        .results-info b {
+            color: #4b2aad;
+            font-weight: 700;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #lyricsGrid.reordering .lyric-card,
+        .featured-strip.reordering .featured-card {
+            animation: cardIn 0.32s ease both;
         }
         
         .lyrics-grid .container {
@@ -901,7 +1023,7 @@
 
         @media (max-width: 768px) {
             .marketplace-hero {
-                padding: 35px 0 25px;
+                padding: 48px 0 34px;
             }
             .marketplace-hero h1 {
                 font-size: 2rem;
@@ -927,17 +1049,25 @@
                 font-size: 0.7rem;
                 padding: 4px 12px;
             }
+            .search-wrap {
+                flex: 0 0 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
             .filter-search {
-                min-width: 120px;
+                height: 46px;
             }
             .filter-search input {
-                font-size: 0.75rem;
+                font-size: 0.95rem;
+            }
+            .sort-wrap {
+                margin-left: 0;
             }
         }
 
         @media (max-width: 480px) {
             .marketplace-hero {
-                padding: 25px 0 18px;
+                padding: 34px 0 26px;
             }
             .marketplace-hero h1 {
                 font-size: 1.6rem;
@@ -959,6 +1089,18 @@
                 font-size: 0.78rem;
                 padding: 8px 20px;
             }
+            .hero-stat {
+                flex: 1 1 42%;
+                min-width: 42%;
+            }
+            .hero-stat + .hero-stat {
+                border-left: 0;
+            }
+            .hero-stats {
+                margin-top: 26px;
+                padding: 14px 4px;
+            }
+            .hero-note--a, .hero-note--b { display: none; }
             .filter-divider {
                 display: none;
             }
@@ -1308,68 +1450,89 @@
             .cart-overlay .cart-footer { padding: 0.7rem 1rem; }
         }
 
-        /* ===== HERO UPGRADE ===== */
+        /* ===== HERO BADGE / BUTTONS / STATS ===== */
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: linear-gradient(135deg, #4b2aad, #7a5cff);
-            color: #fff;
+            background: rgba(255, 255, 255, 0.78);
+            color: #4b2aad;
             font-size: 0.72rem;
             font-weight: 600;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            padding: 6px 16px;
+            padding: 7px 18px;
+            border: 1px solid rgba(75, 42, 173, 0.18);
             border-radius: 30px;
-            box-shadow: 0 6px 20px rgba(75,42,173,0.25);
-            margin-bottom: 14px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 0 4px 18px rgba(75, 42, 173, 0.1);
+            margin-bottom: 16px;
         }
-        .marketplace-hero p { max-width: 560px; }
-        .hero-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 22px;
-        }
+
         .btn-hero-primary {
-            background: #4b2aad !important;
+            background: linear-gradient(135deg, #4b2aad, #7a5cff) !important;
             color: #fff !important;
-            box-shadow: 0 10px 30px rgba(75,42,173,0.28);
+            box-shadow: 0 10px 30px rgba(75, 42, 173, 0.3);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+        .btn-hero-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 36px rgba(75, 42, 173, 0.38);
         }
         .btn-hero-secondary {
             background: #fff !important;
             color: #4b2aad !important;
             border: 1.5px solid #4b2aad !important;
             box-shadow: none !important;
+            transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
         }
-        .btn-hero-secondary:hover { background: #f0edff !important; }
+        .btn-hero-secondary:hover { background: #f0edff !important; transform: translateY(-2px); }
+
         .hero-stats {
             display: flex;
-            gap: 28px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 34px;
+            gap: 0;
+            margin-top: 36px;
             width: 100%;
+            max-width: 740px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            border-radius: 22px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 14px 40px rgba(75, 42, 173, 0.1);
+            padding: 16px 6px;
         }
-        .hero-stat { text-align: center; min-width: 120px; }
+        .hero-stat {
+            text-align: center;
+            min-width: 130px;
+            flex: 1 1 0;
+            padding: 4px 14px;
+        }
+        .hero-stat + .hero-stat {
+            border-left: 1px solid #e8e2fb;
+        }
         .hero-stat strong {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             font-family: 'Playfair Display', serif;
-            font-size: 1.7rem;
+            font-size: clamp(1.5rem, 3vw, 1.9rem);
             color: #1a1a2e;
             font-weight: 700;
             line-height: 1.2;
         }
         .hero-stat strong i { color: #B8860B; font-size: 1.3rem; }
         .hero-stat span {
-            font-size: 0.72rem;
+            display: block;
+            font-size: 0.7rem;
             color: #6a5f55;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
+            margin-top: 2px;
         }
 
         /* ===== SECTION HEADINGS ===== */
@@ -1404,9 +1567,25 @@
         /* ===== FEATURED STRIP ===== */
         .featured-strip { padding: 26px 0 6px; background: #faf9fe; }
         .featured-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            display: flex;
+            flex-wrap: nowrap;
             gap: 16px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            overscroll-behavior-x: contain;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x proximity;
+            padding: 6px 2px 12px;
+            scrollbar-width: thin;
+            scrollbar-color: #d6cff2 transparent;
+        }
+        .featured-grid::-webkit-scrollbar { height: 6px; }
+        .featured-grid::-webkit-scrollbar-thumb { background: #d6cff2; border-radius: 6px; }
+        .featured-grid::-webkit-scrollbar-track { background: transparent; }
+        .featured-grid .featured-card {
+            flex: 0 0 300px;
+            min-width: 0;
+            scroll-snap-align: start;
         }
         .featured-card {
             display: flex;
@@ -1481,6 +1660,19 @@
             gap: 6px;
             z-index: 2;
         }
+        .rank-tag {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.35);
+            z-index: 2;
+        }
         .badge-tag {
             background: rgba(0,0,0,0.35);
             color: #fff;
@@ -1497,6 +1689,7 @@
         }
         .badge-tag.new { background: rgba(40,167,69,0.9); }
         .badge-tag.popular { background: rgba(184,134,11,0.95); }
+        .badge-tag.audio { background: rgba(75,42,173,0.95); }
 
         /* ===== FILTERS SORT ===== */
         .sort-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
@@ -1716,6 +1909,18 @@
             flex-wrap: wrap;
         }
         .qv-artist .genre-tag { font-size: 0.62rem; }
+        .qv-audio {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0edff;
+            color: #4b2aad;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 30px;
+            margin-bottom: 12px;
+        }
         .qv-lyrics {
             font-family: 'Playfair Display', serif;
             font-style: italic;
@@ -1777,10 +1982,10 @@
         @media (max-width: 520px) {
             .qv-body { padding: 1rem 1.1rem; }
             .qv-lyrics { font-size: 0.92rem; }
-            .featured-grid { grid-template-columns: 1fr 1fr; }
+            .featured-grid .featured-card { flex-basis: 250px; }
         }
         @media (max-width: 380px) {
-            .featured-grid { grid-template-columns: 1fr; }
+            .featured-grid .featured-card { flex-basis: 215px; }
         }
     </style>
 </head>
@@ -1794,18 +1999,11 @@
             <span class="logo-text"><span class="logo-highlight">Volant</span> Lyrics</span>
         </a>
 
-
-    <div class="container">
-        <div class="filter-search">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search by title, artist..." oninput="searchLyrics()" />
-        </div>
-    </div>
-
-
         <ul class="nav-links" id="navLinks">
-                                        <li><a href="submit.html" class="nav-cta">Sell Lyrics</a></li>
+                     <li><a href="index.html" class="nav-cta active">Marketplace</a></li>
                      <li><a href="library.html">My Library</a></li>
+                     <li><a href="submit.html">Sell Lyrics</a></li>
+                     <li class="nav-sign-out"><a href="#" id="mobileSignOutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</a></li>
                 </ul>
 
         <div class="nav-right">
@@ -1814,10 +2012,13 @@
                 <span class="cart-text">Cart</span>
                 <span class="cart-count">0</span>
             </button>
-            <div class="user-badge" id="userBadge">
+            <a href="manage.html" class="user-badge" id="userBadge" title="Manage My Lyrics">
                 <div class="avatar-small" id="userAvatar"></div>
                 <span id="userName">Guest</span>
-            </div>
+            </a>
+            <button class="btn-signout-nav" id="desktopSignOutBtn" title="Sign out">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
@@ -1865,6 +2066,11 @@
 
 <!-- ===== MARKETPLACE HERO ===== -->
 <section class="marketplace-hero">
+    <div class="hero-glow hero-glow--1" aria-hidden="true"></div>
+    <div class="hero-glow hero-glow--2" aria-hidden="true"></div>
+    <i class="hero-note hero-note--a fas fa-music" aria-hidden="true"></i>
+    <i class="hero-note hero-note--b fas fa-music" aria-hidden="true"></i>
+    <i class="hero-note hero-note--c fas fa-music" aria-hidden="true"></i>
     <div class="container">
         <span class="hero-badge"><i class="fas fa-check-circle"></i> Premium Lyrics Marketplace</span>
         <h1>Discover <span class="highlight">Original</span> Lyrics</h1>
@@ -1895,6 +2101,13 @@
 
 <section class="filters-bar">
     <div class="container">
+        <div class="search-wrap">
+            <div class="filter-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by title, artist, genre..." oninput="searchLyrics()" />
+                <button type="button" class="search-clear" id="searchClear" aria-label="Clear search" onclick="clearSearch()"><i class="fas fa-times-circle"></i></button>
+            </div>
+        </div>
         <div class="filter-group" id="filterGroup">
             <span class="filter-label">Genre</span>
             <button class="filter-btn active" data-filter="all" onclick="filterLyrics('all')">All</button>
@@ -1919,6 +2132,9 @@
 
 <!-- ===== LYRICS GRID ===== -->
 <section class="lyrics-grid" id="lyricsGrid">
+    <div class="container">
+        <div class="results-info" id="resultsInfo"></div>
+    </div>
     <div class="container" id="lyricsContainer">
         <div class="loading-skeleton" id="loadingSkeleton">
             <div class="spinner"></div>
@@ -2062,7 +2278,7 @@
 
     <div id="volant-footer-bottom">
         <p style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-bottom:6px;">
-            <a href="https://volantpoetry.vercel.app/volant_foundry/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">🏛️ Volant Foundry</a>
+            <a href="https://volantpoetry.vercel.app/volant_foundry/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">🏛 Volant Foundry</a>
             <a href="https://volantpoetry.vercel.app/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">📖 Volant Poetry</a>
             <a href="https://volantpoetry.vercel.app/store/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">📚 Volant Reads</a>
             <a href="https://volantcodes.vercel.app/" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">💻 Volant Codes</a>
@@ -2110,9 +2326,54 @@
 
     // ===== FORMAT PRICE =====
     function formatPrice(price, currency) {
-        if (!price || price === 0) return 'Free';
-        if (currency === 'USD') return `$${price.toFixed(2)}`;
-        return `GHS ${price.toFixed(2)}`;
+        const n = Number(price) || 0;
+        if (n <= 0) return 'Free';
+        if (currency === 'USD') return `$${n.toFixed(2)}`;
+        return `GHS ${n.toFixed(2)}`;
+    }
+
+    // ===== FILTER EVENT DELEGATION =====
+    // Bound on document so filtering works for any button that is ever rendered,
+    // even if an inline onclick handler fails to attach. Price/genre buttons are
+    // matched by their data-price / data-filter attributes.
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (!target || !target.closest) return;
+        const priceBtn = target.closest('[data-price]');
+        if (priceBtn) {
+            filterByPrice(priceBtn.dataset.price || 'all');
+            return;
+        }
+        const filterBtn = target.closest('[data-filter]');
+        if (filterBtn) {
+            filterLyrics(filterBtn.dataset.filter || 'all');
+            return;
+        }
+    });
+
+    const sortSelGate = document.getElementById('sortSelect');
+    if (sortSelGate) sortSelGate.addEventListener('change', changeSort);
+
+    const searchInpGate = document.getElementById('searchInput');
+    if (searchInpGate) {
+        searchInpGate.addEventListener('input', searchLyrics);
+        searchInpGate.addEventListener('keyup', toggleSearchClear);
+    }
+
+    function toggleSearchClear() {
+        const input = document.getElementById('searchInput');
+        if (!input) return;
+        const wrap = input.closest('.search-wrap');
+        if (wrap) wrap.classList.toggle('has-value', !!input.value.trim());
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('searchInput');
+        if (!input) return;
+        input.value = '';
+        toggleSearchClear();
+        searchLyrics();
+        input.focus();
     }
 
     // ===== GET INITIALS =====
@@ -2170,6 +2431,8 @@
         }
         
         nameEl.textContent = displayName;
+        const badgeEl = avatarEl.closest?.('.user-badge');
+        if (badgeEl) badgeEl.title = user ? displayName : 'Manage My Lyrics';
         
         if (photoURL) {
             avatarEl.style.backgroundImage = `url(${photoURL})`;
@@ -2194,12 +2457,11 @@
     // ===== FETCH LYRICS =====
     async function fetchLyrics(searchTerm = '', genre = 'all') {
         const container = document.getElementById('lyricsContainer');
+        if (!container) return;
+
         const loadingSkeleton = document.getElementById('loadingSkeleton');
-        
-        if (!container || !loadingSkeleton) return;
-        
         isLoading = true;
-        loadingSkeleton.style.display = 'block';
+        if (loadingSkeleton) loadingSkeleton.style.display = 'block';
         
         try {
             // Build query
@@ -2211,8 +2473,12 @@
             // NOTE: genre is filtered client-side in renderMarketplace() so we
             // avoid composite-index requirements and get instant filtering.
 
-            // Get results
-            const snapshot = await query.limit(200).get();
+            // Get results (with a hard timeout so the grid can never hang on "Loading lyrics")
+            const fetchWithTimeout = (promise, ms) => Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timed out waiting for Firestore')), ms))
+            ]);
+            const snapshot = await fetchWithTimeout(query.limit(200).get(), 10000);
             
             allLyrics = [];
             const genreSet = new Set();
@@ -2233,22 +2499,31 @@
             
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const genreVal = data.genre || 'other';
+                const safeStr = v => typeof v === 'string' ? v : (v ? String(v) : '');
+                const safeNum = v => { const n = Number(v); return isFinite(n) ? n : 0; };
+                const genreVal = safeStr(data.genre) || 'other';
                 genreSet.add(genreVal);
-                
+
+                let createdAt = data.createdAt && data.createdAt.toDate
+                    ? data.createdAt.toDate()
+                    : (data.createdAt ? new Date(data.createdAt) : new Date());
+                if (isNaN(createdAt.getTime())) createdAt = new Date();
+
                 allLyrics.push({
                     id: doc.id,
-                    title: data.title || 'Untitled',
-                    artist: data.artist || 'Anonymous',
+                    title: safeStr(data.title) || 'Untitled',
+                    artist: safeStr(data.artist) || 'Anonymous',
                     genre: genreVal,
-                    lyrics: data.lyrics || 'No lyrics available',
-                    views: data.views || 0,
-                    price: data.price || 0,
-                    priceCurrency: data.priceCurrency || 'GHS',
-                    description: data.description || '',
-                    submittedBy: data.submittedBy || '',
-                    submittedByName: data.submittedByName || '',
-                    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt) || new Date()
+                    lyrics: safeStr(data.lyrics) || 'No lyrics available',
+                    views: safeNum(data.views),
+                    price: safeNum(data.price),
+                    priceCurrency: safeStr(data.priceCurrency) || 'GHS',
+                    description: safeStr(data.description),
+                    submittedBy: safeStr(data.submittedBy),
+                    submittedByName: safeStr(data.submittedByName),
+                    hasAudio: !!(data.hasAudio || data.audioSampleUrl),
+                    audioSampleUrl: safeStr(data.audioSampleUrl),
+                    createdAt
                 });
             });
             
@@ -2266,16 +2541,19 @@
             }
 
             // Featured picks + client-side filters/sort
-            renderFeatured(allLyrics);
             renderMarketplace();
             
         } catch (error) {
             console.error('Error fetching lyrics:', error);
+            const timedOut = /timed out/i.test(String((error && error.message) || error));
             container.innerHTML = `
                 <div class="no-results">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <h3>Unable to load lyrics</h3>
-                    <p>Please try again later.</p>
+                    <i class="fas fa-cloud-meatball"></i>
+                    <h3>${timedOut ? 'Taking too long to load' : 'Unable to load lyrics'}</h3>
+                    <p>${timedOut
+                        ? 'Your browser could not reach the lyrics database from this page location. Loading it on the live site (volantlyrics.vercel.app) usually fixes this.'
+                        : 'Please try again later.'}</p>
+                    <button class="btn-submit-cta" style="border:none;cursor:pointer;" onclick="fetchLyrics()"><i class="fas fa-redo-alt"></i> Retry</button>
                 </div>
             `;
             renderFilters([]);
@@ -2287,11 +2565,10 @@
     // ===== RENDER LYRICS =====
     function renderLyrics(data) {
         const container = document.getElementById('lyricsContainer');
+        if (!container) return;
+
         const loadingSkeleton = document.getElementById('loadingSkeleton');
-        
-        if (!container || !loadingSkeleton) return;
-        
-        loadingSkeleton.style.display = 'none';
+        if (loadingSkeleton) loadingSkeleton.style.display = 'none';
         
         if (data.length === 0) {
             container.innerHTML = `
@@ -2316,11 +2593,13 @@
             return `
                 <div class="lyric-card" onclick="location.href='details.html?id=${encodeURIComponent(lyric.id)}'">
                     <div class="cover-tile" style="background:${genreGradient(lyric.genre)};">
+                        <span class="rank-tag">#${index + 1}</span>
                         <i class="fas fa-music"></i>
                         <span class="ct-genre">${escapeHtml(genreDisplay)}</span>
                         <div class="card-badges">
                             ${isNew ? `<span class="badge-tag new"><i class="fas fa-bolt"></i> New</span>` : ''}
                             ${isPopular ? `<span class="badge-tag popular"><i class="fas fa-star"></i> Best Seller</span>` : ''}
+                            ${lyric.audioSampleUrl ? `<span class="badge-tag audio"><i class="fas fa-headphones"></i> Audio</span>` : ''}
                         </div>
                     </div>
                     <div class="card-top" style="margin-top:10px;">
@@ -2382,16 +2661,32 @@
     }
 
     // ===== RENDER FEATURED =====
+    let featuredPoolKey = '';
+    let featuredPicks = [];
+
     function renderFeatured(all) {
         const grid = document.getElementById('featuredGrid');
         if (!grid) return;
-        if (!all || all.length === 0) {
+        const eligible = all || [];
+        if (eligible.length === 0) {
             grid.innerHTML = '';
             return;
         }
-        const picks = [...all]
-            .sort((a, b) => (b.views || 0) - (a.views || 0))
-            .slice(0, 6);
+
+        // Randomly sample up to 6 so every lyric gets a fair chance to be
+        // featured. The draw stays stable across sort/search of the same pool,
+        // and re-rolls only when the eligible set changes (filters, refresh).
+        const poolKey = eligible.map(l => l.id).join('|');
+        if (featuredPoolKey !== poolKey) {
+            const shuffled = eligible.slice();
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            featuredPicks = shuffled.slice(0, Math.min(6, shuffled.length));
+            featuredPoolKey = poolKey;
+        }
+        const picks = featuredPicks;
 
         grid.innerHTML = picks.map(lyric => {
             const isFree = !lyric.price || lyric.price === 0;
@@ -2445,21 +2740,53 @@
 
         // Apply sort
         if (currentSort === 'popular') {
-            filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+            filtered.sort((a, b) => (b.views || 0) - (a.views || 0) || a.title.localeCompare(b.title));
         } else if (currentSort === 'low') {
-            filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+            filtered.sort((a, b) => (a.price || 0) - (b.price || 0) || a.title.localeCompare(b.title));
         } else if (currentSort === 'high') {
-            filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+            filtered.sort((a, b) => (b.price || 0) - (a.price || 0) || a.title.localeCompare(b.title));
         } else {
-            filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            filtered.sort((a, b) => {
+                const diff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                return diff || a.title.localeCompare(b.title);
+            });
         }
 
+        // Featured picks follow the same active filter so nothing stale stays on page
+        renderFeatured(filtered);
         renderLyrics(filtered);
+
+        // Live results counter (like the search indicator on poems.html)
+        const infoEl = document.getElementById('resultsInfo');
+        if (infoEl) {
+            const total = allLyrics.length;
+            const label = currentSort === 'popular' ? 'Most viewed' :
+                currentSort === 'low' ? 'Price: low to high' :
+                currentSort === 'high' ? 'Price: high to low' : 'Newest first';
+            if (filtered.length === total && currentFilter === 'all' && currentPrice === 'all' && !currentSearch) {
+                infoEl.innerHTML = `<span>Showing all <b>${total.toLocaleString()}</b> lyrics</span>`;
+            } else {
+                infoEl.innerHTML = `<span>Showing <b>${filtered.length.toLocaleString()}</b> of <b>${total.toLocaleString()}</b> lyrics</span>`;
+            }
+            infoEl.innerHTML += `<span>${label}</span>`;
+        }
     }
 
     // ===== PRICE FILTER =====
+    function markReordering() {
+        const gridSec = document.getElementById('lyricsGrid');
+        const stripSec = document.querySelector('.featured-strip');
+        [gridSec, stripSec].forEach(el => {
+            if (!el) return;
+            el.classList.remove('reordering');
+            void el.offsetWidth;
+            el.classList.add('reordering');
+        });
+    }
+
     function filterByPrice(priceType) {
         currentPrice = priceType;
+        markReordering();
         document.querySelectorAll('#priceFilterGroup .filter-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.price === priceType);
         });
@@ -2470,6 +2797,7 @@
     function changeSort() {
         const sel = document.getElementById('sortSelect');
         currentSort = sel ? sel.value : 'newest';
+        markReordering();
         renderMarketplace();
     }
 
@@ -2485,7 +2813,8 @@
             const data = doc.data();
             const priceDisplay = formatPrice(data.price, data.priceCurrency);
             const isFree = !data.price || data.price === 0;
-            const genreDisplay = (data.genre || 'Other').charAt(0).toUpperCase() + (data.genre || 'Other').slice(1);
+            const genreRaw = (data.genre || 'Other');
+            const genreDisplay = String(genreRaw).charAt(0).toUpperCase() + String(genreRaw).slice(1);
             const isOwned = currentUser ? await checkPurchaseStatus(currentUser.uid, docId) : false;
 
             document.getElementById('qvTitle').innerHTML = `<i class="fas fa-music"></i> ${escapeHtml(data.title || 'Untitled')}`;
@@ -2501,6 +2830,7 @@
                     <span class="genre-tag">${escapeHtml(genreDisplay)}</span>
                     <span style="display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>
                 </div>
+                ${data.audioSampleUrl ? `<div class="qv-audio"><i class="fas fa-headphones"></i> Audio sample available — play it from the detail page</div>` : ''}
                 <div class="qv-lyrics">${escapeHtml(data.lyrics || 'No lyrics available')}</div>
                 ${data.description ? `<div class="qv-desc"><strong>About this lyric:</strong> ${escapeHtml(data.description)}</div>` : ''}
                 ${isOwned ? `<div class="item-owned"><i class="fas fa-check-circle"></i> Already Owned — view it in <strong>My Library</strong></div>` : ''}
@@ -2565,7 +2895,8 @@
     // ===== FILTER LYRICS =====
     function filterLyrics(genre) {
         currentFilter = genre;
-        
+        markReordering();
+
         document.querySelectorAll('#filterGroup .filter-btn').forEach(btn => {
             btn.classList.remove('active');
             if (btn.dataset.filter === genre) {
@@ -2597,9 +2928,38 @@
         });
     }
 
+    // ===== SIGN OUT =====
+    function setSignOutVisibility(hasUser) {
+        const desktopBtn = document.getElementById('desktopSignOutBtn');
+        const mobileBtn = document.getElementById('mobileSignOutBtn');
+        if (desktopBtn) desktopBtn.style.display = hasUser ? 'inline-flex' : 'none';
+        const mobileLi = mobileBtn ? mobileBtn.closest('.nav-sign-out') : null;
+        if (mobileLi) mobileLi.style.display = hasUser ? '' : 'none';
+    }
+
+    function signOutUser() {
+        if (auth && auth.signOut) {
+            auth.signOut()
+                .then(() => { window.location.reload(); })
+                .catch(() => { window.location.reload(); });
+        } else {
+            window.location.reload();
+        }
+    }
+
+    const desktopSignOutBtn = document.getElementById('desktopSignOutBtn');
+    if (desktopSignOutBtn) desktopSignOutBtn.addEventListener('click', signOutUser);
+
+    const mobileSignOutBtn = document.getElementById('mobileSignOutBtn');
+    if (mobileSignOutBtn) mobileSignOutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        signOutUser();
+    });
+
     // ===== USER AUTH =====
     auth.onAuthStateChanged(async (user) => {
         currentUser = user;
+        setSignOutVisibility(!!user);
         if (user) {
             try {
                 const userDoc = await db.collection('users').doc(user.uid).get();
@@ -2619,7 +2979,34 @@
     });
 
     // ===== PAYSTACK CONFIGURATION =====
-    const PAYSTACK_PUBLIC_KEY = 'pk_live_8296b2ad3250800c9846bb2368be1bbda3933cd8';
+    // The Lyrics site is its own Vercel project; the serverless API lives in the
+    // root volant-foundry project (volantpoetry.vercel.app). CORS is open on the
+    // functions, so cross-origin calls work. In dev (file://) the API still runs
+    // fine and falls back to the Lyrics TEST key when unreachable.
+    const PAYSTACK_API_BASE = 'https://volantpoetry.vercel.app/api';
+    const PAYSTACK_PUBLIC_KEY_FALLBACK = 'pk_test_bba6e3bfb9fefff1b6c49aceb34344c8f92b9499';
+    let PAYSTACK_PUBLIC_KEY = '';
+
+    function isDevMode() {
+        return location.protocol === 'file:' ||
+            location.hostname === 'localhost' ||
+            location.hostname === '127.0.0.1';
+    }
+
+    async function loadPaystackConfig() {
+        try {
+            const res = await fetch(PAYSTACK_API_BASE + '/lyrics-paystack-config');
+            const data = await res.json();
+            if (data && data.publicKey) {
+                PAYSTACK_PUBLIC_KEY = data.publicKey;
+            }
+        } catch (error) {
+            console.warn('Could not load lyrics Paystack config:', error);
+        }
+        if (!PAYSTACK_PUBLIC_KEY) {
+            PAYSTACK_PUBLIC_KEY = PAYSTACK_PUBLIC_KEY_FALLBACK;
+        }
+    }
 
     // ===== CART DOM ELEMENTS =====
     const cartOverlay = document.getElementById('cartOverlay');
@@ -2778,7 +3165,7 @@
             console.log('✅ Purchase recorded successfully');
             return true;
         } catch (err) {
-            console.error('❌ Error recording purchase:', err);
+            console.error('âŒ Error recording purchase:', err);
             return false;
         }
     }
@@ -2788,12 +3175,12 @@
         if (isProcessingPayment) return;
 
         if (typeof PaystackPop === 'undefined') {
-            showToast('⏳ Payment system is loading. Please wait a moment.', 'info');
+            showToast('â³ Payment system is loading. Please wait a moment.', 'info');
             return;
         }
 
         if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('xxxxxxxx')) {
-            showToast('⚠️ Paystack is not properly configured. Please contact support.', 'error');
+            showToast('âš ï¸ Paystack is not properly configured. Please contact support.', 'error');
             return;
         }
 
@@ -2821,7 +3208,7 @@
         }
 
         if (totalGHS <= 0) {
-            showToast('⚠️ Invalid total amount. Please try again.', 'error');
+            showToast('âš ï¸ Invalid total amount. Please try again.', 'error');
             return;
         }
 
@@ -2841,7 +3228,7 @@
                 const lyricSnap = await lyricRef.get();
 
                 if (!lyricSnap.exists) {
-                    showToast(`⚠️ Lyrics "${item.title}" not found.`, 'error');
+                    showToast(`âš ï¸ Lyrics "${item.title}" not found.`, 'error');
                     resetCheckoutButton();
                     return;
                 }
@@ -2862,7 +3249,7 @@
                     continue;
                 }
 
-                const subaccountCode = authorDoc.data().subaccountCode;
+                const subaccountCode = authorDoc.data().lyricsSubaccountCode;
 
                 if (!subaccountCode) {
                     missingAuthors.push(item.title);
@@ -2882,16 +3269,21 @@
                 authorGroups[authorId].items.push(item.title);
             } catch (error) {
                 console.error('Error fetching author subaccount:', error);
-                showToast('⚠️ Error processing payment. Please try again.', 'error');
+                showToast('âš ï¸ Error processing payment. Please try again.', 'error');
                 resetCheckoutButton();
                 return;
             }
         }
 
         if (!hasAllSubaccounts && missingAuthors.length > 0) {
-            showToast(`⚠️ Some songwriters haven't set up payout accounts: ${missingAuthors.join(', ')}. Please contact support.`, 'error');
-            resetCheckoutButton();
-            return;
+            if (isDevMode()) {
+                console.warn('[DEV] Continuing without a payout split for: ' + missingAuthors.join(', '));
+                for (const key of Object.keys(authorGroups)) delete authorGroups[key];
+            } else {
+                showToast(`âš ï¸ Some songwriters haven't set up payout accounts: ${missingAuthors.join(', ')}. Please contact support.`, 'error');
+                resetCheckoutButton();
+                return;
+            }
         }
 
         // ===== CREATE SPLIT CONFIGURATION =====
@@ -2963,7 +3355,7 @@
             handler.openIframe();
         } catch (error) {
             console.error('Payment error:', error);
-            showToast('⚠️ Payment error. Please try again.', 'error');
+            showToast('âš ï¸ Payment error. Please try again.', 'error');
             resetCheckoutButton();
         }
     }
@@ -2978,7 +3370,7 @@
     // ===== HANDLE CART PAYMENT CALLBACK =====
     async function handleCartPaymentCallback(response, items) {
         if (!currentUser) {
-            showToast('⚠️ User not found. Please try again.', 'error');
+            showToast('âš ï¸ User not found. Please try again.', 'error');
             resetCheckoutButton();
             return;
         }
@@ -3010,7 +3402,7 @@
         }
 
         if (!allValid) {
-            showToast(`⚠️ Some lyrics not found: ${invalidItems.join(', ')}`, 'error');
+            showToast(`âš ï¸ Some lyrics not found: ${invalidItems.join(', ')}`, 'error');
             resetCheckoutButton();
             return;
         }
@@ -3028,7 +3420,14 @@
 
                 const lyricData = lyricSnap.data();
 
-                const verificationResponse = await fetch('/api/verify-paystack-transaction', {
+                // Dev/local testing: /api endpoints don't exist under file:// ,
+                // so trust the Paystack inline callback reference (test mode).
+                if (isDevMode()) {
+                    console.warn('[DEV] Skipping server verification for local test of:', response.reference);
+                    continue;
+                }
+
+                const verificationResponse = await fetch(PAYSTACK_API_BASE + '/lyrics-verify-transaction', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3056,7 +3455,7 @@
         }
 
         if (!allValid) {
-            showToast(`⚠️ Payment verification failed for: ${invalidItems.join(', ')}. Please contact support.`, 'error');
+            showToast(`âš ï¸ Payment verification failed for: ${invalidItems.join(', ')}. Please contact support.`, 'error');
             resetCheckoutButton();
             return;
         }
@@ -3078,7 +3477,7 @@
                         amount: item.price || 0,
                         currency: item.currency || 'GHS',
                         customerEmail: response.customer?.email || currentUser.email,
-                        verifiedBy: 'serverless-api',
+                        verifiedBy: isDevMode() ? 'dev-local-test' : 'serverless-api',
                         authorId: authorId,
                         lyricTitle: lyricTitle
                     }
@@ -3102,7 +3501,7 @@
             await renderCart();
             closeCart();
         } else {
-            showToast('⚠️ Some purchases failed to save. Please contact support.', 'error');
+            showToast('âš ï¸ Some purchases failed to save. Please contact support.', 'error');
         }
 
         resetCheckoutButton();
@@ -3145,7 +3544,7 @@
                     totalGHS += ghsAmount;
                     priceDisplay = `
                         ${currency} ${amount.toFixed(2)}
-                        <span class="conversion-info">(≈ GHS ${ghsAmount.toFixed(2)})</span>
+                        <span class="conversion-info">(â‰ˆ GHS ${ghsAmount.toFixed(2)})</span>
                     `;
                 } catch (error) {
                     console.warn('Conversion failed:', error);
@@ -3196,7 +3595,7 @@
                     cartCount = cartItems.length;
                     updateCartBadge();
                     renderCart();
-                    showToast('🗑️ Removed from cart.', 'info');
+                    showToast('🗑 Removed from cart.', 'info');
                 }
             });
         });
@@ -3219,6 +3618,8 @@
     cartCloseBtn.addEventListener('click', closeCart);
     cartBackdrop.addEventListener('click', closeCart);
     document.getElementById('cartOpenBtn').addEventListener('click', openCart);
+
+    loadPaystackConfig();
 
     // ===== QUICK VIEW MODAL CONTROLS =====
     document.getElementById('qvCloseBtn').addEventListener('click', closeQuickView);

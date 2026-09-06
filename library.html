@@ -16,6 +16,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -302,6 +304,30 @@
             align-items: center;
             gap: 7px;
         }
+        .lib-lyrics .lyrics-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .lib-lyrics .btn-copy,
+        .lib-lyrics .btn-download {
+            background: #fff;
+            color: #4b2aad;
+            border: 1.5px solid #4b2aad;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lib-lyrics .btn-copy:hover,
+        .lib-lyrics .btn-download:hover { background: #4b2aad; color: #fff; border-color: #4b2aad; }
+        .lib-lyrics .btn-copy.copied { background: #28a745; border-color: #28a745; color: #fff; }
         .lib-lyrics .lyrics-body {
             font-family: 'Playfair Display', serif;
             font-style: italic;
@@ -641,7 +667,13 @@
                                     </div>
                                 </div>
                                 <div class="lib-lyrics">
-                                    <div class="lyrics-label"><i class="fas fa-feather-alt"></i> Full Lyrics</div>
+                                    <div class="lyrics-label">
+                                        <span><i class="fas fa-feather-alt"></i> Full Lyrics</span>
+                                        <div class="lyrics-actions">
+                                            <button class="btn-copy" onclick="copyLyrics(this)" data-title="${encodeURIComponent(item.title || '')}" data-artist="${encodeURIComponent(item.artist || '')}"><i class="fas fa-copy"></i> Copy</button>
+                                            <button class="btn-download" onclick="downloadLyrics(this)" data-title="${encodeURIComponent(item.title || '')}" data-artist="${encodeURIComponent(item.artist || '')}" data-copyright="${encodeURIComponent(item.copyrightName || '')}" data-bookid="${encodeURIComponent(item.id)}" data-ref="${encodeURIComponent(item.ref || '')}" data-iso="${encodeURIComponent(item.purchasedISO || '')}" data-amount="${encodeURIComponent(item.amountLabel || '')}"><i class="fas fa-download"></i> Download</button>
+                                        </div>
+                                    </div>
                                     <div class="lyrics-body">${escapeHtml(item.lyrics || 'Lyrics no longer available.')}</div>
                                     <div class="download-note"><i class="fas fa-check-circle"></i> Permanently unlocked with your purchase. You may copy &amp; download this text.</div>
                                 </div>
@@ -664,6 +696,306 @@
             } else {
                 btnIcon.className = 'fas fa-chevron-down';
                 btn.innerHTML = btn.innerHTML.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        }
+
+        function getLyricsText(card) {
+            const el = card.querySelector('.lyrics-body');
+            return el ? el.textContent.trim() : '';
+        }
+
+        async function copyLyrics(btn) {
+            const card = btn.closest('.lib-card');
+            const text = getLyricsText(card);
+            if (!text) return;
+            let done = false;
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    done = true;
+                }
+            } catch (e) {}
+            if (!done) {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    done = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                } catch (e) {}
+            }
+            const original = btn.innerHTML;
+            btn.innerHTML = done ? '<i class="fas fa-check"></i> Copied' : '<i class="fas fa-exclamation-triangle"></i> Failed';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.classList.remove('copied');
+            }, 1800);
+        }
+
+        function downloadLyrics(btn) {
+            const card = btn.closest('.lib-card');
+            const text = getLyricsText(card);
+            if (!text) return;
+            const safe = s => String(s || '').replace(/[\\/:*?"<>|]/g, '').trim();
+            const attr = name => {
+                try { return decodeURIComponent(btn.getAttribute(name) || ''); } catch (e) { return ''; }
+            };
+            const title = safe(attr('data-title')) || 'Lyrics';
+            const artist = attr('data-artist');
+            const copyright = attr('data-copyright') || artist || 'Anonymous';
+            const ref = attr('data-ref') || '—';
+            const iso = attr('data-iso') || '';
+            const amountLabel = attr('data-amount') || 'Free';
+            const bookId = attr('data-bookid');
+
+            const base = (title + (artist ? ' - ' + artist : '')).replace(/\s+/g, ' ').trim();
+
+            async function saveBlob(blob, name) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1500);
+            }
+
+            async function downloadDocx() {
+                if (typeof JSZip === 'undefined') {
+                    const b = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                    await saveBlob(b, base + '.txt');
+                    return;
+                }
+                const xmlEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const para = (runs, center) => {
+                    const jc = center ? '<w:jc w:val="center"/>' : '';
+                    return '<w:p><w:pPr>' + jc + '<w:spacing w:after="120" w:line="360" w:lineRule="auto"/></w:pPr>'
+                        + runs.map(r => '<w:r><w:rPr>'
+                            + '<w:rFonts w:ascii="Georgia" w:hAnsi="Georgia" w:cs="Georgia"/>'
+                            + '<w:sz w:val="' + r.sz + '"/><w:szCs w:val="' + r.sz + '"/>'
+                            + (r.b ? '<w:b/>' : '') + (r.i ? '<w:i/>' : '')
+                            + '</w:rPr><w:t xml:space="preserve">' + xmlEsc(r.t) + '</w:t></w:r>')
+                        + '</w:p>';
+                };
+                const paragraphs = [];
+                paragraphs.push(para([{ t: title, b: true, sz: 40 }], true));
+                if (artist) paragraphs.push(para([{ t: artist || '', i: true, sz: 24 }], true));
+                paragraphs.push('<w:p><w:pPr><w:spacing w:after="120"/></w:pPr></w:p>');
+                const lines = String(text).split(/\r?\n/);
+                for (const line of lines) {
+                    paragraphs.push(para([{ t: line.trim() ? line : '', sz: 24 }], false));
+                }
+                const docXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                    + '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+                    + '<w:body>' + paragraphs.join('') + '<w:sectPr/></w:body></w:document>';
+
+                const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                    + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+                    + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+                    + '<Default Extension="xml" ContentType="application/xml"/>'
+                    + '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+                    + '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
+                    + '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>'
+                    + '</Types>';
+
+                const rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                    + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                    + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+                    + '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>'
+                    + '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>'
+                    + '</Relationships>';
+
+                const core = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                    + '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" '
+                    + 'xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" '
+                    + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+                    + '<dc:title>' + xmlEsc(title) + '</dc:title>'
+                    + '<dc:creator>Volant Lyrics</dc:creator>'
+                    + '<cp:lastModifiedBy>Volant Lyrics</cp:lastModifiedBy>'
+                    + '</cp:coreProperties>';
+
+                const app = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                    + '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">'
+                    + '<Application>Volant Lyrics</Application>'
+                    + '<DocSecurity>0</DocSecurity>'
+                    + '</Properties>';
+
+                const zip = new JSZip();
+                zip.file('[Content_Types].xml', contentTypes);
+                zip.file('_rels/.rels', rels);
+                zip.folder('word').file('document.xml', docXml);
+                zip.folder('docProps').file('core.xml', core);
+                zip.folder('docProps').file('app.xml', app);
+                const blob = await zip.generateAsync({
+                    type: 'blob',
+                    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                });
+                await saveBlob(blob, base + '.docx');
+            }
+
+            async function downloadLicensePdf() {
+                if (typeof jspdf === 'undefined') {
+                    const b = new Blob([licenseText], { type: 'text/plain;charset=utf-8' });
+                    await saveBlob(b, base + ' - License.txt');
+                    return;
+                }
+                const { jsPDF } = jspdf;
+                const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+                const W = doc.internal.pageSize.getWidth();
+                const M = 50;
+                const lineH = 16;
+                const breaker = t => doc.splitTextToSize(t, W - M * 2);
+
+                let y = M + 8;
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.text('VOLANT LYRICS', W / 2, y, { align: 'center' });
+                y += 22;
+                doc.setFontSize(13);
+                doc.setTextColor(110, 60, 170);
+                doc.text('LYRICS LICENSE & RECEIPT', W / 2, y, { align: 'center' });
+                y += 12;
+                doc.setDrawColor(110, 60, 170);
+                doc.setLineWidth(1.2);
+                doc.line(M, y, W - M, y);
+                y += 10;
+
+                doc.setTextColor(30, 30, 30);
+                const section = (label) => {
+                    y += 14;
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(11);
+                    doc.setTextColor(110, 60, 170);
+                    doc.text(label, M, y);
+                    doc.setFontSize(8);
+                    doc.setDrawColor(200, 190, 230);
+                    doc.setLineWidth(0.6);
+                    doc.line(M, y + 4, W - M, y + 4);
+                    y += 16;
+                };
+                const field = (label, value) => {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9.5);
+                    doc.setTextColor(60, 60, 60);
+                    doc.text(label, M, y);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(30, 30, 30);
+                    const wrapped = breaker(value === '' || value == null ? '-' : String(value));
+                    doc.text(wrapped, M + 130, y);
+                    y += wrapped.length * lineH + 2;
+                };
+                const body_line = (text) => {
+                    const wrapped = breaker(text);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9.5);
+                    doc.setTextColor(30, 30, 30);
+                    for (let i = 0; i < wrapped.length; i++) {
+                        if (y > doc.internal.pageSize.getHeight() - 60) {
+                            doc.addPage();
+                            y = M + 10;
+                        }
+                        doc.text(wrapped[i], M, y);
+                        y += lineH;
+                    }
+                };
+                const numbered = (n, text) => {
+                    const wrapped = breaker(text);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9.5);
+                    doc.setTextColor(30, 30, 30);
+                    for (let i = 0; i < wrapped.length; i++) {
+                        if (y > doc.internal.pageSize.getHeight() - 60) {
+                            doc.addPage();
+                            y = M + 10;
+                        }
+                        doc.text((i === 0 ? n + '. ' : '    ') + wrapped[i], M, y);
+                        y += lineH;
+                    }
+                };
+
+                section('LYRIC DETAILS');
+                field('Title:', title);
+                field('Artist:', artist || 'Unknown');
+
+                section('PURCHASER');
+                field('Name:', (currentUser && (currentUser.displayName || '').trim()) || 'Purchaser');
+                field('Email:', (currentUser && currentUser.email) || '');
+
+                section('SELLER / COPYRIGHT HOLDER');
+                field('Name:', copyright);
+
+                section('PURCHASE DETAILS');
+                field('Date:', date);
+                field('Amount:', amountLabel);
+                field('Payment Reference:', ref);
+                field('License Number:', licenseNum);
+
+                section('LICENSE TERMS');
+                numbered(1, 'The purchaser is granted a non-exclusive, perpetual license to this text for personal use.');
+                numbered(2, 'Copyright remains with the seller / copyright holder named above.');
+                numbered(3, 'The purchaser may copy, print, perform and keep this text.');
+                numbered(4, 'The purchaser may NOT resell, redistribute, or claim authorship of this text.');
+                numbered(5, 'This license is non-transferable.');
+
+                y += 18;
+                doc.setFont('helvetica', 'italic');
+                doc.setFontSize(8.5);
+                doc.setTextColor(120, 120, 120);
+                doc.text('Issued by Volant Lyrics · volantlyrics.vercel.app', W / 2, y, { align: 'center' });
+
+                doc.save(base + ' - License.pdf');
+            }
+
+            const date = iso
+                ? new Date(iso).toLocaleString('en-GB', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : '—';
+            const licenseNum = 'VF-LYR-' + (iso ? iso.replace(/\D/g, '').slice(0, 12) : 'N/A');
+            const licenseText = [
+                'VOLANT LYRICS - LYRICS LICENSE & RECEIPT',
+                '===========================================',
+                '',
+                'This certifies that the lyrics named below have been',
+                'permanently unlocked for the purchaser stated below.',
+                '',
+                'LYRIC DETAILS',
+                'Title:   ' + title,
+                'Artist:  ' + (artist || 'Unknown'),
+                'PURCHASER',
+                'Name:    ' + ((currentUser && (currentUser.displayName || '').trim()) || 'Purchaser'),
+                'Email:   ' + ((currentUser && currentUser.email) || 'Unknown'),
+                'SELLER / COPYRIGHT HOLDER',
+                'Name:    ' + copyright,
+                'PURCHASE DETAILS',
+                'Date:    ' + date,
+                'Amount:  ' + amountLabel,
+                'Payment Reference: ' + ref,
+                'License Number:     ' + licenseNum,
+                'LICENSE TERMS',
+                '1. The purchaser is granted a non-exclusive, perpetual license to this text for personal use.',
+                '2. Copyright remains with the seller / copyright holder named above.',
+                '3. The purchaser may copy, print, perform and keep this text.',
+                '4. The purchaser may NOT resell, redistribute, or claim authorship of this text.',
+                '5. This license is non-transferable.',
+                '',
+                'Issued by Volant Lyrics'
+            ].join('\n');
+
+            downloadDocx().then(() => {
+                setTimeout(downloadLicensePdf, 400);
+            });
+
+            if (bookId && currentUser) {
+                try {
+                    db.collection('purchases').doc(currentUser.uid + '_' + bookId).update({
+                        downloadCount: firebase.firestore.FieldValue.increment(1),
+                        lastDownloadedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(() => {});
+                } catch (e) {}
             }
         }
 
@@ -736,6 +1068,10 @@
                             genre: lyric.genre || 'other',
                             genreDisplay: (lyric.genre || 'Other').charAt(0).toUpperCase() + (lyric.genre || 'Other').slice(1),
                             lyrics: lyric.lyrics || '',
+                            copyrightName: lyric.copyrightName || lyric.artist || 'Anonymous',
+                            sellerId: lyric.submittedBy || '',
+                            ref: purchase.transactionRef || '—',
+                            purchasedISO: purchasedAt ? purchasedAt.toISOString() : '',
                             purchasedLabel: purchasedAt ? purchasedAt.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '—',
                             amountLabel: purchase.amount > 0 ? formatPrice(purchase.amount, purchase.currency) : 'Free'
                         });
@@ -761,7 +1097,7 @@
         }
 
         function goLogin() {
-            window.location.href = 'https://volantpoetry.vercel.app/shared/universal-login.html?platform=lyrics&redirect=' + encodeURIComponent('lyrics/library.html');
+            window.location.href = 'universal-login.html?platform=lyrics&redirect=library.html';
         }
 
         // ===== USER AVATAR =====

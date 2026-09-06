@@ -839,11 +839,11 @@
         <i class="fas fa-lock"></i>
         <h2>Sign in to submit lyrics</h2>
         <p>You need to be signed in to submit and sell your original lyrics on Volant Lyrics.</p>
-        <a href="https://volantpoetry.vercel.app/shared/universal-login.html?redirect=volantlyrics-submit" class="btn-login">
+        <a href="universal-login.html?platform=lyrics&redirect=submit.html" class="btn-login">
             <i class="fas fa-sign-in-alt"></i> Sign In
         </a>
         <p style="margin-top:16px;font-size:0.85rem;color:#888;">
-            Don't have an account? <a href="https://volantpoetry.vercel.app/shared/universal-signup.html?redirect=volantlyrics-submit" style="color:#4b2aad;font-weight:600;">Sign up here</a>
+            Don't have an account? <a href="universal-signup.html?platform=lyrics&redirect=submit.html" style="color:#4b2aad;font-weight:600;">Sign up here</a>
         </p>
     </div>
     
@@ -1251,10 +1251,10 @@
 
     function renderGuestHeader() {
         navRight.innerHTML = `
-            <a href="https://volantpoetry.vercel.app/shared/universal-login.html?redirect=volantlyrics-submit" class="btn-outline">
+            <a href="universal-login.html?platform=lyrics&redirect=submit.html" class="btn-outline">
                 <i class="fas fa-sign-in-alt"></i> Sign In
             </a>
-            <a href="https://volantpoetry.vercel.app/shared/universal-signup.html?redirect=volantlyrics-submit" style="background:#4b2aad;color:white;padding:7px 18px;border-radius:50px;font-weight:500;font-size:0.82rem;">
+            <a href="universal-signup.html?platform=lyrics&redirect=submit.html" style="background:#4b2aad;color:white;padding:7px 18px;border-radius:50px;font-weight:500;font-size:0.82rem;">
                 Sign Up
             </a>
             <a href="index.html" class="btn-store"><i class="fas fa-store"></i> Marketplace</a>
@@ -1591,7 +1591,7 @@
         const user = auth.currentUser;
         if (!user) {
             showError('You must be signed in to submit lyrics.');
-            window.location.href = 'https://volantpoetry.vercel.app/shared/universal-login.html?redirect=volantlyrics-submit';
+            window.location.href = 'universal-login.html?platform=lyrics&redirect=submit.html';
             return;
         }
         

@@ -3629,7 +3629,7 @@
     checkoutBtn.addEventListener('click', async function() {
         if (!currentUser) {
             showToast('🔐 Please sign in to checkout.', 'error');
-            window.location.href = 'https://volantpoetry.vercel.app/shared/universal-login.html?platform=lyrics&redirect=' + encodeURIComponent('lyrics/index.html');
+            window.location.href = 'universal-login.html?platform=lyrics&redirect=index.html';
             return;
         }
 

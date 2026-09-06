@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -3765,10 +3765,11 @@
     updateCartBadge();
     fetchLyrics();
 
-    // ===== OPEN CART FROM URL (?open=cart) =====
+    // ===== OPEN CART FROM URL (?open=cart) — once, then clean the URL =====
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('open') === 'cart') {
         setTimeout(() => { openCart(); }, 1200);
+        try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
     }
 </script>
 

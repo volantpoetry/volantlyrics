@@ -1,10 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Volant Lyrics — Marketplace</title>
     <meta name="description" content="Discover and purchase original song lyrics from talented songwriters. Premium lyrics marketplace." />
+    <link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png" />
+    <link rel="shortcut icon" href="https://volantpoetry.vercel.app/images/lyrics-favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://volantpoetry.vercel.app/images/apple-touch-icon.png" />
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -1187,6 +1191,24 @@
         .btn-add-cart:hover {
             background: #3a1f8a;
             transform: scale(1.03);
+        }
+        .btn-owned {
+            background: rgba(34, 140, 77, 0.12);
+            color: #56c787;
+            border: 1px solid rgba(86, 199, 135, 0.4);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        .btn-owned:hover {
+            background: rgba(34, 140, 77, 0.2);
         }
 
         /* ===== CART / CHECKOUT ===== */
@@ -2621,9 +2643,13 @@
                             <button class="btn-preview" onclick="event.stopPropagation(); viewLyric('${lyric.id}')">
                                 <i class="fas fa-eye"></i> Preview
                             </button>
-                            <button class="btn-add-cart" data-index="${index}">
-                                <i class="fas fa-cart-plus"></i> Cart
-                            </button>
+                            ${currentUser && ownedLyricIds.has(lyric.id)
+                                ? `<button class="btn-owned" onclick="event.stopPropagation(); location.href='library.html'">
+                                    <i class="fas fa-check-circle"></i> Owned
+                                </button>`
+                                : `<button class="btn-add-cart" data-index="${index}">
+                                    <i class="fas fa-cart-plus"></i> Cart
+                                </button>`}
                         </div>
                     </div>
                 </div>
@@ -2976,6 +3002,7 @@
         } else {
             updateUserAvatar(null, null);
         }
+        loadOwnedLyricIds(user ? user.uid : null);
     });
 
     // ===== PAYSTACK CONFIGURATION =====
@@ -3024,6 +3051,7 @@
     let cartCount = getCartCount();
     let toastTimeout = null;
     let isProcessingPayment = false;
+    let ownedLyricIds = new Set();
 
     // ===== CART SYSTEM =====
     function getCartItems() {
@@ -3048,7 +3076,11 @@
     }
 
     // ===== ADD TO CART =====
-    function addToCart(item) {
+    async function addToCart(item) {
+        if (currentUser && await checkPurchaseStatus(currentUser.uid, item.id)) {
+            showToast(`"${item.title || 'These lyrics'}" is already in your library.`, 'info');
+            return;
+        }
         const cartItems = getCartItems();
         const existing = cartItems.find(ci => ci.id === item.id);
         if (existing) {
@@ -3112,6 +3144,25 @@
     }
 
     // ===== PURCHASE STATUS =====
+    async function loadOwnedLyricIds(uid) {
+        ownedLyricIds = new Set();
+        if (!uid) return;
+        try {
+            const ownedSnap = await db.collection('purchases')
+                .where('userId', '==', uid)
+                .where('status', '==', 'completed')
+                .where('verified', '==', true)
+                .get();
+            ownedSnap.forEach(doc => {
+                const bookId = doc.data().bookId;
+                if (bookId) ownedLyricIds.add(bookId);
+            });
+        } catch (err) {
+            console.warn('Error loading owned lyrics:', err);
+        }
+        renderMarketplace();
+    }
+
     async function checkPurchaseStatus(userId, itemId) {
         try {
             const purchaseSnap = await db.collection('purchases').doc(`${userId}_${itemId}`).get();
@@ -3165,7 +3216,7 @@
             console.log('✅ Purchase recorded successfully');
             return true;
         } catch (err) {
-            console.error('âŒ Error recording purchase:', err);
+            console.error('❌ Error recording purchase:', err);
             return false;
         }
     }
@@ -3175,12 +3226,12 @@
         if (isProcessingPayment) return;
 
         if (typeof PaystackPop === 'undefined') {
-            showToast('â³ Payment system is loading. Please wait a moment.', 'info');
+            showToast('⏳ Payment system is loading. Please wait a moment.', 'info');
             return;
         }
 
         if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('xxxxxxxx')) {
-            showToast('âš ï¸ Paystack is not properly configured. Please contact support.', 'error');
+            showToast('⚠️ Paystack is not properly configured. Please contact support.', 'error');
             return;
         }
 
@@ -3208,7 +3259,7 @@
         }
 
         if (totalGHS <= 0) {
-            showToast('âš ï¸ Invalid total amount. Please try again.', 'error');
+            showToast('⚠️ Invalid total amount. Please try again.', 'error');
             return;
         }
 
@@ -3228,7 +3279,7 @@
                 const lyricSnap = await lyricRef.get();
 
                 if (!lyricSnap.exists) {
-                    showToast(`âš ï¸ Lyrics "${item.title}" not found.`, 'error');
+                    showToast(`⚠️ Lyrics "${item.title}" not found.`, 'error');
                     resetCheckoutButton();
                     return;
                 }
@@ -3269,7 +3320,7 @@
                 authorGroups[authorId].items.push(item.title);
             } catch (error) {
                 console.error('Error fetching author subaccount:', error);
-                showToast('âš ï¸ Error processing payment. Please try again.', 'error');
+                showToast('⚠️ Error processing payment. Please try again.', 'error');
                 resetCheckoutButton();
                 return;
             }
@@ -3280,7 +3331,7 @@
                 console.warn('[DEV] Continuing without a payout split for: ' + missingAuthors.join(', '));
                 for (const key of Object.keys(authorGroups)) delete authorGroups[key];
             } else {
-                showToast(`âš ï¸ Some songwriters haven't set up payout accounts: ${missingAuthors.join(', ')}. Please contact support.`, 'error');
+                showToast(`⚠️ Some songwriters haven't set up payout accounts: ${missingAuthors.join(', ')}. Please contact support.`, 'error');
                 resetCheckoutButton();
                 return;
             }
@@ -3355,7 +3406,7 @@
             handler.openIframe();
         } catch (error) {
             console.error('Payment error:', error);
-            showToast('âš ï¸ Payment error. Please try again.', 'error');
+            showToast('⚠️ Payment error. Please try again.', 'error');
             resetCheckoutButton();
         }
     }
@@ -3370,7 +3421,7 @@
     // ===== HANDLE CART PAYMENT CALLBACK =====
     async function handleCartPaymentCallback(response, items) {
         if (!currentUser) {
-            showToast('âš ï¸ User not found. Please try again.', 'error');
+            showToast('⚠️ User not found. Please try again.', 'error');
             resetCheckoutButton();
             return;
         }
@@ -3402,7 +3453,7 @@
         }
 
         if (!allValid) {
-            showToast(`âš ï¸ Some lyrics not found: ${invalidItems.join(', ')}`, 'error');
+            showToast(`⚠️ Some lyrics not found: ${invalidItems.join(', ')}`, 'error');
             resetCheckoutButton();
             return;
         }
@@ -3455,7 +3506,7 @@
         }
 
         if (!allValid) {
-            showToast(`âš ï¸ Payment verification failed for: ${invalidItems.join(', ')}. Please contact support.`, 'error');
+            showToast(`⚠️ Payment verification failed for: ${invalidItems.join(', ')}. Please contact support.`, 'error');
             resetCheckoutButton();
             return;
         }
@@ -3495,13 +3546,15 @@
 
         if (allSuccess) {
             showToast(`✅ Payment verified! ${successfulItems.length} lyric(s) added to your library. 🎉`, 'success');
+            items.forEach(item => ownedLyricIds.add(item.id));
+            renderMarketplace();
             saveCartItems([]);
             cartCount = 0;
             updateCartBadge();
             await renderCart();
             closeCart();
         } else {
-            showToast('âš ï¸ Some purchases failed to save. Please contact support.', 'error');
+            showToast('⚠️ Some purchases failed to save. Please contact support.', 'error');
         }
 
         resetCheckoutButton();
@@ -3510,7 +3563,8 @@
     // ===== RENDER CART =====
     async function renderCart() {
         const items = getCartItems();
-        if (items.length === 0) {
+
+        const renderEmptyCart = () => {
             cartBody.innerHTML = `
                 <div class="empty-cart">
                     <i class="fas fa-shopping-cart"></i>
@@ -3520,15 +3574,36 @@
             `;
             cartTotalAmount.textContent = 'GHS 0.00';
             checkoutBtn.disabled = true;
+        };
+
+        if (items.length === 0) {
+            renderEmptyCart();
             return;
         }
 
         let html = '';
         let totalGHS = 0;
         let hasUnpurchasedItems = false;
+        const keptItems = [];
+        let ownedRemoved = 0;
 
         for (let index = 0; index < items.length; index++) {
             const item = items[index];
+
+            let isOwned = false;
+            if (currentUser) {
+                isOwned = await checkPurchaseStatus(currentUser.uid, item.id);
+                if (!isOwned) hasUnpurchasedItems = true;
+            } else {
+                hasUnpurchasedItems = true;
+            }
+
+            if (isOwned) {
+                ownedRemoved++;
+                continue;
+            }
+            keptItems.push(item);
+
             const currency = item.currency || 'GHS';
             const amount = item.price || 0;
 
@@ -3544,21 +3619,13 @@
                     totalGHS += ghsAmount;
                     priceDisplay = `
                         ${currency} ${amount.toFixed(2)}
-                        <span class="conversion-info">(â‰ˆ GHS ${ghsAmount.toFixed(2)})</span>
+                        <span class="conversion-info">(≈ GHS ${ghsAmount.toFixed(2)})</span>
                     `;
                 } catch (error) {
                     console.warn('Conversion failed:', error);
                     priceDisplay = `${currency} ${amount.toFixed(2)}`;
                     totalGHS += amount;
                 }
-            }
-
-            let isOwned = false;
-            if (currentUser) {
-                isOwned = await checkPurchaseStatus(currentUser.uid, item.id);
-                if (!isOwned) hasUnpurchasedItems = true;
-            } else {
-                hasUnpurchasedItems = true;
             }
 
             html += `
@@ -3570,13 +3637,22 @@
                         <div class="item-title">${item.title || 'Untitled'}</div>
                         <div class="item-author">${item.artist || 'Anonymous'}</div>
                         <div class="item-price">${priceDisplay}</div>
-                        ${isOwned ? `<div class="item-owned"><i class="fas fa-check-circle"></i> Already Owned</div>` : ''}
                     </div>
                     <div class="item-actions">
-                        <button class="btn-remove" data-index="${index}"><i class="fas fa-trash-alt"></i> Remove</button>
+                        <button class="btn-remove" data-index="${keptItems.length - 1}"><i class="fas fa-trash-alt"></i> Remove</button>
                     </div>
                 </div>
             `;
+        }
+
+        if (ownedRemoved > 0) {
+            saveCartItems(keptItems);
+            showToast(`🗑️ ${ownedRemoved} already-owned item(s) removed from your cart.`, 'info');
+        }
+
+        if (keptItems.length === 0) {
+            renderEmptyCart();
+            return;
         }
 
         cartBody.innerHTML = html;
@@ -3595,7 +3671,7 @@
                     cartCount = cartItems.length;
                     updateCartBadge();
                     renderCart();
-                    showToast('🗑 Removed from cart.', 'info');
+                    showToast('🗑️ Removed from cart.', 'info');
                 }
             });
         });

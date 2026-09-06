@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Volant Lyrics — My Library</title>
     <meta name="description" content="View all lyrics you've purchased on Volant Lyrics." />
+    <link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png" />
+    <link rel="shortcut icon" href="https://volantpoetry.vercel.app/images/lyrics-favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://volantpoetry.vercel.app/images/apple-touch-icon.png" />
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -346,6 +350,135 @@
         }
         .lib-lyrics .download-note i { color: #28a745; }
 
+        .btn-trash {
+            background: #fdecea;
+            color: #e74c3c;
+            border: 1px solid #f5c6c1;
+            border-radius: 30px;
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-trash:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; transform: translateY(-1px); }
+
+        /* ===== MODAL ===== */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,10,30,0.55);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+        }
+        .modal-backdrop.show { opacity: 1; visibility: visible; }
+        .modal-card {
+            background: #fff;
+            border-radius: 18px;
+            max-width: 420px;
+            width: 100%;
+            padding: 30px 26px;
+            text-align: center;
+            transform: translateY(14px) scale(0.97);
+            transition: transform 0.25s ease;
+            border: 1px solid #ede8ff;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+        }
+        .modal-backdrop.show .modal-card { transform: none; }
+        .modal-icon {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: #fdecea;
+            color: #e74c3c;
+            font-size: 1.4rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .modal-card h3 { font-family: 'Playfair Display', serif; color: #1a1a2e; margin-bottom: 8px; }
+        .modal-card p { color: #6a5f55; font-size: 0.88rem; margin-bottom: 18px; }
+        .modal-card input {
+            width: 100%;
+            border: 1.5px solid #ede8ff;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 18px;
+            text-align: center;
+            letter-spacing: 0.12em;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .modal-card input:focus { border-color: #4b2aad; }
+        .modal-card input.mismatch { border-color: #e74c3c; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .btn-danger {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 11px 26px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-cancel-modal {
+            background: #f0edff;
+            color: #4b2aad;
+            border: none;
+            padding: 11px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-cancel-modal:hover { background: #e2dcf8; }
+
+        /* ===== TOAST ===== */
+        #toast {
+            position: fixed;
+            top: 92px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-12px);
+            background: #4b2aad;
+            color: #fff;
+            padding: 12px 26px;
+            border-radius: 30px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            max-width: 90%;
+            text-align: center;
+        }
+        #toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
+
         /* ===== STATES ===== */
         .center-state { text-align: center; padding: 80px 20px; }
         .spinner {
@@ -451,6 +584,7 @@
             .lib-row { flex-wrap: wrap; }
             .lib-actions { width: 100%; }
             .lib-actions .btn-expand, .lib-actions .btn-view { flex: 1; justify-content: center; }
+            .lib-actions .btn-trash { flex: 0 0 auto; padding: 8px 14px; }
         }
         @media (max-width: 480px) {
             #volant-footer-container { grid-template-columns: 1fr; }
@@ -512,7 +646,8 @@
                 <a href="index.html">Marketplace</a>
                 <a href="library.html">My Library</a>
                 <a href="submit.html">Sell Lyrics</a>
-                <a href="mailto:reach.volant@gmail.com">Contact</a>
+                <a href="https://volantpoetry.vercel.app/shared/about.html">About Us</a>
+                <a href="https://volantpoetry.vercel.app/shared/contact.html">Contact</a>
             </div>
             <div class="volant-footer-col">
                 <h4>Platforms</h4>
@@ -535,6 +670,21 @@
         </div>
     </footer>
 
+    <div id="toast"></div>
+
+    <div class="modal-backdrop" id="deleteLibraryModal">
+        <div class="modal-card">
+            <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+            <h3>Remove from library?</h3>
+            <p>This permanently removes <strong id="deleteLibTitle">this lyric</strong> from your library and cancels its license. Type <strong>DELETE</strong> below to confirm.</p>
+            <input type="text" id="deleteLibConfirm" placeholder="Type DELETE to confirm" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="updateDeleteLibConfirm()" onkeydown="if(event.key==='Enter')confirmDeleteLibrary()" />
+            <div class="modal-actions">
+                <button class="btn-cancel-modal" onclick="closeDeleteLibraryModal()"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn-danger" id="confirmDeleteLibBtn" onclick="confirmDeleteLibrary()" disabled><i class="fas fa-trash-alt"></i> Delete forever</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ===== FIREBASE CONFIG =====
         const firebaseConfig = {
@@ -553,6 +703,7 @@
         // ===== STATE =====
         let currentUser = null;
         let currentDisplayName = '';
+        let libraryItems = [];
         const LYRICS_CART_COUNT_KEY = 'volant_lyrics_cart_count';
 
         // ===== UTILITIES =====
@@ -604,6 +755,76 @@
             }
             const hue = Math.abs(hash) % 360;
             return `hsl(${hue}, 65%, 50%)`;
+        }
+
+        // ===== TOAST =====
+        const toastEl = document.getElementById('toast');
+        let toastTimeout = null;
+        function showToast(message, type = 'info') {
+            if (!toastEl) return;
+            toastEl.textContent = message;
+            toastEl.style.background = type === 'error' ? '#b76e4b' : (type === 'success' ? '#28a745' : '#4b2aad');
+            toastEl.classList.add('active');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toastEl.classList.remove('active'); }, 3000);
+        }
+
+        // ===== DELETE FROM LIBRARY =====
+        let pendingDeleteBookId = null;
+
+        function openDeleteLibraryModal(btn) {
+            const decoded = s => {
+                try { return decodeURIComponent(s || ''); } catch (e) { return ''; }
+            };
+            pendingDeleteBookId = decoded(btn.getAttribute('data-bookid'));
+            const title = decoded(btn.getAttribute('data-title'));
+            const titleEl = document.getElementById('deleteLibTitle');
+            if (titleEl) titleEl.textContent = title ? `"${title}"` : 'this lyric';
+            const input = document.getElementById('deleteLibConfirm');
+            if (input) {
+                input.value = '';
+                input.classList.remove('mismatch');
+            }
+            updateDeleteLibConfirm();
+            const modal = document.getElementById('deleteLibraryModal');
+            if (modal) modal.classList.add('show');
+            if (input) setTimeout(() => input.focus(), 60);
+        }
+
+        function closeDeleteLibraryModal() {
+            pendingDeleteBookId = null;
+            const modal = document.getElementById('deleteLibraryModal');
+            if (modal) modal.classList.remove('show');
+        }
+
+        function updateDeleteLibConfirm() {
+            const input = document.getElementById('deleteLibConfirm');
+            const btn = document.getElementById('confirmDeleteLibBtn');
+            if (!input || !btn) return;
+            const ok = input.value.trim().toUpperCase() === 'DELETE';
+            btn.disabled = !ok;
+            input.classList.toggle('mismatch', input.value.trim() !== '' && !ok);
+        }
+
+        async function confirmDeleteLibrary() {
+            if (!pendingDeleteBookId || !currentUser) return;
+            const input = document.getElementById('deleteLibConfirm');
+            if (!input || input.value.trim().toUpperCase() !== 'DELETE') return;
+            const btn = document.getElementById('confirmDeleteLibBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            try {
+                await db.collection('purchases').doc(currentUser.uid + '_' + pendingDeleteBookId).delete();
+                libraryItems = libraryItems.filter(i => i.id !== pendingDeleteBookId);
+                renderLibrary(libraryItems);
+                showToast('Lyric removed from your library.', 'success');
+            } catch (error) {
+                console.error('Error removing lyric from library:', error);
+                showToast('Could not remove. Please try again.', 'error');
+            }
+            closeDeleteLibraryModal();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete forever';
         }
 
         // ===== CART BADGE =====
@@ -663,6 +884,9 @@
                                         </button>
                                         <button class="btn-expand action-expand" onclick="event.stopPropagation(); toggleLyrics(this.closest('.lib-card').querySelector('.lib-row'))">
                                             <i class="fas fa-chevron-down"></i> Lyrics
+                                        </button>
+                                        <button class="btn-trash" title="Remove from library" data-bookid="${encodeURIComponent(item.id)}" data-title="${encodeURIComponent(item.title || '')}" onclick="event.stopPropagation(); openDeleteLibraryModal(this)">
+                                            <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -1080,6 +1304,7 @@
                     }
                 }
 
+                libraryItems = items;
                 renderLibrary(items);
             } catch (error) {
                 console.error('Error loading library:', error);
@@ -1153,6 +1378,16 @@
         });
 
         window.addEventListener('storage', () => updateCartBadge());
+
+        const deleteModalEl = document.getElementById('deleteLibraryModal');
+        if (deleteModalEl) {
+            deleteModalEl.addEventListener('click', (e) => {
+                if (e.target === deleteModalEl) closeDeleteLibraryModal();
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDeleteLibraryModal();
+        });
 
         // ===== SETUP AUTH =====
         function setupAuth() {

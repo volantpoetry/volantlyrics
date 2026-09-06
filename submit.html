@@ -14,8 +14,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    
-    <style>
+
+<link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png">
+    <link rel="shortcut icon" href="https://volantpoetry.vercel.app/images/lyrics-favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://volantpoetry.vercel.app/images/apple-touch-icon.png">
+
+  <style>
         /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -1631,7 +1636,7 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit & List for Sale';
             successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            showToast('âœ… Your lyrics are now live on the marketplace!', 'success');
+            showToast('✅ Your lyrics are now live on the marketplace!', 'success');
             updatePreview();
             
         } catch (error) {

@@ -275,6 +275,32 @@
         }
         .status-badge.active { background: #e8f5e9; color: #2e7d32; }
         .status-badge.hidden { background: #fdecea; color: #b76e4b; }
+        .status-badge.sold { background: #fff8e1; color: #b8860b; }
+        .exclusive-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg,#b8860b,#4b2aad);
+            color: #fff;
+            font-size: 0.58rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 2px 9px;
+            border-radius: 20px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .edit-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            color: #1a1a2e;
+            cursor: pointer;
+        }
+        .edit-check input { width: 16px; height: 16px; margin-top: 1px; accent-color: #b8860b; flex-shrink: 0; }
         .manage-actions { display: flex; gap: 8px; flex-shrink: 0; }
         .btn-view {
             background: #fff;
@@ -614,6 +640,7 @@
         .payout-status-badge.active { background: #e8f5e9; color: #2e7d32; }
         .payout-status-badge.missing { background: #fef3e2; color: #a8640b; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .platform-fee-tile { display: none !important; }
         .stat-tile {
             background: #f8f6ff;
             border: 1px solid #ede8ff;
@@ -961,7 +988,7 @@
         <div class="modal-card">
             <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
             <h3>Delete this listing?</h3>
-            <p>This permanently removes <strong id="deleteTitle"></strong> from the marketplace. Books already purchased stay with their owners. This cannot be undone.</p>
+            <p>This removes <strong id="deleteTitle"></strong> from the marketplace. Buyers who already purchased keep their copy permanently.</p>
             <div class="modal-actions">
                 <button class="btn-cancel-modal" onclick="closeDeleteModal()"><i class="fas fa-times"></i> Cancel</button>
                 <button class="btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteListing()"><i class="fas fa-trash-alt"></i> Delete</button>
@@ -1166,28 +1193,29 @@
                                         <i class="fas fa-music"></i>
                                     </div>
                                     <div class="manage-info">
-                                        <div class="manage-title">${escapeHtml(item.title)}</div>
+                                        <div class="manage-title">${escapeHtml(item.title)}${item.exclusive ? `<span class="exclusive-chip"><i class="fas fa-crown"></i> Exclusive</span>` : ''}</div>
                                         <div class="manage-artist"><i class="fas fa-user"></i> ${escapeHtml(item.artist)}</div>
                                         <div class="manage-meta">
                                             <span><i class="fas fa-calendar-alt"></i> ${escapeHtml(dateLabel(item.createdAt))}</span>
                                             <span><i class="fas fa-tag"></i> ${escapeHtml(genreDisplay(item.genre))}</span>
                                             <span><i class="fas fa-receipt"></i> ${escapeHtml(formatPrice(item.price, item.currency))}</span>
                                             ${item.audioSampleUrl ? `<span><i class="fas fa-headphones"></i> Audio sample</span>` : ''}
+                                            ${item.exclusive ? `<span><i class="fas fa-cart-arrow-down"></i> ${item.saleCount || 0} sold</span>` : ''}
                                         </div>
                                     </div>
-                                    <span class="status-badge ${item.status === 'active' ? 'active' : 'hidden'}">
-                                        ${item.status === 'active' ? 'Listed' : 'Hidden'}
+                                    <span class="status-badge ${item.status === 'active' ? 'active' : item.status === 'sold' ? 'sold' : 'hidden'}">
+                                        ${item.status === 'active' ? 'Listed' : item.status === 'sold' ? 'Sold' : 'Hidden'}
                                     </span>
                                     <div class="manage-actions">
                                         <button class="btn-view" onclick="location.href='details.html?id=${encodeURIComponent(item.id)}'">
                                             <i class="fas fa-external-link-alt"></i> View
                                         </button>
-                                        <button class="btn-edit" onclick="toggleEditor('${item.id}')">
+                                        ${item.status === 'sold' ? '' : `<button class="btn-edit" onclick="toggleEditor('${item.id}')">
                                             <i class="fas fa-pen"></i> ${item.editing ? 'Close' : 'Edit'}
-                                        </button>
-                                        <button class="btn-toggle-status" onclick="delistOrRelist('${item.id}')" title="${item.status === 'active' ? 'Hide from marketplace' : 'Show on marketplace'}">
+                                        </button>`}
+                                        ${item.status === 'sold' ? '' : `<button class="btn-toggle-status" onclick="delistOrRelist('${item.id}')" title="${item.status === 'active' ? 'Hide from marketplace' : 'Show on marketplace'}">
                                             <i class="fas ${item.status === 'active' ? 'fa-eye-slash' : 'fa-eye'}"></i> ${item.status === 'active' ? 'Delist' : 'Relist'}
-                                        </button>
+                                        </button>`}
                                         <button class="btn-danger-icon" title="Delete listing" onclick="openDeleteModal('${item.id}')">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
@@ -1227,6 +1255,13 @@
                                                     <option value="active" ${item.status === 'active' ? 'selected' : ''}>Listed (visible on marketplace)</option>
                                                     <option value="hidden" ${item.status === 'hidden' ? 'selected' : ''}>Hidden (not visible)</option>
                                                 </select>
+                                            </div>
+                                            <div class="edit-field">
+                                                <label>License Type</label>
+                                                <label class="edit-check" style="margin-top:6px;">
+                                                    <input type="checkbox" name="exclusive" ${item.exclusive ? 'checked' : ''} />
+                                                    <span>Exclusive Rights <span style="font-weight:400;font-size:0.7rem;color:#9a8f82;">(sells once, then auto-closes)</span></span>
+                                                </label>
                                             </div>
                                             <div class="edit-field">
                                                 <label>Description</label>
@@ -1319,9 +1354,14 @@
             if (!pendingDeleteId) return;
             const btn = document.getElementById('confirmDeleteBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
             try {
-                await db.collection('volant-lyrics').doc(pendingDeleteId).delete();
+                // Pro-style soft delete: delist it, never destroy the record.
+                // Buyers keep their purchased copies; the listing can be relisted later.
+                await db.collection('volant-lyrics').doc(pendingDeleteId).update({
+                    status: 'deleted',
+                    deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
                 listingCache = listingCache.filter(i => i.id !== pendingDeleteId);
                 closeDeleteModal();
                 if (listingCache.length === 0) {
@@ -1329,10 +1369,10 @@
                 } else {
                     renderListings(listingCache);
                 }
-                showToast('Listing deleted.');
+                showToast('Listing removed from the marketplace.');
             } catch (error) {
-                console.error('Error deleting listing:', error);
-                showToast('Could not delete. Please try again.');
+                console.error('Error removing listing:', error);
+                showToast('Could not remove. Please try again.');
             }
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
@@ -1509,6 +1549,7 @@
             const currency = form.currency.value;
             const lyrics = form.lyrics.value.trim();
             const status = form.status.value;
+            const exclusive = !!(form.exclusive && form.exclusive.checked);
             const audioUrl = (form.audioUrl ? form.audioUrl.value.trim() : '') || null;
 
             if (!title) { showToast('Song title is required.'); return; }
@@ -1529,6 +1570,7 @@
                     lyrics,
                     description: form.description.value.trim() || '',
                     status,
+                    exclusive,
                     hasAudio: !!audioUrl,
                     audioSampleUrl: audioUrl,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1544,6 +1586,7 @@
                     entry.lyrics = lyrics;
                     entry.description = form.description.value.trim() || '';
                     entry.status = status;
+                    entry.exclusive = exclusive;
                     entry.hasAudio = !!audioUrl;
                     entry.audioSampleUrl = audioUrl;
                     entry.editing = false;
@@ -1587,8 +1630,16 @@
             loadEarningsView(currentUser ? currentUser.uid : null);
         }
 
+        let earnedUnsubscribe = null;
+        const earnedSeen = new Set();
+        let earnedTransactions = [];
+
         async function loadEarningsView(userId) {
             const page = document.getElementById('managePage');
+            if (earnedUnsubscribe) { earnedUnsubscribe(); earnedUnsubscribe = null; }
+            earnedSeen.clear();
+            earnedTransactions = [];
+
             if (!userId) {
                 page.innerHTML = `
                     <div class="container">
@@ -1610,50 +1661,18 @@
                 return;
             }
 
-            try {
-                const userDoc = await db.collection('users').doc(userId).get();
-                const userData = userDoc.exists ? userDoc.data() : {};
-                const commissionRate = Number(userData.commissionRate) || 10;
-
-                const snap = await db.collection('purchases')
-                    .where('authorId', '==', userId)
-                    .get();
-
+            const buildPage = (commissionRate) => {
+                const sorted = [...earnedTransactions].sort((a, b) => b.date - a.date);
                 let totalSales = 0;
                 let totalEarnings = 0;
                 let totalCommission = 0;
                 let pendingPayout = 0;
-                const transactions = [];
-
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    const isLyric = d.itemType === 'lyric' || d.platform === 'lyrics' || !!d.lyricTitle;
-                    if (!isLyric) return;
-
-                    const amount = Number(d.amount) || 0;
-                    const fee = Number(d.fee) || 0;
-                    const netAmount = amount - fee;
-                    const commission = netAmount * (commissionRate / 100);
-                    const earnings = netAmount - commission;
-
+                sorted.forEach(t => {
                     totalSales++;
-                    totalEarnings += earnings;
-                    totalCommission += commission;
-                    pendingPayout += earnings;
-
-                    transactions.push({
-                        title: d.lyricTitle || 'Untitled Lyric',
-                        amount: amount,
-                        commission: commission,
-                        earnings: earnings,
-                        status: d.status || 'completed',
-                        date: d.purchasedAt && d.purchasedAt.toDate
-                            ? d.purchasedAt.toDate()
-                            : (d.purchasedAt ? new Date(d.purchasedAt) : new Date())
-                    });
+                    totalEarnings += t.earnings;
+                    totalCommission += t.commission;
+                    pendingPayout += t.earnings;
                 });
-
-                transactions.sort((a, b) => b.date - a.date);
 
                 page.innerHTML = `
                     <div class="container">
@@ -1681,7 +1700,7 @@
                                         <div class="stat-num sm">GHS ${totalEarnings.toFixed(2)}</div>
                                         <div class="stat-label">Total Earnings</div>
                                     </div>
-                                    <div class="stat-tile">
+                                    <div class="stat-tile platform-fee-tile">
                                         <div class="stat-num sm">GHS ${totalCommission.toFixed(2)}</div>
                                         <div class="stat-label">Platform Commission</div>
                                     </div>
@@ -1696,12 +1715,12 @@
                                 <h3><i class="fas fa-receipt"></i> Transaction History</h3>
                                 <p class="sc-sub">Your most recent lyric sales.</p>
                                 <div class="earn-history">
-                                    ${transactions.length === 0 ? `
+                                    ${sorted.length === 0 ? `
                                         <div class="earn-empty">
                                             <i class="fas fa-coins"></i>
                                             <p>No sales yet. When buyers purchase your lyrics, payments and earnings will appear here.</p>
                                         </div>
-                                    ` : transactions.map(t => `
+                                    ` : sorted.map(t => `
                                         <div class="earn-row">
                                             <div class="earn-row-info">
                                                 <div class="earn-row-title">${escapeHtml(t.title)}</div>
@@ -1719,6 +1738,83 @@
                         </div>
                     </div>
                 `;
+            };
+
+            const addPurchase = (doc, commissionRate, isRemoved) => {
+                const id = doc.id;
+                if (isRemoved) {
+                    earnedTransactions = earnedTransactions.filter(t => t.id !== id);
+                    earnedSeen.delete(id);
+                    return;
+                }
+                if (earnedSeen.has(id)) return;
+                earnedSeen.add(id);
+
+                const d = doc.data();
+                if (!d) return;
+                const isLyric = d.itemType === 'lyric' || d.platform === 'lyrics' || !!d.lyricTitle;
+                if (!isLyric) return;
+
+                const amount = Number(d.amount) || 0;
+                const fee = Number(d.fee) || 0;
+                const netAmount = amount - fee;
+                const commission = netAmount * (commissionRate / 100);
+                const earnings = netAmount - commission;
+
+                earnedTransactions.push({
+                    id: id,
+                    title: d.lyricTitle || 'Untitled Lyric',
+                    amount: amount,
+                    commission: commission,
+                    earnings: earnings,
+                    status: d.status || 'completed',
+                    date: d.purchasedAt && d.purchasedAt.toDate
+                        ? d.purchasedAt.toDate()
+                        : (d.purchasedAt ? new Date(d.purchasedAt) : new Date())
+                });
+            };
+
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                const userData = userDoc.exists ? userDoc.data() : {};
+                const commissionRate = Number(userData.commissionRate) || 10;
+
+                // Look up this user's lyric ids so older sales (missing authorId) still count.
+                const myLyricIds = [];
+                try {
+                    const mySnap = await db.collection('volant-lyrics').where('submittedBy', '==', userId).get();
+                    mySnap.forEach(d => myLyricIds.push(d.id));
+                } catch (e) { console.warn('Could not load lyric ids for earnings:', e); }
+
+                // Fallback: purchases by my lyric ids (covers records without authorId).
+                try {
+                    const chunks = [];
+                    for (let i = 0; i < myLyricIds.length; i += 10) {
+                        chunks.push(db.collection('purchases').where('bookId', 'in', myLyricIds.slice(i, i + 10)).get());
+                    }
+                    const results = await Promise.all(chunks);
+                    results.forEach(ds => ds.forEach(doc => addPurchase(doc, commissionRate, false)));
+                    buildPage(commissionRate);
+                } catch (e) { console.warn('Earnings fallback query failed:', e); }
+
+                // Real-time: purchases where authorId == this user.
+                try {
+                    earnedUnsubscribe = db.collection('purchases')
+                        .where('authorId', '==', userId)
+                        .onSnapshot((snap) => {
+                            snap.docChanges().forEach(chg => {
+                                addPurchase(chg.doc, commissionRate, chg.type === 'removed');
+                            });
+                            buildPage(commissionRate);
+                        }, (err) => {
+                            console.error('Earnings realtime error:', err);
+                            buildPage(commissionRate);
+                        });
+                } catch (e) {
+                    const snap = await db.collection('purchases').where('authorId', '==', userId).get();
+                    snap.forEach(doc => addPurchase(doc, commissionRate, false));
+                    buildPage(commissionRate);
+                }
             } catch (err) {
                 console.error('Error loading earnings:', err);
                 page.innerHTML = `
@@ -1753,6 +1849,10 @@
         }
 
         function showView(view) {
+            if (view !== 'earnings' && earnedUnsubscribe) {
+                earnedUnsubscribe();
+                earnedUnsubscribe = null;
+            }
             if (view === 'settings') {
                 renderSettings();
             } else if (view === 'earnings') {
@@ -2147,6 +2247,8 @@
                         lyrics: d.lyrics || '',
                         description: d.description || '',
                         status: d.status || 'active',
+                        exclusive: !!d.exclusive,
+                        saleCount: d.saleCount || 0,
                         hasAudio: !!(d.hasAudio || d.audioSampleUrl),
                         audioSampleUrl: d.audioSampleUrl || null,
                         createdAt: d.createdAt || null

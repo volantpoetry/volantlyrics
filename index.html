@@ -1405,6 +1405,19 @@
             font-size: 1.1rem;
             font-weight: 700;
         }
+        .cart-total .total-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+            line-height: 1.2;
+        }
+        .cart-total .total-conversion-info {
+            color: #b0a89a;
+            font-size: 0.68rem;
+            font-weight: 500;
+        }
+        .cart-total .total-conversion-info { display: none; }
         .btn-checkout {
             width: 100%;
             padding: 0.8rem;
@@ -1455,7 +1468,7 @@
 
         #toast {
             position: fixed;
-            bottom: 24px;
+            bottom: max(24px, calc(12px + env(safe-area-inset-bottom)));
             left: 50%;
             transform: translate(-50%, 100px);
             background: #4b2aad;
@@ -1472,7 +1485,7 @@
             text-align: center;
             pointer-events: none;
         }
-        #toast.active { opacity: 1; }
+        #toast.active { opacity: 1; transform: translate(-50%, 0); }
 
         @media (max-width: 480px) {
             .cart-overlay {
@@ -1725,6 +1738,8 @@
         .badge-tag.new { background: rgba(40,167,69,0.9); }
         .badge-tag.popular { background: rgba(184,134,11,0.95); }
         .badge-tag.audio { background: rgba(75,42,173,0.95); }
+        .badge-tag.purchased { background: rgba(0,150,136,0.92); }
+        .badge-tag.exclusive { background: linear-gradient(135deg,#b8860b,#4b2aad); }
 
         /* ===== FILTERS SORT ===== */
         .sort-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
@@ -2076,7 +2091,10 @@
     <div class="cart-footer">
         <div class="cart-total">
             <span>Total</span>
-            <span id="cartTotalAmount">GHS 0.00</span>
+            <span class="total-wrap">
+                <span id="cartTotalAmount">GHS 0.00</span>
+                <span class="total-conversion-info" id="cartTotalNote"></span>
+            </span>
         </div>
         <div class="cart-payment-processing" id="cartPaymentProcessing">
             <div class="spinner-small"></div>
@@ -2553,6 +2571,8 @@
                     genre: genreVal,
                     lyrics: safeStr(data.lyrics) || 'No lyrics available',
                     views: safeNum(data.views),
+                    saleCount: safeNum(data.saleCount),
+                    exclusive: !!data.exclusive,
                     price: safeNum(data.price),
                     priceCurrency: safeStr(data.priceCurrency) || 'GHS',
                     description: safeStr(data.description),
@@ -2637,6 +2657,8 @@
                             ${isNew ? `<span class="badge-tag new"><i class="fas fa-bolt"></i> New</span>` : ''}
                             ${isPopular ? `<span class="badge-tag popular"><i class="fas fa-star"></i> Best Seller</span>` : ''}
                             ${lyric.audioSampleUrl ? `<span class="badge-tag audio"><i class="fas fa-headphones"></i> Audio</span>` : ''}
+                            ${lyric.exclusive ? `<span class="badge-tag exclusive"><i class="fas fa-crown"></i> Exclusive</span>` : ''}
+                            ${(lyric.saleCount || 0) > 0 ? `<span class="badge-tag purchased"><i class="fas fa-cart-arrow-down"></i> ${lyric.saleCount} purchased</span>` : ''}
                         </div>
                     </div>
                     <div class="card-top" style="margin-top:10px;">
@@ -3108,7 +3130,7 @@
             title: item.title || 'Untitled',
             artist: item.artist || 'Anonymous',
             price: item.price || 0,
-            currency: item.priceCurrency || 'GHS'
+            currency: item.currency || item.priceCurrency || 'GHS'
         });
         saveCartItems(cartItems);
         cartCount = cartItems.length;
@@ -3121,30 +3143,38 @@
         if (!amount || amount <= 0) return 0;
         if (!fromCurrency || fromCurrency.toUpperCase() === 'GHS') return amount;
 
+        const code = fromCurrency.toUpperCase();
+        const raw = Number(amount);
+
         try {
-            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-            const data = await response.json();
-            if (data && data.rates) {
-                const rates = data.rates;
-                const currencyCode = fromCurrency.toUpperCase();
-                if (rates[currencyCode]) {
-                    let usdAmount = currencyCode !== 'USD' ? amount / rates[currencyCode] : amount;
-                    const ghsAmount = usdAmount * rates['GHS'];
-                    return Math.round(ghsAmount * 100) / 100;
-                }
+            // Try the reliable open endpoint first, then the legacy one.
+            const sources = [
+                'https://open.er-api.com/v6/latest/USD',
+                'https://api.exchangerate-api.com/v4/latest/USD'
+            ];
+            let rates = null;
+            for (const url of sources) {
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data && data.rates) { rates = data.rates; break; }
+                } catch (e) { /* try next source */ }
             }
-            const fallbackRates = { GHS: 15.5, USD: 1, EUR: 0.92, GBP: 0.79, NGN: 1550, KES: 130, ZAR: 18.5 };
-            const currencyCode = fromCurrency.toUpperCase();
-            if (fallbackRates[currencyCode]) {
-                let usdAmount = currencyCode !== 'USD' ? amount / fallbackRates[currencyCode] : amount;
-                const ghsAmount = usdAmount * fallbackRates['GHS'];
-                return Math.round(ghsAmount * 100) / 100;
+            if (rates && rates[code] && rates['GHS']) {
+                let usdAmount = code !== 'USD' ? raw / rates[code] : raw;
+                return Math.round(usdAmount * rates['GHS'] * 100) / 100;
             }
-            return amount;
         } catch (error) {
-            console.error('Error converting currency:', error);
-            return amount;
+            console.warn('Currency rate fetch failed:', error);
         }
+
+        // Hardcoded fallback rates (keeps conversion visible even offline).
+        const fallbackRates = { GHS: 15.5, USD: 1, EUR: 0.92, GBP: 0.79, NGN: 1550, KES: 130, ZAR: 18.5 };
+        if (fallbackRates[code]) {
+            let usdAmount = code !== 'USD' ? raw / fallbackRates[code] : raw;
+            return Math.round(usdAmount * fallbackRates['GHS'] * 100) / 100;
+        }
+        return raw;
     }
 
     // ===== TOAST =====
@@ -3199,6 +3229,33 @@
             const purchaseRef = db.collection('purchases').doc(`${userId}_${lyricId}`);
             const purchaseSnap = await purchaseRef.get();
 
+            // Snapshot the exact sold copy so buyers keep what they paid for,
+            // even if the seller later edits or delists the listing.
+            let snapshot = null;
+            try {
+                const lyricDoc = await db.collection('volant-lyrics').doc(lyricId).get();
+                if (lyricDoc.exists) {
+                    const ld = lyricDoc.data();
+                    snapshot = {
+                        title: ld.title || '',
+                        artist: ld.artist || '',
+                        genre: ld.genre || '',
+                        lyrics: ld.lyrics || '',
+                        description: ld.description || '',
+                        copyrightName: ld.copyrightName || '',
+                        hasAudio: !!(ld.hasAudio || ld.audioSampleUrl),
+                        audioSampleUrl: ld.audioSampleUrl || '',
+                        price: Number(ld.price) || 0,
+                        priceCurrency: ld.priceCurrency || 'GHS',
+                        exclusive: !!ld.exclusive,
+                        authorId: paymentData.authorId || ld.submittedBy || null,
+                        authorName: ld.submittedByName || ld.author || ''
+                    };
+                }
+            } catch (err) {
+                console.warn('Could not snapshot lyric:', err);
+            }
+
             const data = {
                 status: 'completed',
                 verified: true,
@@ -3213,7 +3270,8 @@
                 lastDownloadedAt: null,
                 itemType: 'lyric',
                 authorId: paymentData.authorId || null,
-                lyricTitle: paymentData.lyricTitle || null
+                lyricTitle: paymentData.lyricTitle || null,
+                snapshot: snapshot
             };
 
             if (purchaseSnap.exists) {
@@ -3231,6 +3289,29 @@
                     purchaseCount: 1
                 });
             }
+
+            // Exclusive listings close after the first sale — one buyer owns the rights.
+            if (snapshot && snapshot.exclusive && !purchaseSnap.exists) {
+                try {
+                    await db.collection('volant-lyrics').doc(lyricId).update({
+                        status: 'sold',
+                        soldAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    console.log('Exclusive lyric sold — listing closed.');
+                } catch (err) {
+                    console.warn('Could not close exclusive listing:', err);
+                }
+            }
+
+            // Social-proof counter on the listing itself.
+            try {
+                await db.collection('volant-lyrics').doc(lyricId).update({
+                    saleCount: firebase.firestore.FieldValue.increment(1)
+                });
+            } catch (err) {
+                console.warn('Could not update saleCount:', err);
+            }
+
             console.log('✅ Purchase recorded successfully');
             return true;
         } catch (err) {
@@ -3574,6 +3655,8 @@
                 </div>
             `;
             cartTotalAmount.textContent = 'GHS 0.00';
+            const totalNote = document.getElementById('cartTotalNote');
+            if (totalNote) totalNote.textContent = '';
             checkoutBtn.disabled = true;
         };
 
@@ -3585,6 +3668,7 @@
         let html = '';
         let totalGHS = 0;
         let hasUnpurchasedItems = false;
+        let sawForeign = false;
         const keptItems = [];
         let ownedRemoved = 0;
 
@@ -3615,6 +3699,7 @@
                 priceDisplay = `GHS ${amount.toFixed(2)}`;
                 totalGHS += amount;
             } else {
+                sawForeign = true;
                 try {
                     ghsAmount = await convertToGHS(amount, currency);
                     totalGHS += ghsAmount;
@@ -3658,6 +3743,8 @@
 
         cartBody.innerHTML = html;
         cartTotalAmount.textContent = `GHS ${totalGHS.toFixed(2)}`;
+        const totalNote = document.getElementById('cartTotalNote');
+        if (totalNote) totalNote.textContent = sawForeign ? '(converted from multiple currencies)' : '';
         checkoutBtn.disabled = !hasUnpurchasedItems || items.length === 0 || isProcessingPayment;
 
         document.querySelectorAll('.btn-remove').forEach(btn => {

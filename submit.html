@@ -773,7 +773,7 @@
         /* ===== TOAST ===== */
         #toast {
             position: fixed;
-            bottom: 24px;
+            bottom: max(24px, calc(12px + env(safe-area-inset-bottom)));
             left: 50%;
             transform: translate(-50%, 100px);
             background: #4b2aad;
@@ -790,7 +790,7 @@
             text-align: center;
             pointer-events: none;
         }
-        #toast.active { opacity: 1; }
+        #toast.active { opacity: 1; transform: translate(-50%, 0); }
 
         /* ===== INSPIRATIONAL QUOTE ===== */
         .inspire-quote {
@@ -960,6 +960,18 @@
                     </div>
                 </div>
                 
+                <div class="form-group" style="margin-top:4px;">
+                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:500;font-size:0.88rem;color:#4a4540;">
+                        <input type="checkbox" id="exclusiveCheck" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:#b8860b;" />
+                        <span>
+                            Sell as Exclusive Rights <span class="opt">(optional)</span>
+                            <span style="display:block;font-weight:400;font-size:0.78rem;color:#9a8f82;margin-top:3px;">
+                                Best for premium lyrics. The rights sell <strong>once</strong> to a single buyer at your listed price, then the listing closes automatically. Other sellers cannot offer it again.
+                            </span>
+                        </span>
+                    </label>
+                </div>
+
                 <div class="form-group" style="margin-top:4px;">
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:400;font-size:0.88rem;color:#4a4540;">
                         <input type="checkbox" id="termsCheck" required style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:#4b2aad;" />
@@ -1552,6 +1564,7 @@
         const price = parseFloat(document.getElementById('price').value);
         const currency = document.getElementById('currency').value;
         const lyrics = document.getElementById('lyrics').value.trim();
+        const exclusive = !!(document.getElementById('exclusiveCheck') && document.getElementById('exclusiveCheck').checked);
         const description = document.getElementById('description').value.trim();
         const termsCheck = document.getElementById('termsCheck');
         
@@ -1620,6 +1633,8 @@
                 lyrics,
                 description: description || '',
                 views: 0,
+                saleCount: 0,
+                exclusive: exclusive,
                 status: 'active',
                 submittedBy: user.uid,
                 submittedByEmail: user.email,

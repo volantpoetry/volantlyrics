@@ -194,9 +194,10 @@
 
         @media (max-width: 768px) {
             nav { padding: 0 1.5rem !important; }
-            .logo .logo-text { font-size: 1.4rem !important; }
-            .logo img { width: 34px !important; height: 34px !important; }
+            .logo .logo-text { font-size: 1.1rem !important; }
+            .logo img { width: 28px !important; height: 28px !important; border-radius: 0 !important; object-fit: contain !important; }
             .logo { gap: 0.5rem !important; }
+            header { height: 60px !important; }
             .menu-toggle { display: block; }
             .nav-links {
                 display: none;
@@ -205,7 +206,7 @@
                 padding: 20px;
                 background: white;
                 position: absolute;
-                top: 66px; left: 0; right: 0;
+                top: 60px; left: 0; right: 0;
                 border-bottom: 1px solid #eee;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
             }
@@ -217,9 +218,11 @@
         }
         @media (max-width: 480px) {
             nav { padding: 0 0.8rem !important; gap: 0.5rem !important; }
-            .logo .logo-text { font-size: 1.3rem !important; }
-            .logo img { width: 30px !important; height: 30px !important; }
+            .logo .logo-text { font-size: 1.1rem !important; }
+            .logo img { width: 22px !important; height: 22px !important; border-radius: 0 !important; object-fit: contain !important; }
             .logo { gap: 0.4rem !important; }
+            header { height: 44px !important; }
+            .nav-links { top: 44px !important; }
             .user-badge { font-size: 0.7rem; padding: 2px 10px 2px 6px; }
             .user-badge .avatar-small { width: 22px; height: 22px; font-size: 0.55rem; }
             .btn-cart-header .cart-text { display: none; }
@@ -357,6 +360,38 @@
             margin-top: 2px;
         }
         .purchase-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .ghs-note { color: #b0a89a; font-weight: 500; }
+        .exclusive-note {
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            background: #fff8e1;
+            border: 1px solid #f0d98c;
+            color: #8a6d1a;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+        .exclusive-note i { color: #b8860b; flex-shrink: 0; margin-top: 2px; }
+        .exclusive-note span { flex: 1; }
+        @media (max-width: 480px) {
+            .exclusive-note { font-size: 0.73rem; padding: 9px 11px; border-radius: 10px; }
+        }
+        .excl-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg,#b8860b,#4b2aad);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 3px 9px;
+            border-radius: 20px;
+        }
         .btn-add-cart {
             background: #4b2aad;
             color: #fff;
@@ -565,7 +600,7 @@
         /* ===== TOAST ===== */
         #toast {
             position: fixed;
-            bottom: 24px;
+            bottom: max(24px, calc(12px + env(safe-area-inset-bottom)));
             left: 50%;
             transform: translate(-50%, 100px);
             background: #4b2aad;
@@ -582,7 +617,7 @@
             text-align: center;
             pointer-events: none;
         }
-        #toast.active { opacity: 1; }
+        #toast.active { opacity: 1; transform: translate(-50%, 0); }
 
         /* ===== FOOTER ===== */
         #volant-footer { background: #1a1a2e; color: #aaa; padding: 1.5rem 0 20px; }
@@ -642,14 +677,21 @@
         }
         .volant-footer-bottom small { font-size: 0.8rem; color: #6b6b8e; }
         @media (max-width: 768px) {
-            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 25px; }
+            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+            .volant-footer-brand { grid-column: 1 / -1; text-align: left !important; margin-bottom: 0.2rem; }
+            #volant-footer .logo { justify-content: flex-start !important; }
+            .volant-footer-desc { max-width: 100%; }
             .detail-page { padding: 24px 0 46px; }
             .detail-head h1 { font-size: 1.7rem; }
             .purchase-box { flex-direction: column; align-items: stretch; text-align: center; }
             .purchase-actions { justify-content: center; }
         }
         @media (max-width: 480px) {
-            #volant-footer-container { grid-template-columns: 1fr; }
+            #volant-footer-container { grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+            .volant-footer-desc { font-size: 0.8rem; }
+            .volant-footer-col h4 { font-size: 0.85rem !important; }
+            .volant-footer-col a { font-size: 0.78rem !important; }
+            .volant-footer-contact-list li { font-size: 0.78rem; }
         }
     </style>
 </head>
@@ -856,7 +898,7 @@
                 title: item.title || 'Untitled',
                 artist: item.artist || 'Anonymous',
                 price: item.price || 0,
-                currency: item.priceCurrency || 'GHS'
+                currency: item.currency || item.priceCurrency || 'GHS'
             });
             saveCartItems(cartItems);
             cartCount = cartItems.length;
@@ -873,7 +915,7 @@
                     title: item.title || 'Untitled',
                     artist: item.artist || 'Anonymous',
                     price: item.price || 0,
-                    currency: item.priceCurrency || 'GHS'
+                    currency: item.currency || item.priceCurrency || 'GHS'
                 });
                 saveCartItems(cartItems);
             }
@@ -895,7 +937,40 @@
         }
 
         // ===== RENDER DETAIL =====
-        function renderDetail(data, docId, isOwned, songwriterProfile) {
+        async function convertToGHS(amount, fromCurrency) {
+            if (!amount || amount <= 0) return 0;
+            if (!fromCurrency || fromCurrency.toUpperCase() === 'GHS') return amount;
+            const code = fromCurrency.toUpperCase();
+            const raw = Number(amount);
+            try {
+                const sources = [
+                    'https://open.er-api.com/v6/latest/USD',
+                    'https://api.exchangerate-api.com/v4/latest/USD'
+                ];
+                let rates = null;
+                for (const url of sources) {
+                    try {
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        if (data && data.rates) { rates = data.rates; break; }
+                    } catch (e) { /* try next source */ }
+                }
+                if (rates && rates[code] && rates['GHS']) {
+                    let usdAmount = code !== 'USD' ? raw / rates[code] : raw;
+                    return Math.round(usdAmount * rates['GHS'] * 100) / 100;
+                }
+            } catch (error) {
+                console.warn('Currency rate fetch failed:', error);
+            }
+            const fallbackRates = { GHS: 15.5, USD: 1, EUR: 0.92, GBP: 0.79, NGN: 1550, KES: 130, ZAR: 18.5 };
+            if (fallbackRates[code]) {
+                let usdAmount = code !== 'USD' ? raw / fallbackRates[code] : raw;
+                return Math.round(usdAmount * fallbackRates['GHS'] * 100) / 100;
+            }
+            return raw;
+        }
+
+        async function renderDetail(data, docId, isOwned, songwriterProfile) {
             const main = document.getElementById('detailPage');
             const genreDisplay = String(data.genre || 'Other').charAt(0).toUpperCase() + String(data.genre || 'Other').slice(1);
             const priceDisplay = formatPrice(data.price, data.priceCurrency);
@@ -905,6 +980,15 @@
             const fallbackName = (data.submittedByName || data.submittedByEmail || '').split('@')[0] || 'Anonymous Songwriter';
             const songwriter = (songwriterProfile && (songwriterProfile.username || songwriterProfile.authorName)) || fallbackName;
             const swPhoto = (songwriterProfile && (songwriterProfile.photoURL || songwriterProfile.cachedAvatarURL)) || null;
+
+            let ghsNote = '';
+            if (Number(data.price) > 0 && String(data.priceCurrency || 'GHS').toUpperCase() !== 'GHS') {
+                try {
+                    ghsNote = (await convertToGHS(Number(data.price), data.priceCurrency)).toFixed(2);
+                } catch (e) {
+                    console.warn('Could not compute GHS equivalent:', e);
+                }
+            }
 
             main.innerHTML = `
                 <div class="container">
@@ -925,6 +1009,8 @@
                         <div class="detail-meta">
                             <span><i class="fas fa-user"></i> ${escapeHtml(data.artist || 'Anonymous')}</span>
                             <span><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>
+                            <span><i class="fas fa-cart-arrow-down"></i> ${(data.saleCount || 0).toLocaleString()} purchased</span>
+                            ${data.exclusive ? `<span class="excl-chip"><i class="fas fa-crown"></i> Exclusive Rights</span>` : ''}
                             <span class="genre-tag"><i class="fas fa-tag"></i> ${escapeHtml(genreDisplay)}</span>
                         </div>
                     </div>
@@ -934,6 +1020,7 @@
                             <div class="purchase-price ${isFree ? 'free' : ''}">${priceDisplay}</div>
                             <div class="purchase-sub">
                                 <i class="fas fa-lock"></i> Secure checkout via Paystack
+                                ${ghsNote ? `<span class="ghs-note">· ≈ GHS ${ghsNote}</span>` : ''}
                             </div>
                         </div>
                         <div class="purchase-actions">
@@ -943,6 +1030,12 @@
                                 ${isFree ? '' : `<button class="btn-buy-now" id="buyNowBtn"><i class="fas fa-zap"></i> Buy Now</button>`}
                                 <button class="btn-add-cart" id="addCartBtn"><i class="fas fa-cart-plus"></i> ${isFree ? 'Get Free Copy' : 'Add to Cart'}</button>
                             `}
+                        ${data.exclusive && !isOwned && data.status !== 'sold' ? `
+                        <div class="exclusive-note">
+                            <i class="fas fa-crown"></i>
+                            <span><strong>Exclusive Rights</strong> — sells <strong>once</strong> to a single buyer, then closes automatically.</span>
+                        </div>
+                    ` : ''}
                         </div>
                         <div class="owned-note" style="display:${isOwned ? 'flex' : 'none'};">
                             <i class="fas fa-check-circle"></i> You own this lyric
@@ -971,8 +1064,9 @@
 
                     <div class="license-card">
                         <h3><i class="fas fa-file-contract"></i> What You Get</h3>
-                        <p>By purchasing this lyric you receive an <strong>ownership license</strong>:</p>
+                        <p>By purchasing this lyric you receive an <strong>${data.exclusive ? 'exclusive ownership license' : 'ownership license'}</strong>:</p>
                         <ul class="license-points">
+                            ${data.exclusive ? `<li><i class="fas fa-crown"></i> You are the <strong>only</strong> owner — sole rights to this song</li>` : ''}
                             <li><i class="fas fa-check-circle"></i> Full rights to record and release the song</li>
                             <li><i class="fas fa-check-circle"></i> Credit the lyricist as co-writer on all releases</li>
                             <li><i class="fas fa-check-circle"></i> Unlimited commercial use of your recording</li>
@@ -1054,6 +1148,15 @@
                 if (!doc.exists) throw new Error('not found');
 
                 const data = doc.data();
+
+                // Authoritative purchased count = number of completed purchase records for this lyric.
+                // Reads the real data instead of relying on the maintained saleCount field.
+                try {
+                    const saleSnap = await db.collection('purchases').where('bookId', '==', docId).get();
+                    data.saleCount = saleSnap.size;
+                } catch (err) {
+                    console.warn('Could not count purchases:', err);
+                }
                 let songwriterProfile = null;
                 if (data.submittedBy) {
                     try {
@@ -1064,6 +1167,25 @@
                     }
                 }
                 const isOwned = currentUser ? await checkPurchaseStatus(currentUser.uid, docId) : false;
+
+                // Soft-deleted (delisted) lyrics stay readable for buyers and the seller only.
+                if (data.status === 'deleted' || data.status === 'sold') {
+                    const isSeller = currentUser && data.submittedBy && currentUser.uid === data.submittedBy;
+                    if (!isOwned && !isSeller) {
+                        main.innerHTML = `
+                            <div class="container">
+                                <div class="center-state">
+                                    <i class="fas fa-ban" style="font-size:2.4rem;color:#b76e4b;margin-bottom:14px;"></i>
+                                    <h2>${data.status === 'sold' ? 'This exclusive lyric has been sold' : 'This lyric is no longer available'}</h2>
+                                    <p>${data.status === 'sold' ? 'It was sold to its new owner and is no longer open for purchase.' : 'The songwriter has removed this listing from the marketplace.'}</p>
+                                    <a href="index.html" class="btn-retry">Browse Lyrics</a>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+                }
+
                 renderDetail(data, docId, isOwned, songwriterProfile);
             } catch (error) {
                 console.error('Error loading lyric:', error);

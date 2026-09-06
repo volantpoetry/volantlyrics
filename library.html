@@ -905,7 +905,7 @@
                                         <span><i class="fas fa-feather-alt"></i> Full Lyrics</span>
                                         <div class="lyrics-actions">
                                             <button class="btn-copy" onclick="copyLyrics(this)" data-title="${encodeURIComponent(item.title || '')}" data-artist="${encodeURIComponent(item.artist || '')}"><i class="fas fa-copy"></i> Copy</button>
-                                            <button class="btn-download" onclick="downloadLyrics(this)" data-title="${encodeURIComponent(item.title || '')}" data-artist="${encodeURIComponent(item.artist || '')}" data-copyright="${encodeURIComponent(item.copyrightName || '')}" data-bookid="${encodeURIComponent(item.id)}" data-ref="${encodeURIComponent(item.ref || '')}" data-iso="${encodeURIComponent(item.purchasedISO || '')}" data-amount="${encodeURIComponent(item.amountLabel || '')}"><i class="fas fa-download"></i> Download</button>
+                                            <button class="btn-download" onclick="downloadLyrics(this)" data-title="${encodeURIComponent(item.title || '')}" data-artist="${encodeURIComponent(item.artist || '')}" data-copyright="${encodeURIComponent(item.copyrightName || '')}" data-bookid="${encodeURIComponent(item.id)}" data-ref="${encodeURIComponent(item.ref || '')}" data-iso="${encodeURIComponent(item.purchasedISO || '')}" data-amount="${encodeURIComponent(item.amountLabel || '')}" data-exclusive="${item.exclusive ? 'true' : 'false'}"><i class="fas fa-download"></i> Download</button>
                                         </div>
                                     </div>
                                     <div class="lyrics-body">${escapeHtml(item.lyrics || 'Lyrics no longer available.')}</div>
@@ -985,6 +985,7 @@
             const iso = attr('data-iso') || '';
             const amountLabel = attr('data-amount') || 'Free';
             const bookId = attr('data-bookid');
+            const exclusive = attr('data-exclusive') === 'true';
 
             const base = (title + (artist ? ' - ' + artist : '')).replace(/\s+/g, ' ').trim();
 
@@ -1168,13 +1169,23 @@
                 field('Amount:', amountLabel);
                 field('Payment Reference:', ref);
                 field('License Number:', licenseNum);
+                field('License Type:', exclusive ? 'EXCLUSIVE RIGHTS — sole owner (listing closed)' : 'Standard License');
 
                 section('LICENSE TERMS');
-                numbered(1, 'The purchaser is granted a non-exclusive, perpetual license to this text for personal use.');
-                numbered(2, 'Copyright remains with the seller / copyright holder named above.');
-                numbered(3, 'The purchaser may copy, print, perform and keep this text.');
-                numbered(4, 'The purchaser may NOT resell, redistribute, or claim authorship of this text.');
-                numbered(5, 'This license is non-transferable.');
+                if (exclusive) {
+                    numbered(1, 'The purchaser is granted an EXCLUSIVE, perpetual license to this text — the sole owner of the rights to this song.');
+                    numbered(2, 'The seller has closed this listing and will not offer these lyrics again.');
+                    numbered(3, 'Copyright remains with the seller / copyright holder named above.');
+                    numbered(4, 'The purchaser may record, release, perform and keep this text, crediting the lyricist as co-writer.');
+                    numbered(5, 'The purchaser may NOT resell, redistribute, or claim sole authorship of the original copyright.');
+                    numbered(6, 'This license is non-transferable.');
+                } else {
+                    numbered(1, 'The purchaser is granted a non-exclusive, perpetual license to this text for personal use.');
+                    numbered(2, 'Copyright remains with the seller / copyright holder named above.');
+                    numbered(3, 'The purchaser may copy, print, perform and keep this text.');
+                    numbered(4, 'The purchaser may NOT resell, redistribute, or claim authorship of this text.');
+                    numbered(5, 'This license is non-transferable.');
+                }
 
                 y += 18;
                 doc.setFont('helvetica', 'italic');
@@ -1209,12 +1220,22 @@
                 'Amount:  ' + amountLabel,
                 'Payment Reference: ' + ref,
                 'License Number:     ' + licenseNum,
+                'License Type:       ' + (exclusive ? 'EXCLUSIVE RIGHTS (sole owner)' : 'Standard License'),
                 'LICENSE TERMS',
-                '1. The purchaser is granted a non-exclusive, perpetual license to this text for personal use.',
-                '2. Copyright remains with the seller / copyright holder named above.',
-                '3. The purchaser may copy, print, perform and keep this text.',
-                '4. The purchaser may NOT resell, redistribute, or claim authorship of this text.',
-                '5. This license is non-transferable.',
+                ...(exclusive ? [
+                    '1. The purchaser is granted an EXCLUSIVE, perpetual license to this text — the sole owner of the rights to this song.',
+                    '2. The seller has closed this listing and will not offer these lyrics again.',
+                    '3. Copyright remains with the seller / copyright holder named above.',
+                    '4. The purchaser may record, release, perform and keep this text, crediting the lyricist as co-writer.',
+                    '5. The purchaser may NOT resell, redistribute, or claim sole authorship of the original copyright.',
+                    '6. This license is non-transferable.'
+                ] : [
+                    '1. The purchaser is granted a non-exclusive, perpetual license to this text for personal use.',
+                    '2. Copyright remains with the seller / copyright holder named above.',
+                    '3. The purchaser may copy, print, perform and keep this text.',
+                    '4. The purchaser may NOT resell, redistribute, or claim authorship of this text.',
+                    '5. This license is non-transferable.'
+                ]),
                 '',
                 'Issued by Volant Lyrics'
             ].join('\n');
@@ -1286,11 +1307,22 @@
                 const items = [];
                 for (const purchase of purchases) {
                     try {
-                        const lyricDoc = await db.collection('volant-lyrics').doc(purchase.bookId).get();
-                        if (!lyricDoc.exists) {
+                        let lyric = null;
+                        // Buyers always keep the exact copy they paid for (frozen snapshot);
+                        // the seller's later edits never change what a buyer owns.
+                        if (purchase.snapshot) {
+                            lyric = purchase.snapshot;
+                        } else {
+                            try {
+                                const lyricDoc = await db.collection('volant-lyrics').doc(purchase.bookId).get();
+                                if (lyricDoc.exists) lyric = lyricDoc.data();
+                            } catch (err) {
+                                console.warn('Error fetching lyric doc:', err);
+                            }
+                        }
+                        if (!lyric) {
                             continue;
                         }
-                        const lyric = lyricDoc.data();
                         const purchasedAt = purchase.purchasedAt && purchase.purchasedAt.toDate
                             ? purchase.purchasedAt.toDate()
                             : null;
@@ -1303,7 +1335,8 @@
                             genreDisplay: (lyric.genre || 'Other').charAt(0).toUpperCase() + (lyric.genre || 'Other').slice(1),
                             lyrics: lyric.lyrics || '',
                             copyrightName: lyric.copyrightName || lyric.artist || 'Anonymous',
-                            sellerId: lyric.submittedBy || '',
+                            exclusive: !!(lyric.exclusive),
+                            sellerId: lyric.submittedBy || lyric.authorId || '',
                             ref: purchase.transactionRef || '—',
                             purchasedISO: purchasedAt ? purchasedAt.toISOString() : '',
                             purchasedLabel: purchasedAt ? purchasedAt.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '—',

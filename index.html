@@ -3382,7 +3382,7 @@
                     ]
                 },
                 callback: function(response) {
-                    handleCartPaymentCallback(response, items);
+                    handleCartPaymentCallback(response, items, totalGHS);
                 },
                 onClose: function() {
                     resetCheckoutButton();
@@ -3419,7 +3419,7 @@
     }
 
     // ===== HANDLE CART PAYMENT CALLBACK =====
-    async function handleCartPaymentCallback(response, items) {
+    async function handleCartPaymentCallback(response, items, totalGHS) {
         if (!currentUser) {
             showToast('⚠️ User not found. Please try again.', 'error');
             resetCheckoutButton();
@@ -3458,26 +3458,14 @@
             return;
         }
 
-        for (const item of items) {
+        // Verify ONCE against the actual amount charged (the cart total).
+        // Per-item price checks would always mismatch on multi-item carts.
+        // Dev/local testing: /api endpoints don't exist under file:// ,
+        // so trust the Paystack inline callback reference (test mode).
+        if (isDevMode()) {
+            console.warn('[DEV] Skipping server verification for local test of:', response.reference);
+        } else {
             try {
-                const lyricRef = db.collection('volant-lyrics').doc(item.id);
-                const lyricSnap = await lyricRef.get();
-
-                if (!lyricSnap.exists) {
-                    allValid = false;
-                    invalidItems.push(item.title || 'Unknown');
-                    continue;
-                }
-
-                const lyricData = lyricSnap.data();
-
-                // Dev/local testing: /api endpoints don't exist under file:// ,
-                // so trust the Paystack inline callback reference (test mode).
-                if (isDevMode()) {
-                    console.warn('[DEV] Skipping server verification for local test of:', response.reference);
-                    continue;
-                }
-
                 const verificationResponse = await fetch(PAYSTACK_API_BASE + '/lyrics-verify-transaction', {
                     method: 'POST',
                     headers: {
@@ -3485,30 +3473,25 @@
                     },
                     body: JSON.stringify({
                         reference: response.reference,
-                        amount: lyricData.price || 0,
+                        amount: totalGHS,
                         email: currentUser.email,
-                        bookId: item.id,
-                        authorId: lyricData.submittedBy
+                        bookIds: items.map(item => item.id).join(',')
                     })
                 });
 
                 const verificationResult = await verificationResponse.json();
 
                 if (!verificationResult.success) {
-                    allValid = false;
-                    invalidItems.push(lyricData.title || 'Unknown');
+                    showToast('⚠️ Payment could not be verified. Please contact support.', 'error');
+                    resetCheckoutButton();
+                    return;
                 }
             } catch (error) {
-                console.error('Verification error for item:', item.id, error);
-                allValid = false;
-                invalidItems.push(item.title || 'Unknown');
+                console.error('Verification error:', error);
+                showToast('⚠️ Payment verification failed. Please contact support.', 'error');
+                resetCheckoutButton();
+                return;
             }
-        }
-
-        if (!allValid) {
-            showToast(`⚠️ Payment verification failed for: ${invalidItems.join(', ')}. Please contact support.`, 'error');
-            resetCheckoutButton();
-            return;
         }
 
         const transactionRef = response.reference || 'paystack_' + Date.now();

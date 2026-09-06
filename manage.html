@@ -685,6 +685,28 @@
         }
         .btn-cancel:hover { border-color: #4b2aad; color: #4b2aad; }
 
+        /* ===== EARNINGS ===== */
+        .earn-history { display: grid; gap: 10px; }
+        .earn-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            background: #faf9fe;
+            border: 1px solid #ede8ff;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+        .earn-row-info { flex: 1; min-width: 0; }
+        .earn-row-title { font-weight: 650; color: #1a1a2e; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .earn-row-meta { font-size: 0.74rem; color: #9a8f82; margin-top: 2px; text-transform: capitalize; }
+        .earn-row-detail { text-align: right; flex-shrink: 0; }
+        .earn-row-amt { font-weight: 800; color: #2e7d32; font-size: 0.95rem; }
+        .earn-empty { text-align: center; padding: 34px 16px; color: #6a5f78; }
+        .earn-empty i { font-size: 1.7rem; color: #b3a8e8; display: block; margin-bottom: 10px; }
+        .earn-empty p { font-size: 0.85rem; max-width: 380px; margin: 0 auto; line-height: 1.6; }
+        .stats-grid .stat-num.sm { font-size: 1.15rem; word-break: break-word; line-height: 1.25; }
+
         /* ===== STATES ===== */
         .center-state { text-align: center; padding: 80px 20px; }
         .spinner {
@@ -1527,11 +1549,194 @@
             }
         }
 
+        // ===== EARNINGS VIEW =====
+        function renderEarnings() {
+            const page = document.getElementById('managePage');
+            const liveCount = listingCache.filter(i => i.status === 'active').length;
+
+            page.innerHTML = `
+                <div class="container">
+                    <div class="page-head">
+                        <div>
+                            <p class="lib-greeting">Welcome back, <strong>${escapeHtml(currentDisplayName || 'there')}</strong></p>
+                            <h1><i class="fas fa-chart-line"></i> My Earnings</h1>
+                        </div>
+                        <span class="count-chip">${liveCount} live / ${listingCache.length} total</span>
+                    </div>
+
+                    ${tabsHTML('earnings')}
+
+                    <div class="settings-wrap">
+                        <div class="center-state" style="padding:50px 20px;">
+                            <div class="spinner"></div>
+                            <h2>Loading your earnings...</h2>
+                        </div>
+                    </div>
+                </div>
+            `;
+            loadEarningsView(currentUser ? currentUser.uid : null);
+        }
+
+        async function loadEarningsView(userId) {
+            const page = document.getElementById('managePage');
+            if (!userId) {
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="page-head">
+                            <div>
+                                <p class="lib-greeting">Welcome to Volant Lyrics</p>
+                                <h1><i class="fas fa-chart-line"></i> My Earnings</h1>
+                            </div>
+                        </div>
+                        ${tabsHTML('earnings')}
+                        <div class="center-state" style="padding:60px 20px;">
+                            <div class="state-icon"><i class="fas fa-sign-in-alt"></i></div>
+                            <h2>Sign in to see your earnings</h2>
+                            <p>Your lyric sales and pending payouts appear here after you sign in.</p>
+                            <button class="btn-primary" onclick="location.href='universal-login.html?platform=lyrics&redirect=manage.html'"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                const userData = userDoc.exists ? userDoc.data() : {};
+                const commissionRate = Number(userData.commissionRate) || 10;
+
+                const snap = await db.collection('purchases')
+                    .where('authorId', '==', userId)
+                    .get();
+
+                let totalSales = 0;
+                let totalEarnings = 0;
+                let totalCommission = 0;
+                let pendingPayout = 0;
+                const transactions = [];
+
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const isLyric = d.itemType === 'lyric' || d.platform === 'lyrics' || !!d.lyricTitle;
+                    if (!isLyric) return;
+
+                    const amount = Number(d.amount) || 0;
+                    const fee = Number(d.fee) || 0;
+                    const netAmount = amount - fee;
+                    const commission = netAmount * (commissionRate / 100);
+                    const earnings = netAmount - commission;
+
+                    totalSales++;
+                    totalEarnings += earnings;
+                    totalCommission += commission;
+                    pendingPayout += earnings;
+
+                    transactions.push({
+                        title: d.lyricTitle || 'Untitled Lyric',
+                        amount: amount,
+                        commission: commission,
+                        earnings: earnings,
+                        status: d.status || 'completed',
+                        date: d.purchasedAt && d.purchasedAt.toDate
+                            ? d.purchasedAt.toDate()
+                            : (d.purchasedAt ? new Date(d.purchasedAt) : new Date())
+                    });
+                });
+
+                transactions.sort((a, b) => b.date - a.date);
+
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="page-head">
+                            <div>
+                                <p class="lib-greeting">Welcome back, <strong>${escapeHtml(currentDisplayName || 'there')}</strong></p>
+                                <h1><i class="fas fa-chart-line"></i> My Earnings</h1>
+                            </div>
+                            <span class="count-chip">${totalSales} sale${totalSales === 1 ? '' : 's'}</span>
+                        </div>
+
+                        ${tabsHTML('earnings')}
+
+                        <div class="settings-wrap">
+
+                            <div class="settings-card">
+                                <h3><i class="fas fa-wallet"></i> Earnings Overview</h3>
+                                <p class="sc-sub">You keep <strong>${100 - commissionRate}%</strong> of every lyric sale (${commissionRate}% platform commission).</p>
+                                <div class="stats-grid">
+                                    <div class="stat-tile">
+                                        <div class="stat-num sm">${totalSales}</div>
+                                        <div class="stat-label">Total Sales</div>
+                                    </div>
+                                    <div class="stat-tile">
+                                        <div class="stat-num sm">GHS ${totalEarnings.toFixed(2)}</div>
+                                        <div class="stat-label">Total Earnings</div>
+                                    </div>
+                                    <div class="stat-tile">
+                                        <div class="stat-num sm">GHS ${totalCommission.toFixed(2)}</div>
+                                        <div class="stat-label">Platform Commission</div>
+                                    </div>
+                                    <div class="stat-tile" style="background:#e8f5e9;border-color:#cde8d3;">
+                                        <div class="stat-num sm" style="color:#2e7d32;">GHS ${pendingPayout.toFixed(2)}</div>
+                                        <div class="stat-label" style="color:#2e7d32;">Pending Payout</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <h3><i class="fas fa-receipt"></i> Transaction History</h3>
+                                <p class="sc-sub">Your most recent lyric sales.</p>
+                                <div class="earn-history">
+                                    ${transactions.length === 0 ? `
+                                        <div class="earn-empty">
+                                            <i class="fas fa-coins"></i>
+                                            <p>No sales yet. When buyers purchase your lyrics, payments and earnings will appear here.</p>
+                                        </div>
+                                    ` : transactions.map(t => `
+                                        <div class="earn-row">
+                                            <div class="earn-row-info">
+                                                <div class="earn-row-title">${escapeHtml(t.title)}</div>
+                                                <div class="earn-row-meta">${t.date.toLocaleDateString()} · ${escapeHtml(t.status)}</div>
+                                            </div>
+                                            <div class="earn-row-detail">
+                                                <div class="earn-row-amt">+GHS ${t.earnings.toFixed(2)}</div>
+                                                <div class="earn-row-meta">GHS ${t.amount.toFixed(2)} · ${t.commission.toFixed(2)} commission</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                console.error('Error loading earnings:', err);
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="page-head">
+                            <div>
+                                <p class="lib-greeting">Welcome back, <strong>${escapeHtml(currentDisplayName || 'there')}</strong></p>
+                                <h1><i class="fas fa-chart-line"></i> My Earnings</h1>
+                            </div>
+                        </div>
+                        ${tabsHTML('earnings')}
+                        <div class="center-state" style="padding:60px 20px;">
+                            <div class="state-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                            <h2>Couldn't load your earnings</h2>
+                            <p>Something went wrong while fetching your sales. Please try again.</p>
+                            <button class="btn-primary" onclick="renderEarnings()"><i class="fas fa-sync-alt"></i> Try Again</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
         // ===== SETTINGS VIEW =====
         function tabsHTML(active) {
             return `
                 <div class="manage-tabs">
                     <button class="manage-tab ${active === 'lyrics' ? 'active' : ''}" onclick="showView('lyrics')"><i class="fas fa-edit"></i> My Lyrics</button>
+                    <button class="manage-tab ${active === 'earnings' ? 'active' : ''}" onclick="showView('earnings')"><i class="fas fa-chart-line"></i> Earnings</button>
                     <button class="manage-tab ${active === 'settings' ? 'active' : ''}" onclick="showView('settings')"><i class="fas fa-cog"></i> Account Settings</button>
                 </div>
             `;
@@ -1540,6 +1745,8 @@
         function showView(view) {
             if (view === 'settings') {
                 renderSettings();
+            } else if (view === 'earnings') {
+                renderEarnings();
             } else {
                 if (listingCache.length === 0) renderEmpty();
                 else renderListings(listingCache);

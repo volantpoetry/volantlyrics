@@ -3156,7 +3156,9 @@
                 .where('verified', '==', true)
                 .get();
             ownedSnap.forEach(doc => {
-                const bookId = doc.data().bookId;
+                const d = doc.data();
+                if (d.itemType !== 'lyric' && d.platform !== 'lyrics' && !d.lyricTitle) return;
+                const bookId = d.bookId;
                 if (bookId) ownedLyricIds.add(bookId);
             });
         } catch (err) {
@@ -3187,6 +3189,7 @@
             const data = {
                 status: 'completed',
                 verified: true,
+                platform: 'lyrics',
                 purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 transactionRef: transactionRef || 'paystack',
                 amount: paymentData.amount || 0,

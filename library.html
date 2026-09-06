@@ -1261,7 +1261,7 @@
                 const purchases = [];
                 snap.forEach(doc => {
                     const d = doc.data();
-                    const isLyric = d.itemType === 'lyric';
+                    const isLyric = d.itemType === 'lyric' || d.platform === 'lyrics' || !!d.lyricTitle;
                     if (isLyric && d.status === 'completed' && d.verified === true) {
                         purchases.push(d);
                     }

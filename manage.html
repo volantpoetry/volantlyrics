@@ -300,6 +300,57 @@
             color: #1a1a2e;
             cursor: pointer;
         }
+        .genre-chipgrid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 4px;
+        }
+        .genre-chip {
+            border: 1.5px solid #d9cfee;
+            background: #fff;
+            color: #4b2aad;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 5px 13px;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .genre-chip:hover { border-color: #4b2aad; }
+        .genre-chip.active {
+            background: #4b2aad;
+            border-color: #4b2aad;
+            color: #fff;
+        }
+        .genre-custom-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .genre-custom-row input {
+            flex: 1;
+            min-width: 0;
+            padding: 8px 12px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+        }
+        .genre-custom-row input:focus { outline: none; border-color: #4b2aad; }
+        .genre-add-btn {
+            border: 1.5px solid #4b2aad;
+            background: #4b2aad;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.78rem;
+            padding: 0 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
         .edit-check input { width: 16px; height: 16px; margin-top: 1px; accent-color: #b8860b; flex-shrink: 0; }
         .manage-actions { display: flex; gap: 8px; flex-shrink: 0; }
         .btn-view {
@@ -1065,7 +1116,9 @@
                 'jazz': 'Jazz',
                 'country': 'Country',
                 'electronic': 'Electronic',
-                'folk': 'Folk'
+                'folk': 'Folk',
+                'amapiano': 'Amapiano',
+                'highlife': 'Highlife'
             };
             return map[g] || genre;
         }
@@ -1197,7 +1250,7 @@
                                         <div class="manage-artist"><i class="fas fa-user"></i> ${escapeHtml(item.artist)}</div>
                                         <div class="manage-meta">
                                             <span><i class="fas fa-calendar-alt"></i> ${escapeHtml(dateLabel(item.createdAt))}</span>
-                                            <span><i class="fas fa-tag"></i> ${escapeHtml(genreDisplay(item.genre))}</span>
+                                            <span><i class="fas fa-tag"></i> ${escapeHtml(item.genres && item.genres.length ? item.genres.map(genreDisplay).join(', ') : genreDisplay(item.genre))}</span>
                                             <span><i class="fas fa-receipt"></i> ${escapeHtml(formatPrice(item.price, item.currency))}</span>
                                             ${item.audioSampleUrl ? `<span><i class="fas fa-headphones"></i> Audio sample</span>` : ''}
                                             ${item.exclusive ? `<span><i class="fas fa-cart-arrow-down"></i> ${item.saleCount || 0} sold</span>` : ''}
@@ -1234,10 +1287,15 @@
                                                 <input type="text" name="artist" value="${escapeHtml(item.artist)}" required maxlength="120" />
                                             </div>
                                             <div class="edit-field">
-                                                <label>Genre</label>
-                                                <select name="genre">
-                                                    ${genreOptions(item.genre)}
-                                                </select>
+                                                <label>Genres <span style="font-weight:400;font-size:0.7rem;color:#9a8f82;">(select all that apply)</span></label>
+                                                <div class="genre-chipgrid" id="genreGrid-${item.id}">
+                                                    ${genreChipHTML(item.genres || (item.genre ? [item.genre] : []))}
+                                                </div>
+                                                <div class="genre-custom-row">
+                                                    <input type="text" class="genre-custom-input" placeholder="Add custom genre… and press Enter" maxlength="40" />
+                                                    <button type="button" class="genre-add-btn" onclick="addEditGenre(this)">+ Add</button>
+                                                </div>
+                                                <input type="hidden" name="genres" value="${escapeHtml((item.genres || (item.genre ? [item.genre] : [])).join(','))}" />
                                             </div>
                                             <div class="edit-field">
                                                 <label>Price</label>
@@ -1295,25 +1353,60 @@
             `;
         }
 
-        function genreOptions(selected) {
+        function genreChipHTML(selected) {
             const list = [
-                ['pop', 'Pop'],
-                ['rock', 'Rock'],
-                ['hiphop', 'Hip-Hop'],
-                ['rnb', 'R&B / Soul'],
-                ['gospel', 'Gospel'],
-                ['afrobeat', 'Afrobeat'],
-                ['jazz', 'Jazz'],
-                ['country', 'Country'],
-                ['electronic', 'Electronic'],
-                ['folk', 'Folk'],
-                ['other', 'Other']
+                ['pop', 'Pop'], ['rock', 'Rock'], ['hiphop', 'Hip-Hop'], ['rnb', 'R&B / Soul'],
+                ['gospel', 'Gospel'], ['afrobeat', 'Afrobeat'], ['jazz', 'Jazz'], ['country', 'Country'],
+                ['electronic', 'Electronic'], ['folk', 'Folk'], ['amapiano', 'Amapiano'], ['highlife', 'Highlife']
             ];
-            const sel = (selected || 'other').toLowerCase().trim();
-            return list.map(([v, label]) =>
-                `<option value="${v}" ${sel === v ? 'selected' : ''}>${label}</option>`
+            const sel = (Array.isArray(selected) ? selected : []).map(s => String(s));
+            let html = list.map(([key, label]) =>
+                `<button type="button" class="genre-chip ${sel.includes(key) ? 'active' : ''}" data-val="${key}" onclick="toggleEditGenre(this)">${label}</button>`
             ).join('');
+            sel.filter(v => !list.some(([k]) => k === v)).forEach(v => {
+                html += `<button type="button" class="genre-chip active" data-val="${escapeHtml(v)}" onclick="toggleEditGenre(this)">${escapeHtml(v)}</button>`;
+            });
+            return html;
         }
+
+        function toggleEditGenre(btn) {
+            const field = btn.closest('.edit-field');
+            const hidden = field.querySelector('input[name="genres"]');
+            const list = hidden.value ? hidden.value.split(',') : [];
+            const v = btn.dataset.val;
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                hidden.value = list.filter(x => x !== v).join(',');
+            } else {
+                btn.classList.add('active');
+                if (!list.includes(v)) list.push(v);
+                hidden.value = list.join(',');
+            }
+        }
+
+        function addEditGenre(btn) {
+            const field = btn.closest('.edit-field');
+            const input = field.querySelector('.genre-custom-input');
+            const hidden = field.querySelector('input[name="genres"]');
+            const v = (input.value || '').trim();
+            if (!v) return;
+            const list = hidden.value ? hidden.value.split(',') : [];
+            if (!list.includes(v)) {
+                list.push(v);
+                hidden.value = list.join(',');
+                field.querySelector('.genre-chipgrid').insertAdjacentHTML('beforeend',
+                    `<button type="button" class="genre-chip active" data-val="${escapeHtml(v)}" onclick="toggleEditGenre(this)">${escapeHtml(v)}</button>`);
+            }
+            input.value = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target && e.target.classList.contains('genre-custom-input')) {
+                e.preventDefault();
+                const btn = document.querySelector('.edit-panel .genre-add-btn');
+                if (btn) addEditGenre(btn);
+            }
+        });
 
         let listingCache = [];
 
@@ -1551,6 +1644,10 @@
             const status = form.status.value;
             const exclusive = !!(form.exclusive && form.exclusive.checked);
             const audioUrl = (form.audioUrl ? form.audioUrl.value.trim() : '') || null;
+            const genreList = form.genres && form.genres.value
+                ? form.genres.value.split(',').filter(Boolean)
+                : [];
+            const genre = genreList[0] || 'other';
 
             if (!title) { showToast('Song title is required.'); return; }
             if (!artist) { showToast('Artist name is required.'); return; }
@@ -1564,7 +1661,8 @@
                 await db.collection('volant-lyrics').doc(id).update({
                     title,
                     artist,
-                    genre: form.genre.value,
+                    genre,
+                    genres: genreList,
                     price,
                     priceCurrency: currency,
                     lyrics,
@@ -1580,7 +1678,8 @@
                 if (entry) {
                     entry.title = title;
                     entry.artist = artist;
-                    entry.genre = form.genre.value;
+                    entry.genre = genre;
+                    entry.genres = genreList;
                     entry.price = price;
                     entry.currency = currency;
                     entry.lyrics = lyrics;
@@ -2242,6 +2341,7 @@
                         title: d.title || 'Untitled',
                         artist: d.artist || 'Anonymous',
                         genre: d.genre || 'other',
+                        genres: d.genres || (d.genre ? [d.genre] : []),
                         price: d.price,
                         currency: d.priceCurrency || 'GHS',
                         lyrics: d.lyrics || '',

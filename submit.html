@@ -351,16 +351,39 @@
             gap: 20px;
         }
         
-        /* ===== CUSTOM GENRE ===== */
-        .custom-genre-wrapper {
-            display: none;
-            margin-top: 6px;
+        /* ===== MULTI-GENRE PICKER ===== */
+        .genre-chip-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 4px 0 10px;
         }
-        .custom-genre-wrapper.show {
-            display: block;
+        .genre-chip {
+            border: 1.5px solid #d9cfee;
+            background: #fff;
+            color: #4b2aad;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.82rem;
+            padding: 7px 14px;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.15s ease;
         }
-        .custom-genre-wrapper input {
-            width: 100%;
+        .genre-chip:hover { border-color: #4b2aad; transform: translateY(-1px); }
+        .genre-chip.active {
+            background: #4b2aad;
+            border-color: #4b2aad;
+            color: #fff;
+        }
+        .genre-custom-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .genre-custom-row input {
+            flex: 1;
+            min-width: 0;
             padding: 11px 16px;
             border: 1.5px solid #e0e0e0;
             border-radius: 10px;
@@ -369,10 +392,45 @@
             background: white;
             transition: border-color 0.3s;
         }
-        .custom-genre-wrapper input:focus {
+        .genre-custom-row input:focus {
             outline: none;
             border-color: #4b2aad;
         }
+        .btn-genre-add {
+            border: 1.5px solid #4b2aad;
+            background: #4b2aad;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0 16px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .btn-genre-add:hover { background: #3d228f; }
+        .genre-tag-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .genre-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #efe9fb;
+            color: #4b2aad;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 5px 11px;
+            border-radius: 99px;
+        }
+        .genre-tag i {
+            cursor: pointer;
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+        .genre-tag i:hover { opacity: 1; }
 
         /* ===== AUDIO SAMPLE ===== */
         .audio-toggle {
@@ -888,26 +946,15 @@
                 </div>
                 
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="genre">Genre <span class="required">*</span></label>
-                        <select id="genre" required onchange="toggleCustomGenre()">
-                            <option value="">Select genre...</option>
-                            <option value="pop">Pop</option>
-                            <option value="rock">Rock</option>
-                            <option value="hiphop">Hip-Hop</option>
-                            <option value="rnb">R&B / Soul</option>
-                            <option value="gospel">Gospel</option>
-                            <option value="afrobeat">Afrobeat</option>
-                            <option value="jazz">Jazz</option>
-                            <option value="country">Country</option>
-                            <option value="electronic">Electronic</option>
-                            <option value="folk">Folk</option>
-                            <option value="other">Other</option>
-                        </select>
-                        <div class="custom-genre-wrapper" id="customGenreWrapper">
-                            <input type="text" id="customGenre" placeholder="Enter your genre..." />
-                        </div>
+<div class="form-group">
+                    <label for="genre">Genre <span class="required">*</span> <span class="hint" style="font-size:0.72rem;">(tap all that apply)</span></label>
+                    <div class="genre-chip-grid" id="genreChips"></div>
+                    <div class="genre-custom-row">
+                        <input type="text" id="customGenre" placeholder="Add your own genre, e.g. Highlife & press Enter" maxlength="40" />
+                        <button type="button" class="btn-genre-add" onclick="addLGenre()">+ Add</button>
                     </div>
+                    <div class="genre-tag-pills" id="customGenreTags"></div>
+                </div>
                     <div class="form-group">
                         <label for="price">Price <span class="required">*</span></label>
                         <div class="price-group">
@@ -1093,6 +1140,12 @@
         showToast(message, 'error');
         if (focusEl) focusEl.focus();
     }
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
 
     // ===== LIVE PREVIEW =====
     function genreGradientForPreview(genre) {
@@ -1110,6 +1163,8 @@
             'country': 'linear-gradient(135deg,#795548,#d7ccc8)',
             'electronic': 'linear-gradient(135deg,#00acc1,#4dd0e1)',
             'folk': 'linear-gradient(135deg,#558b2f,#aed581)',
+            'amapiano': 'linear-gradient(135deg,#6a1b9a,#ea80fc)',
+            'highlife': 'linear-gradient(135deg,#c2185b,#ff6090)',
             'other': 'linear-gradient(135deg,#4b2aad,#7a5cff)'
         };
         return map[g] || 'linear-gradient(135deg,#4b2aad,#7a5cff)';
@@ -1119,19 +1174,20 @@
         const el = (id) => document.getElementById(id);
         const title = el('title').value.trim();
         const artist = el('artist').value.trim();
-        const genreSelect = el('genre');
-        let genre = genreSelect.value;
-        if (genre === 'other') {
-            genre = el('customGenre').value.trim() || 'Other';
-        }
+        const genre = primaryGenre();
         const price = parseFloat(el('price').value);
         const currency = el('currency').value;
         const excerpt = el('lyrics').value.trim();
 
+        const genreLabel = genre
+            ? (LYRICS_GENRES.find(g => g[0] === genre) || [null, genre])[1]
+            : '';
         el('previewTitle').textContent = title || 'Your Song Title';
         el('previewArtist').textContent = artist || 'Your Artist Name';
-        el('previewGenre').textContent = genre ? genre.charAt(0).toUpperCase() + genre.slice(1) : 'Genre';
-        el('previewCover').style.background = genreGradientForPreview(genre);
+        el('previewGenre').textContent = genreLabel
+            ? genreLabel.charAt(0).toUpperCase() + genreLabel.slice(1)
+            : (customLGenres[0] ? customLGenres[0] : 'Genre');
+        el('previewCover').style.background = genreGradientForPreview(genre || (customLGenres[0] || ''));
 
         let priceDisplay = 'Free';
         if (price > 0) {
@@ -1143,10 +1199,11 @@
         el('previewExcerpt').textContent = excerpt.length > 90 ? excerpt.substring(0, 90) + '...' : (excerpt || 'Your lyrics preview will appear here as you type...');
     }
 
-    ['title', 'artist', 'genre', 'customGenre', 'price', 'currency', 'lyrics'].forEach(id => {
+    ['title', 'artist', 'price', 'currency', 'lyrics'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', updatePreview);
     });
+    renderGenreChips();
     updatePreview();
 
     // ===== COLOR FROM NAME (SAME AS VOLANT READS) =====
@@ -1167,17 +1224,57 @@
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    // ===== TOGGLE CUSTOM GENRE =====
-    function toggleCustomGenre() {
-        const genreSelect = document.getElementById('genre');
-        const customWrapper = document.getElementById('customGenreWrapper');
-        if (genreSelect.value === 'other') {
-            customWrapper.classList.add('show');
-            document.getElementById('customGenre').required = true;
-        } else {
-            customWrapper.classList.remove('show');
-            document.getElementById('customGenre').required = false;
-        }
+    // ===== MULTI-GENRE PICKER =====
+    const LYRICS_GENRES = [
+        ['pop', 'Pop'], ['rock', 'Rock'], ['hiphop', 'Hip-Hop'], ['rnb', 'R&B / Soul'],
+        ['gospel', 'Gospel'], ['afrobeat', 'Afrobeat'], ['jazz', 'Jazz'], ['country', 'Country'],
+        ['electronic', 'Electronic'], ['folk', 'Folk'], ['amapiano', 'Amapiano'], ['highlife', 'Highlife']
+    ];
+    const selectedLGenres = new Set();
+    const customLGenres = [];
+
+    function renderGenreChips() {
+        const wrap = document.getElementById('genreChips');
+        if (!wrap) return;
+        wrap.innerHTML = LYRICS_GENRES.map(([key, label]) => `
+            <button type="button" class="genre-chip ${selectedLGenres.has(key) ? 'active' : ''}" onclick="toggleLGenre('${key}')">${label}</button>
+        `).join('');
+        renderLGenreTags();
+    }
+    function toggleLGenre(key) {
+        if (selectedLGenres.has(key)) selectedLGenres.delete(key);
+        else selectedLGenres.add(key);
+        renderGenreChips();
+        updatePreview();
+    }
+    function addLGenre() {
+        const input = document.getElementById('customGenre');
+        const v = (input.value || '').trim();
+        if (!v) return;
+        if (customLGenres.some(t => t.toLowerCase() === v.toLowerCase())) { input.value = ''; return; }
+        customLGenres.push(v);
+        input.value = '';
+        renderLGenreTags();
+        updatePreview();
+    }
+    function removeLGenre(i) {
+        customLGenres.splice(i, 1);
+        renderLGenreTags();
+        updatePreview();
+    }
+    function renderLGenreTags() {
+        const el = document.getElementById('customGenreTags');
+        if (!el) return;
+        el.innerHTML = customLGenres.map((t, i) => `
+            <span class="genre-tag">${escapeHtml(t)} <i class="fas fa-times" onclick="removeLGenre(${i})"></i></span>
+        `).join('') || '';
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.target && e.target.id === 'customGenre' && e.key === 'Enter') { e.preventDefault(); addLGenre(); }
+    });
+    function primaryGenre() {
+        const std = [...selectedLGenres];
+        return (std.length ? std[0] : '') || (customLGenres[0] || '');
     }
 
     // ===== AVATAR GENERATION (SAME AS VOLANT READS) =====
@@ -1556,11 +1653,10 @@
         const title = document.getElementById('title').value.trim();
         const artist = document.getElementById('artist').value.trim();
         const copyrightName = document.getElementById('copyrightName').value.trim();
-        const genreSelect = document.getElementById('genre');
-        let genre = genreSelect.value;
-        if (genre === 'other') {
-            genre = document.getElementById('customGenre').value.trim() || 'Other';
-        }
+        const genre = primaryGenre();
+        const genreLabels = [...selectedLGenres]
+            .map(k => (LYRICS_GENRES.find(g => g[0] === k) || [null, k])[1]);
+        const allGenres = genreLabels.concat(customLGenres);
         const price = parseFloat(document.getElementById('price').value);
         const currency = document.getElementById('currency').value;
         const lyrics = document.getElementById('lyrics').value.trim();
@@ -1571,7 +1667,7 @@
         if (!title) { showError('Please enter a song title.', document.getElementById('title')); return; }
         if (!artist) { showError('Please enter your artist name.', document.getElementById('artist')); return; }
         if (!copyrightName) { showError('Please enter your copyright name.', document.getElementById('copyrightName')); return; }
-        if (!genre || genre === '') { showError('Please select a genre.', document.getElementById('genre')); return; }
+        if (!genre || genre === '') { showError('Please select at least one genre.', document.getElementById('genreChips')); return; }
         if (!price || price < (currency === 'GHS' ? 5 : 1)) { 
             showError(`Please enter a valid price (minimum ${currency === 'GHS' ? 'GHS 5.00' : 'USD 1.00'}).`, document.getElementById('price')); 
             return; 
@@ -1627,7 +1723,8 @@
                 title,
                 artist,
                 copyrightName,
-                genre,
+genre,
+                genres: allGenres,
                 price,
                 priceCurrency: currency,
                 lyrics,
@@ -1649,7 +1746,10 @@
             
             successMessage.classList.add('show');
             lyricsForm.reset();
-            document.getElementById('customGenreWrapper').classList.remove('show');
+            selectedLGenres.clear();
+            customLGenres.length = 0;
+            renderGenreChips();
+            renderLGenreTags();
             clearAudioSample();
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit & List for Sale';

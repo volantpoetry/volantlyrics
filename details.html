@@ -972,7 +972,8 @@
 
         async function renderDetail(data, docId, isOwned, songwriterProfile) {
             const main = document.getElementById('detailPage');
-            const genreDisplay = String(data.genre || 'Other').charAt(0).toUpperCase() + String(data.genre || 'Other').slice(1);
+            const genresArr = (Array.isArray(data.genres) && data.genres.length) ? data.genres : [(data.genre || 'Other')];
+            const genreDisplay = genresArr.map(g => String(g).charAt(0).toUpperCase() + String(g).slice(1)).join(' · ');
             const priceDisplay = formatPrice(data.price, data.priceCurrency);
             const isFree = !data.price || data.price === 0;
             const isNew = data.createdAt && (Date.now() - new Date(data.createdAt).getTime()) < 14 * 24 * 60 * 60 * 1000;

@@ -4,11 +4,40 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Volant Lyrics — Marketplace</title>
+     <script>
+    // Simple console blocker - production only
+    (function() {
+        if (window.location.hostname.includes('localhost') || 
+            window.location.hostname.includes('127.0.0.1')) {
+            return; // Allow in development
+        }
+        
+        // Block all console methods
+        var methods = ['log', 'info', 'warn', 'error', 'debug', 'trace', 'table', 'group', 'groupEnd', 'dir'];
+        methods.forEach(function(m) {
+            console[m] = function() {};
+            try {
+                Object.defineProperty(console, m, { configurable: false, writable: false });
+            } catch(e) {}
+        });
+        
+        window.onerror = function() { return true; };
+        window.onunhandledrejection = function() { return true; };
+    })();
+</script>
     <meta name="description" content="Discover and purchase original song lyrics from talented songwriters. Premium lyrics marketplace." />
     <link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png" />
     <link rel="shortcut icon" href="https://volantpoetry.vercel.app/images/lyrics-favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="https://volantpoetry.vercel.app/images/apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+    
+    <!-- Social -->
+    <meta property="og:title" content="Volant Lyrics — Marketplace" />
+    <meta property="og:description" content="Discover and purchase original song lyrics from talented songwriters. Premium lyrics marketplace." />
+    <meta property="og:image" content="https://volantpoetry.vercel.app/images/logokk.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -202,6 +231,146 @@
             align-items: center;
             gap: 12px;
         }
+
+        /* ===== NOTIFICATION BELL ===== */
+        .btn-notif {
+            position: relative;
+            background: transparent;
+            border: 1px solid #ede8ff;
+            color: #4b2aad;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .btn-notif:hover { background: #f0edff; border-color: #4b2aad; transform: translateY(-2px); }
+        .btn-notif .notif-badge {
+            display: none;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.58rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+        }
+        .btn-notif .notif-badge.show { display: inline-flex; }
+
+        /* ===== NOTIFICATION CENTRE (modal dropdown) ===== */
+        #notifPanel {
+            position: fixed;
+            top: 74px;
+            right: 20px;
+            width: min(360px, calc(100vw - 24px));
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 16px 44px rgba(0,0,0,0.18);
+            border: 1px solid #ede8ff;
+            z-index: 5000;
+            overflow: hidden;
+            display: none;
+            font-family: inherit;
+            text-align: left;
+        }
+        #notifPanel.open { display: block; animation: notifPop 0.16s ease; }
+        @keyframes notifPop {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notif-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: #f6f2fe;
+            border-bottom: 1px solid #ede8ff;
+            font-weight: 600;
+            color: #2d2a24;
+            font-size: 0.92rem;
+        }
+        .notif-panel-header .notif-mark {
+            font-size: 0.75rem;
+            color: #4b2aad;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-weight: 600;
+        }
+        .notif-panel-header .notif-mark:hover { text-decoration: underline; }
+        .notif-list { max-height: 360px; overflow-y: auto; }
+        .notif-list::-webkit-scrollbar { width: 8px; }
+        .notif-list::-webkit-scrollbar-thumb { background: #d8cef5; border-radius: 8px; }
+        .notif-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1edfa;
+            font-size: 0.85rem;
+            color: #4a4a4a;
+            line-height: 1.4;
+            border-left: 3px solid transparent;
+        }
+        .notif-item[data-plat="lyrics"] { border-left-color: #a21caf; }
+        .notif-item[data-plat="poetry"] { border-left-color: #b04a00; }
+        .notif-item[data-plat="reads"] { border-left-color: #0b57d0; }
+        .notif-item[data-plat="mall"] { border-left-color: #157347; }
+        .notif-item[data-plat="team"] { border-left-color: #5a3ec8; }
+        .notif-msg { min-width: 0; flex: 1; }
+        .notif-msg .notif-platform-line { display: block; margin-bottom: 3px; }
+        .notif-msg-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            line-clamp: 3;
+            overflow: hidden;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        .notif-msg-text .notif-user-link {
+            font-weight: 600;
+            color: #B8860B;
+            text-decoration: none;
+        }
+        .notif-msg-text .notif-user-link:hover { text-decoration: underline; color: #DAA520; }
+        .notif-platform {
+            display: inline-flex;
+            align-items: center;
+            background: #f3e9ff;
+            color: #6a34ff;
+            border: 1px solid #e0d2ff;
+            border-radius: 999px;
+            padding: 1px 8px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .notif-platform.notif-platform-reads { background: #e8f4ff; color: #0b57d0; border-color: #c7e3ff; }
+        .notif-platform.notif-platform-mall { background: #eafaf0; color: #157347; border-color: #bfeccd; }
+        .notif-platform.notif-platform-poetry { background: #fef3e2; color: #b04a00; border-color: #ffd9a3; }
+        .notif-platform.notif-platform-team { background: #f0eefe; color: #5a3ec8; border-color: #d9cef7; }
+        .notif-item.unread { background: #fcf9ff; }
+        .notif-item .notif-time { font-size: 0.7rem; color: #a08d75; white-space: nowrap; margin-left: 8px; }
+        .notif-empty { padding: 32px 16px; text-align: center; color: #a08d75; font-size: 0.85rem; }
+        .notif-panel-footer { text-align: center; padding: 10px; font-size: 0.75rem; border-top: 1px solid #f1edfa; }
+        .notif-panel-footer a { color: #4b2aad; text-decoration: none; font-weight: 600; }
+        .notif-panel-footer a:hover { text-decoration: underline; }
 
         .user-badge {
             display: flex;
@@ -762,6 +931,26 @@
             font-size: 0.6rem;
             color: #4b2aad;
             opacity: 0.5;
+        }
+        
+        .lyric-card .card-footer .views .plays-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
+            padding-left: 8px;
+            border-left: 1px solid #3d3427;
+            color: #b76e4b;
+        }
+        
+        .lyric-card .artist-name a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .lyric-card .artist-name a:hover {
+            color: #4b2aad;
+            text-decoration: underline;
         }
         
         .lyric-card .btn-preview {
@@ -2037,9 +2226,147 @@
         @media (max-width: 380px) {
             .featured-grid .featured-card { flex-basis: 215px; }
         }
+
+        /* ===== PLAYLIST / MOOD CHIPS ===== */
+        .playlist-bar { padding: 14px 0 8px; background: #faf9fe; }
+        .playlist-bar .container { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .playlist-chip {
+            background: transparent;
+            border: 1px solid #ede8ff;
+            color: #6a5f55;
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+        .playlist-chip:hover { border-color: #4b2aad; color: #4b2aad; background: #f5f0ff; }
+        .playlist-chip.active { border-color: #4b2aad; color: #fff; background: #4b2aad; }
+        .playlist-chip i { margin-right: 4px; font-size: 0.65rem; }
+
+        .lyric-preview { transition: filter 0.3s ease; position: relative; }
+        .lyric-preview.blurred::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent 18px, rgba(255,255,255,0.92) 18px);
+            pointer-events: none;
+        }
+        .lyric-preview.blurred { filter: blur(3.5px); max-height: 52px; overflow: hidden; }
+
+        /* ===== COLLAB BOARD ===== */
+        .collab-section { padding: 36px 0 46px; background: #faf9fe; }
+        .collab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .collab-card {
+            background: #fff;
+            border: 1px solid #ede8ff;
+            border-radius: 14px;
+            padding: 18px 20px;
+            transition: all 0.3s ease;
+        }
+        .collab-card:hover { border-color: #4b2aad; box-shadow: 0 8px 24px rgba(75,42,173,0.06); }
+        .collab-card .collab-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f0edff;
+            color: #4b2aad;
+            font-size: 0.62rem;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+        .collab-card .collab-name { font-weight: 700; font-size: 0.92rem; color: #1a1a2e; }
+        .collab-card .collab-msg { font-size: 0.85rem; color: #6a5f55; margin: 6px 0 8px; line-height: 1.5; }
+        .collab-card .collab-time { font-size: 0.7rem; color: #b0a89a; }
+        .collab-empty { text-align: center; padding: 40px 10px; color: #b0a89a; }
+        .collab-empty i { font-size: 2rem; color: #ede8ff; margin-bottom: 8px; display: block; }
+        .collab-form { background: #fff; border: 1px solid #ede8ff; border-radius: 14px; padding: 20px; margin-bottom: 18px; }
+        .collab-form h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: #1a1a2e; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .collab-form h3 i { color: #4b2aad; }
+        .collab-form .form-row { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+        .collab-form input, .collab-form select, .collab-form textarea {
+            background: #faf9fe;
+            border: 1px solid #e6e0fb;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: #1a1a2e;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+        }
+        .collab-form input:focus, .collab-form select:focus, .collab-form textarea:focus { border-color: #4b2aad; }
+        .collab-form textarea { resize: vertical; min-height: 70px; }
+        .collab-form .btn-post {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .collab-form .btn-post:hover { background: #3a1f8a; transform: translateY(-1px); }
+
+        @media (max-width: 768px) {
+            .collab-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .btn-notif { width: 32px; height: 32px; font-size: 0.9rem; }
+        }
+
+        /* ===== COMING SOON BANNER ===== */
+        .soon-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 16px;
+            background: linear-gradient(90deg, #4b2aad, #7b5cff);
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 0.2px;
+            box-shadow: 0 2px 8px rgba(75, 42, 173, 0.25);
+        }
+        .soon-banner i { font-size: 1rem; }
+        body { padding-top: 44px; }
+        header { top: 44px !important; }
+        @media (max-width: 560px) {
+            .soon-banner { font-size: 0.82rem; height: 38px; }
+            body { padding-top: 38px; }
+            header { top: 38px !important; }
+        }
     </style>
 </head>
 <body>
+
+<!-- ===== COMING SOON BANNER ===== -->
+<div class="soon-banner"><i class="fas fa-rocket"></i> Coming Soon — The Volant Lyrics marketplace is almost here. Stay tuned!</div>
 
 <!-- ===== HEADER ===== -->
 <header>
@@ -2057,6 +2384,10 @@
                 </ul>
 
         <div class="nav-right">
+            <a href="notifications.html" class="btn-notif" id="notifBell" title="Notifications" style="display:none;" aria-haspopup="true">
+                <i class="fas fa-bell"></i>
+                <span class="notif-badge" id="notifCount">0</span>
+            </a>
             <button class="btn-cart-header" id="cartOpenBtn" title="Cart">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-text">Cart</span>
@@ -2075,6 +2406,16 @@
         </div>
     </nav>
 </header>
+
+<!-- ===== NOTIFICATION CENTRE (modal dropdown, like Volant Reads) ===== -->
+<div id="notifPanel">
+    <div class="notif-panel-header">
+        <span>🔔 Notifications</span>
+        <button class="notif-mark" id="notifMarkAll" type="button">Mark all read</button>
+    </div>
+    <div class="notif-list" id="notifList"></div>
+    <div class="notif-panel-footer"><a href="notifications.html">See all notifications →</a></div>
+</div>
 
 <!-- ===== CART BACKDROP ===== -->
 <div class="cart-backdrop" id="cartBackdrop"></div>
@@ -2183,6 +2524,24 @@
     </div>
 </section>
 
+<!-- ===== PLAYLIST / MOOD FILTER ===== -->
+<section class="playlist-bar" id="playlistBar">
+    <div class="container">
+        <span class="filter-label">Playlists</span>
+        <button class="playlist-chip active" data-mood="all" onclick="filterByMood('all')"><i class="fas fa-th"></i> All</button>
+        <button class="playlist-chip" data-mood="afrobeats" onclick="filterByMood('afrobeats')"><i class="fas fa-drum"></i> Afrobeats</button>
+        <button class="playlist-chip" data-mood="highlife" onclick="filterByMood('highlife')"><i class="fas fa-guitar"></i> Highlife</button>
+        <button class="playlist-chip" data-mood="gospel" onclick="filterByMood('gospel')"><i class="fas fa-cross"></i> Gospel</button>
+        <button class="playlist-chip" data-mood="love" onclick="filterByMood('love')"><i class="fas fa-heart"></i> Love</button>
+        <button class="playlist-chip" data-mood="pain" onclick="filterByMood('pain')"><i class="fas fa-cloud-rain"></i> Pain</button>
+        <button class="playlist-chip" data-mood="story" onclick="filterByMood('story')"><i class="fas fa-book"></i> Story</button>
+        <button class="playlist-chip" data-mood="drill" onclick="filterByMood('drill')"><i class="fas fa-fire"></i> Drill</button>
+        <button class="playlist-chip" data-mood="rock" onclick="filterByMood('rock')"><i class="fas fa-bolt"></i> Rock</button>
+        <button class="playlist-chip" data-mood="afro-fusion" onclick="filterByMood('afro-fusion')"><i class="fas fa-music"></i> Afro-fusion</button>
+        <button class="playlist-chip" data-mood="amapiano" onclick="filterByMood('amapiano')"><i class="fas fa-headphones"></i> Amapiano</button>
+    </div>
+</section>
+
 <!-- ===== LYRICS GRID ===== -->
 <section class="lyrics-grid" id="lyricsGrid">
     <div class="container">
@@ -2192,6 +2551,36 @@
         <div class="loading-skeleton" id="loadingSkeleton">
             <div class="spinner"></div>
             <p>Loading lyrics</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== COLLAB BOARD ===== -->
+<section class="collab-section" id="collabSection">
+    <div class="container">
+        <div class="section-heading">
+            <h2><span class="heading-icon"><i class="fas fa-users"></i></span> Collab Board</h2>
+            <span class="section-sub">Find collaborators for your next project</span>
+        </div>
+        <div class="collab-form" id="collabForm">
+            <h3><i class="fas fa-paper-plane"></i> Post a Collaboration Request</h3>
+            <div class="form-row">
+                <input type="text" id="collabName" placeholder="Your name" style="flex:1 1 200px;" />
+                <select id="collabType" style="flex:0 1 180px;">
+                    <option value="Lyrics">Lyrics</option>
+                    <option value="Beat">Beat</option>
+                    <option value="Singing">Singing</option>
+                    <option value="Production">Production</option>
+                    <option value="Feature">Feature</option>
+                </select>
+            </div>
+            <textarea id="collabMessage" placeholder="Describe what you're looking for..."></textarea>
+            <div style="margin-top:10px;">
+                <button class="btn-post" id="collabPostBtn" onclick="postCollab()"><i class="fas fa-paper-plane"></i> Post Request</button>
+            </div>
+        </div>
+        <div class="collab-grid" id="collabGrid">
+            <div class="collab-empty"><i class="fas fa-users"></i><p>Loading collab requests...</p></div>
         </div>
     </div>
 </section>
@@ -2308,6 +2697,7 @@
             <a href="library.html">My Library</a>
             <a href="submit.html">Sell Lyrics</a>
             <a href="https://volantpoetry.vercel.app/shared/about.html">About</a>
+            <a href="https://volantpoetry.vercel.app/personal/">Creator's Site</a>
             <a href="mailto:reach.volant@gmail.com">Contact</a>
         </div>
 
@@ -2573,6 +2963,7 @@
                     genres: genres,
                     lyrics: safeStr(data.lyrics) || 'No lyrics available',
                     views: safeNum(data.views),
+                    plays: safeNum(data.plays),
                     saleCount: safeNum(data.saleCount),
                     exclusive: !!data.exclusive,
                     price: safeNum(data.price),
@@ -2672,12 +3063,13 @@
                         <span class="price-tag ${priceClass}">${priceDisplay}</span>
                     </div>
                     <div class="artist-name">
-                        <i class="fas fa-user"></i> ${escapeHtml(lyric.artist)}
+                        <a href="artist.html?uid=${encodeURIComponent(lyric.submittedBy || '')}&name=${encodeURIComponent(lyric.artist || '')}" ${lyric.submittedBy ? '' : `style="pointer-events:none;"`}><i class="fas fa-user"></i> ${escapeHtml(lyric.artist)}</a>
                     </div>
-                    <div class="lyric-preview">${escapeHtml(preview)}</div>
+                    <div class="lyric-preview${currentUser && ownedLyricIds.has(lyric.id) ? '' : ' blurred'}">${escapeHtml(preview)}</div>
                     <div class="card-footer">
                         <div class="views">
                             <i class="fas fa-eye"></i> ${(lyric.views || 0).toLocaleString()}
+                            ${(lyric.plays || 0) > 0 ? `<span class="plays-count" title="Audio plays"><i class="fas fa-play"></i> ${(lyric.plays || 0).toLocaleString()}</span>` : ''}
                         </div>
                         <div style="display:flex;gap:6px;align-items:center;">
                             <button class="btn-preview" onclick="event.stopPropagation(); viewLyric('${lyric.id}')">
@@ -2765,7 +3157,7 @@
                     <div style="min-width:0;flex:1;">
                         <div class="f-title">${escapeHtml(lyric.title)}</div>
                         <div class="f-meta"><i class="fas fa-user"></i> ${escapeHtml(lyric.artist)}</div>
-                        <div class="f-meta"><i class="fas fa-eye"></i> ${(lyric.views || 0).toLocaleString()} views</div>
+                        <div class="f-meta"><i class="fas fa-eye"></i> ${(lyric.views || 0).toLocaleString()} views${(lyric.plays || 0) > 0 ? ` · <i class="fas fa-play"></i> ${(lyric.plays || 0).toLocaleString()} plays` : ''}</div>
                     </div>
                     <div class="f-price ${isFree ? 'free' : ''}">${priceDisplay}</div>
                 </div>
@@ -2894,7 +3286,7 @@
                 <div class="qv-artist">
                     <i class="fas fa-user"></i> ${escapeHtml(data.artist || 'Anonymous')}
                     <span class="genre-tag">${escapeHtml(genreDisplay)}</span>
-                    <span style="display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>${(data.plays || 0) > 0 ? `<span style="display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-play"></i> ${(data.plays || 0).toLocaleString()} plays</span>` : ''}
                 </div>
                 ${data.audioSampleUrl ? `<div class="qv-audio"><i class="fas fa-headphones"></i> Audio sample available — play it from the detail page</div>` : ''}
                 <div class="qv-lyrics">${escapeHtml(data.lyrics || 'No lyrics available')}</div>
@@ -3046,11 +3438,10 @@
     });
 
     // ===== PAYSTACK CONFIGURATION =====
-    // The Lyrics site is its own Vercel project; the serverless API lives in the
-    // root volant-foundry project (volantpoetry.vercel.app). CORS is open on the
-    // functions, so cross-origin calls work. In dev (file://) the API still runs
-    // fine and falls back to the Lyrics TEST key when unreachable.
-    const PAYSTACK_API_BASE = 'https://volantpoetry.vercel.app/api';
+    // The Lyrics site is its own Vercel project (volantlyrics.vercel.app); its own
+    // serverless API lives in lyrics/api and reads the LYRICS_PAYSTACK_* env vars
+    // set directly on the volantlyrics project.
+    const PAYSTACK_API_BASE = '/api';
     const PAYSTACK_PUBLIC_KEY_FALLBACK = 'pk_test_bba6e3bfb9fefff1b6c49aceb34344c8f92b9499';
     let PAYSTACK_PUBLIC_KEY = '';
 
@@ -3879,6 +4270,391 @@
         setTimeout(() => { openCart(); }, 1200);
         try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
     }
+
+    // ===== NOTIFICATION CENTRE (bell modal, like Volant Reads) =====
+    let lyrCurrentUid = null;
+    let lyrNotifUnsubs = [];
+    let lyrNotifUnread = new Map();
+
+    function lyrFmtTime(ts) {
+        if (!ts) return '';
+        let t = 0;
+        try {
+            if (ts && typeof ts.toMillis === 'function') t = ts.toMillis();
+            else if (ts && ts.seconds) t = ts.seconds * 1000;
+            else if (typeof ts === 'number') t = ts;
+            else t = Date.now();
+        } catch(e) { return ''; }
+        const diff = Date.now() - t;
+        const m = 60000, h = 3600000, d = 86400000;
+        if (diff < m) return 'now';
+        if (diff < h) return Math.floor(diff / m) + 'm ago';
+        if (diff < d) return Math.floor(diff / h) + 'h ago';
+        if (diff < 7 * d) return Math.floor(diff / d) + 'd ago';
+        try { return new Date(t).toLocaleDateString(); } catch(e) { return ''; }
+    }
+
+    function lyrNotifBadge(d) {
+        if (d.type === 'announcement' || d.isPoemOfWeek || d.isQuoteOfWeek || d.isOfWeek === true || d.promo === true) {
+            return '<span class="notif-platform notif-platform-team">Volant Team</span>';
+        }
+        const p = d.platform;
+        if (!p || p === 'lyrics') return '';
+        const labels = { reads: 'Volant Reads', poetry: 'Volant Poetry', mall: 'Volant Mall' };
+        if (!labels[p]) return '';
+        return '<span class="notif-platform notif-platform-' + p + '">' + labels[p] + '</span>';
+    }
+
+    function lyrNotifText(d) {
+        const name = d.fromUserName || d.fromName || d.senderName || 'Someone';
+        const short = (s) => {
+            s = String(s || '').replace(/\r?\n/g, ' ').trim();
+            return s.length > 90 ? s.slice(0, 90) + '…' : s;
+        };
+        const cleanMsg = (s) => String(s || '')
+            .replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'")
+            .replace(/<[^>]+>/g, '');
+        if (d.type === 'like') return name + ' liked your creation';
+        if (d.type === 'comment') return name + ' commented: ' + short(d.commentText || d.message);
+        if (d.type === 'reply') return name + ' replied: ' + short(d.replyText || d.message);
+        if (d.type === 'follow') return name + ' started following you';
+        if (d.type === 'commission') return short(d.title || d.message || 'New custom lyrics request');
+        if (d.type === 'commission_accepted') return short(d.message || 'Your commission request was accepted');
+        if (d.type === 'commission_declined') return short(d.message || 'Your commission request was declined');
+        if (d.type === 'collab_request') return name + ' sent a collab request';
+        if (d.type === 'custom_lyrics') return short(d.message || 'New custom lyrics order');
+        if (d.type === 'play') return short(d.message || name + ' played your lyrics');
+        if (d.type === 'purchase') return short(d.message || d.title || 'Your lyrics sold');
+        if (d.type === 'play_royalty') return short(d.message || 'You earned play royalties');
+        if (d.extra && d.extra.body) return short(d.extra.body);
+        return short(cleanMsg(d.message || d.body || d.title || 'You have a new notification'));
+    }
+
+    function lyrRenderBadge() {
+        const badge = document.getElementById('notifCount');
+        if (!badge) return;
+        const n = lyrNotifUnread.size;
+        badge.textContent = n > 99 ? '99+' : String(n);
+        badge.classList.toggle('show', n > 0);
+    }
+
+    function lyrLoadNotifList(uid) {
+        const list = document.getElementById('notifList');
+        if (!list) return;
+        list.innerHTML = '<div class="notif-empty">Loading…</div>';
+        const tsOf = (t) => {
+            if (!t) return 0;
+            if (t && typeof t.toMillis === 'function') return t.toMillis();
+            if (t.seconds) return t.seconds * 1000;
+            if (typeof t === 'object') return new Date(t).getTime() || 0;
+            return new Date(t).getTime() || 0;
+        };
+        Promise.all([
+            db.collection('notifications').where('userId', '==', uid).limit(100).get(),
+            db.collection('notifications').where('forUser', '==', uid).limit(100).get()
+        ]).then(([s1, s2]) => {
+            const items = [];
+            const seen = new Set();
+            [s1, s2].forEach(sn => sn.forEach(ds => {
+                if (!seen.has(ds.id)) { seen.add(ds.id); items.push(ds); }
+            }));
+            items.sort((a, b) => tsOf(b.data().timestamp || b.data().createdAt) - tsOf(a.data().timestamp || a.data().createdAt));
+            if (!items.length) {
+                list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+                return;
+            }
+            let html = '';
+            items.slice(0, 10).forEach(ds => {
+                const d = ds.data();
+                const unread = d.read !== true;
+                const text = lyrNotifText(d);
+                const plat = d.platform || (d.type === 'announcement' || d.isPoemOfWeek || d.isQuoteOfWeek || d.isOfWeek === true || d.promo === true ? 'team' : 'lyrics');
+                html += '<div class="notif-item' + (unread ? ' unread' : '') + '" data-plat="' + plat + '">'
+                    + '<div class="notif-msg">'
+                    + '<span class="notif-platform-line">' + lyrNotifBadge(d) + '</span>'
+                    + '<span class="notif-msg-text">' + text + '</span>'
+                    + '</div>'
+                    + '<span class="notif-time">' + lyrFmtTime(d.timestamp || d.createdAt) + '</span>'
+                    + '</div>';
+            });
+            list.innerHTML = html;
+        }).catch(() => {
+            list.innerHTML = '<div class="notif-empty">Could not load notifications.</div>';
+        });
+    }
+
+    function lyrMarkAllRead() {
+        const uid = lyrCurrentUid;
+        if (!uid) return;
+        const refs = [];
+        Promise.all([
+            db.collection('notifications').where('userId', '==', uid).where('read', '==', false).get(),
+            db.collection('notifications').where('forUser', '==', uid).where('read', '==', false).get()
+        ]).then(([s1, s2]) => {
+            const seen = new Set();
+            [s1, s2].forEach(sn => sn.forEach(ds => {
+                if (!seen.has(ds.id)) { seen.add(ds.id); refs.push(ds.ref); }
+            }));
+            if (!refs.length) return;
+            const batch = db.batch();
+            refs.forEach(ref => batch.update(ref, { read: true }));
+            return batch.commit();
+        }).catch(() => {});
+    }
+
+    function lyrOpenPanel() {
+        const uid = lyrCurrentUid;
+        if (!uid) return;
+        const panel = document.getElementById('notifPanel');
+        if (!panel) return;
+        const bell = document.getElementById('notifBell');
+        if (bell) {
+            const r = bell.getBoundingClientRect();
+            const w = 360;
+            panel.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.right - w)) + 'px';
+            panel.style.top = Math.round(r.bottom + 10) + 'px';
+        }
+        if (panel.classList.contains('open')) { lyrClosePanel(); return; }
+        panel.classList.add('open');
+        lyrLoadNotifList(uid);
+    }
+
+    function lyrClosePanel() {
+        const panel = document.getElementById('notifPanel');
+        if (!panel) return;
+        const wasOpen = panel.classList.contains('open');
+        panel.classList.remove('open');
+        if (wasOpen && lyrCurrentUid) lyrMarkAllRead();
+    }
+
+    // ===== NOTIFICATION BELL =====
+    function initNotifBell(user) {
+        const bell = document.getElementById('notifBell');
+        const badge = document.getElementById('notifCount');
+        if (!bell || !badge) return;
+        lyrNotifUnsubs.forEach(u => { try { u(); } catch(e) {} });
+        lyrNotifUnsubs = [];
+        lyrNotifUnread.clear();
+        if (!user) {
+            lyrCurrentUid = null;
+            bell.style.display = 'none';
+            lyrRenderBadge();
+            return;
+        }
+        bell.style.display = 'inline-flex';
+        lyrCurrentUid = user.uid;
+        const attach = (q) => {
+            lyrNotifUnsubs.push(q.onSnapshot(snap => {
+                snap.docChanges().forEach(ch => {
+                    const id = ch.doc.id;
+                    if (ch.type === 'removed') lyrNotifUnread.delete(id);
+                    else if (ch.doc.data().read === true) lyrNotifUnread.delete(id);
+                    else lyrNotifUnread.set(id, ch.doc);
+                });
+                lyrRenderBadge();
+                const panel = document.getElementById('notifPanel');
+                if (panel && panel.classList.contains('open')) lyrLoadNotifList(user.uid);
+            }, () => {}));
+        };
+        attach(db.collection('notifications').where('userId', '==', user.uid));
+        attach(db.collection('notifications').where('forUser', '==', user.uid));
+        lyrRenderBadge();
+    }
+
+    const lyrBellEl = document.getElementById('notifBell');
+    if (lyrBellEl) {
+        lyrBellEl.addEventListener('click', function(e) {
+            if (lyrCurrentUid) {
+                e.preventDefault();
+                lyrOpenPanel();
+            }
+        });
+    }
+    const lyrMarkAllEl = document.getElementById('notifMarkAll');
+    if (lyrMarkAllEl) {
+        lyrMarkAllEl.addEventListener('click', function() {
+            lyrMarkAllRead();
+            lyrNotifUnread.clear();
+            lyrRenderBadge();
+            const list = document.getElementById('notifList');
+            if (list) {
+                list.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
+            }
+        });
+    }
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('notifPanel');
+        const bell = document.getElementById('notifBell');
+        if (panel && panel.classList.contains('open') &&
+            !e.target.closest('#notifPanel') &&
+            !(bell && e.target.closest('#notifBell'))) {
+            lyrClosePanel();
+        }
+    });
+
+    // ===== MOOD / PLAYLIST FILTER =====
+    let currentMood = 'all';
+    function filterByMood(mood) {
+        currentMood = mood;
+        document.querySelectorAll('.playlist-chip').forEach(c => {
+            c.classList.toggle('active', c.dataset.mood === mood);
+        });
+        renderMarketplace();
+    }
+    renderMarketplace = function() {
+        let filtered = allLyrics;
+
+        if (currentFilter !== 'all') {
+            filtered = filtered.filter(l => (l.genres && l.genres.includes(currentFilter)) || l.genre === currentFilter);
+        }
+        if (currentMood !== 'all') {
+            const mood = currentMood.toLowerCase();
+            filtered = filtered.filter(l => {
+                const allGenres = [l.genre, ...(l.genres || [])].join(' ').toLowerCase();
+                return allGenres.includes(mood);
+            });
+        }
+        if (currentSearch) {
+            const search = currentSearch;
+            filtered = filtered.filter(lyric =>
+                lyric.title.toLowerCase().includes(search) ||
+                lyric.artist.toLowerCase().includes(search) ||
+                [...(lyric.genres || [lyric.genre])].join(' ').toLowerCase().includes(search) ||
+                lyric.lyrics.toLowerCase().includes(search) ||
+                lyric.description.toLowerCase().includes(search)
+            );
+        }
+        if (currentPrice === 'free') {
+            filtered = filtered.filter(l => !l.price || l.price === 0);
+        } else if (currentPrice === 'paid') {
+            filtered = filtered.filter(l => l.price && l.price > 0);
+        }
+        if (currentSort === 'popular') {
+            filtered.sort((a, b) => (b.views || 0) - (a.views || 0) || a.title.localeCompare(b.title));
+        } else if (currentSort === 'low') {
+            filtered.sort((a, b) => (a.price || 0) - (b.price || 0) || a.title.localeCompare(b.title));
+        } else if (currentSort === 'high') {
+            filtered.sort((a, b) => (b.price || 0) - (a.price || 0) || a.title.localeCompare(b.title));
+        } else {
+            filtered.sort((a, b) => {
+                const diff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                return diff || a.title.localeCompare(b.title);
+            });
+        }
+
+        renderFeatured(filtered);
+        renderLyrics(filtered);
+
+        const infoEl = document.getElementById('resultsInfo');
+        if (infoEl) {
+            const total = allLyrics.length;
+            const label = currentSort === 'popular' ? 'Most viewed' :
+                currentSort === 'low' ? 'Price: low to high' :
+                currentSort === 'high' ? 'Price: high to low' : 'Newest first';
+            if (filtered.length === total && currentFilter === 'all' && currentPrice === 'all' && currentMood === 'all' && !currentSearch) {
+                infoEl.innerHTML = `<span>Showing all <b>${total.toLocaleString()}</b> lyrics</span>`;
+            } else {
+                infoEl.innerHTML = `<span>Showing <b>${filtered.length.toLocaleString()}</b> of <b>${total.toLocaleString()}</b> lyrics</span>`;
+            }
+            infoEl.innerHTML += `<span>${label}</span>`;
+        }
+    };
+
+    // ===== COLLAB BOARD =====
+    async function loadCollabs() {
+        const grid = document.getElementById('collabGrid');
+        if (!grid) return;
+        try {
+            const snap = await db.collection('collabs').where('status', '==', 'open').limit(50).get();
+            if (snap.empty) {
+                grid.innerHTML = '<div class="collab-empty"><i class="fas fa-users"></i><p>No collab requests yet. Be the first to post!</p></div>';
+                return;
+            }
+            const docs = [];
+            snap.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
+            docs.sort((a, b) => {
+                const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+                const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+                return tb - ta;
+            });
+            grid.innerHTML = '';
+            docs.forEach(d => {
+                const created = t => t && t.toDate ? t.toDate() : (t ? new Date(t) : new Date());
+                const timeStr = created(d.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                grid.innerHTML += `
+                    <div class="collab-card">
+                        <span class="collab-type"><i class="fas fa-handshake"></i> ${escapeHtml(d.type || 'Lyrics')}</span>
+                        <div class="collab-name">${escapeHtml(d.fromName || 'Anonymous')}</div>
+                        <div class="collab-msg">${escapeHtml(d.message || '')}</div>
+                        <div class="collab-time"><i class="fas fa-clock"></i> ${timeStr}</div>
+                    </div>
+                `;
+            });
+        } catch (err) {
+            grid.innerHTML = '<div class="collab-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load collab requests.</p></div>';
+        }
+    }
+
+    async function postCollab() {
+        if (!currentUser) {
+            window.location.href = 'universal-login.html?platform=lyrics&redirect=index.html';
+            return;
+        }
+        const nameEl = document.getElementById('collabName');
+        const typeEl = document.getElementById('collabType');
+        const msgEl = document.getElementById('collabMessage');
+        const name = (nameEl.value || '').trim();
+        const type = typeEl.value;
+        const message = (msgEl.value || '').trim();
+        if (!message) { showToast('Please enter a message.', 'error'); return; }
+        const displayName = name || currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous';
+        try {
+            let usernameHint = null;
+            try {
+                const uSnap = await db.collection('users').doc(currentUser.uid).get();
+                const uData = uSnap.data();
+                if (uData?.username) usernameHint = uData.username;
+            } catch (e) {}
+            await db.collection('collabs').add({
+                fromName: usernameHint || displayName,
+                fromUid: currentUser.uid,
+                type: type,
+                message: message,
+                status: 'open',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            msgEl.value = '';
+            showToast('Collab request posted!', 'success');
+            loadCollabs();
+        } catch (err) {
+            showToast('Failed to post. Please try again.', 'error');
+        }
+    }
+
+    loadCollabs();
+
+    // Pre-fill collab name on auth
+    auth.onAuthStateChanged(async user => {
+        if (user) {
+            const nameEl = document.getElementById('collabName');
+            if (nameEl && !nameEl.value) {
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    const data = userDoc.data();
+                    nameEl.value = data?.username || user.displayName || user.email?.split('@')[0] || '';
+                } catch {
+                    nameEl.value = user.displayName || user.email?.split('@')[0] || '';
+                }
+            }
+        }
+    });
+
+    // ===== AUTH STATE: notif bell =====
+    auth.onAuthStateChanged(async (user) => {
+        initNotifBell(user);
+    });
+
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 </script>
 
 </body>

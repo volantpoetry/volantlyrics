@@ -1,0 +1,30 @@
+{
+  "name": "Volant Lyrics",
+  "short_name": "Volant Lyrics",
+  "description": "Discover and purchase original song lyrics from talented songwriters. Premium lyrics marketplace.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf9fe",
+  "theme_color": "#4b2aad",
+  "icons": [
+    {
+      "src": "https://volantpoetry.vercel.app/images/lyrics-favicon-64.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://volantpoetry.vercel.app/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://volantpoetry.vercel.app/images/lyrics-favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

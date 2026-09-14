@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Volant Lyrics — Manage My Lyrics</title>
+     <script>
+    // Simple console blocker - production only
+    (function() {
+        if (window.location.hostname.includes('localhost') || 
+            window.location.hostname.includes('127.0.0.1')) {
+            return; // Allow in development
+        }
+        
+        // Block all console methods
+        var methods = ['log', 'info', 'warn', 'error', 'debug', 'trace', 'table', 'group', 'groupEnd', 'dir'];
+        methods.forEach(function(m) {
+            console[m] = function() {};
+            try {
+                Object.defineProperty(console, m, { configurable: false, writable: false });
+            } catch(e) {}
+        });
+        
+        window.onerror = function() { return true; };
+        window.onunhandledrejection = function() { return true; };
+    })();
+</script>
     <meta name="description" content="View and update the lyrics you've listed on the Volant Lyrics marketplace." />
     <link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png" />
@@ -568,26 +589,25 @@
             margin-bottom: 24px;
             flex-wrap: wrap;
         }
-        .manage-tab {
-            background: none;
-            border: none;
-            padding: 12px 20px;
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: #6a5f78;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            gap: 9px;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -1px;
-            transition: all 0.3s ease;
-        }
+        .manage-tab { background: none; border: none; padding: 12px 20px; font-size: 0.88rem; font-weight: 600; color: #6a5f78; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 9px; border-bottom: 3px solid transparent; margin-bottom: -1px; transition: all 0.3s ease; }
         .manage-tab i { color: #b3a8e8; }
         .manage-tab:hover { color: #4b2aad; }
         .manage-tab.active { color: #4b2aad; border-bottom-color: #4b2aad; }
         .manage-tab.active i { color: #4b2aad; }
+        .manage-tab .req-badge {
+            background: #ff5252;
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-sm { padding: 8px 16px; font-size: 0.8rem; border-radius: 24px; }
 
         .settings-wrap { display: grid; gap: 20px; }
         .settings-card {
@@ -1252,6 +1272,8 @@
                                             <span><i class="fas fa-calendar-alt"></i> ${escapeHtml(dateLabel(item.createdAt))}</span>
                                             <span><i class="fas fa-tag"></i> ${escapeHtml(item.genres && item.genres.length ? item.genres.map(genreDisplay).join(', ') : genreDisplay(item.genre))}</span>
                                             <span><i class="fas fa-receipt"></i> ${escapeHtml(formatPrice(item.price, item.currency))}</span>
+                                            <span><i class="fas fa-eye"></i> ${item.views || 0} views</span>
+                                            <span><i class="fas fa-play"></i> ${item.plays || 0} plays</span>
                                             ${item.audioSampleUrl ? `<span><i class="fas fa-headphones"></i> Audio sample</span>` : ''}
                                             ${item.exclusive ? `<span><i class="fas fa-cart-arrow-down"></i> ${item.saleCount || 0} sold</span>` : ''}
                                         </div>
@@ -1495,7 +1517,7 @@
         }
 
         // ===== AUDIO SAMPLE (EDIT PANEL) =====
-        const PAYSTACK_API_BASE = 'https://volantpoetry.vercel.app/api';
+        const PAYSTACK_API_BASE = '/api';
         const AUDIO_MAX_BYTES = 5 * 1024 * 1024;
         const AUDIO_MAX_DURATION_SEC = 30;
         const AUDIO_CLOUD_NAME = 'dzoq4pgjn';
@@ -1942,6 +1964,7 @@
                 <div class="manage-tabs">
                     <button class="manage-tab ${active === 'lyrics' ? 'active' : ''}" onclick="showView('lyrics')"><i class="fas fa-edit"></i> My Lyrics</button>
                     <button class="manage-tab ${active === 'earnings' ? 'active' : ''}" onclick="showView('earnings')"><i class="fas fa-chart-line"></i> Earnings</button>
+                    <button class="manage-tab ${active === 'commissions' ? 'active' : ''}" onclick="showView('commissions')"><i class="fas fa-envelope-open-text"></i> Requests<span class="req-badge" id="reqBadge" style="display:none;"></span></button>
                     <button class="manage-tab ${active === 'settings' ? 'active' : ''}" onclick="showView('settings')"><i class="fas fa-cog"></i> Account Settings</button>
                 </div>
             `;
@@ -1956,10 +1979,148 @@
                 renderSettings();
             } else if (view === 'earnings') {
                 renderEarnings();
+            } else if (view === 'commissions') {
+                renderCommissions();
             } else {
                 if (listingCache.length === 0) renderEmpty();
                 else renderListings(listingCache);
             }
+        }
+
+        // ===== COMMISSION REQUESTS =====
+        let commissionsUnsub = null;
+        async function renderCommissions() {
+            const page = document.getElementById('managePage');
+            if (commissionsUnsub) { commissionsUnsub(); commissionsUnsub = null; }
+            if (!currentUser) {
+                page.innerHTML = `
+                    <div class="container">
+                        <div class="page-head">
+                            <div>
+                                <p class="lib-greeting">Welcome to Volant Lyrics</p>
+                                <h1><i class="fas fa-envelope-open-text"></i> Custom Requests</h1>
+                            </div>
+                        </div>
+                        ${tabsHTML('commissions')}
+                        <div class="center-state" style="padding:60px 20px;">
+                            <div class="state-icon"><i class="fas fa-sign-in-alt"></i></div>
+                            <h2>Sign in to see your requests</h2>
+                            <p>Buyers who want custom lyrics from you land here.</p>
+                            <button class="btn-primary" onclick="location.href='universal-login.html?platform=lyrics&redirect=manage.html'"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            page.innerHTML = `
+                <div class="container">
+                    <div class="page-head">
+                        <div>
+                            <p class="lib-greeting">Welcome back, <strong>${escapeHtml(currentDisplayName || 'there')}</strong></p>
+                            <h1><i class="fas fa-envelope-open-text"></i> Custom Requests</h1>
+                        </div>
+                        <span class="count-chip" id="cmCountChip">0 open</span>
+                    </div>
+                    ${tabsHTML('commissions')}
+                    <div id="commList"><div class="center-state" style="padding:50px 20px;"><div class="spinner"></div><h2>Loading requests...</h2></div></div>
+                </div>
+            `;
+            commissionsUnsub = db.collection('commission-requests')
+                .where('toUid', '==', currentUser.uid)
+                .orderBy('createdAt', 'desc')
+                .onSnapshot(snap => {
+                    let open = 0;
+                    const rows = [];
+                    snap.forEach(d => {
+                        const r = d.data();
+                        const isOpen = r.status === 'open' || !r.status;
+                        if (isOpen) open++;
+                        const ts = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate() : null;
+                        rows.push({
+                            id: d.id,
+                            fromName: r.fromName || 'Anonymous buyer',
+                            fromEmail: r.fromEmail || '',
+                            budget: Number(r.budget) || 0,
+                            details: r.details || '',
+                            status: r.status || 'open',
+                            backlog: !!r.backlog,
+                            ts: ts ? ts.toLocaleString() : 'Just now'
+                        });
+                    });
+                    const chip = document.getElementById('cmCountChip');
+                    if (chip) chip.textContent = open + ' open / ' + rows.length + ' total';
+                    const bl = document.getElementById('reqBadge');
+                    if (bl) { bl.textContent = open; bl.style.display = open > 0 ? 'inline-flex' : 'none'; }
+                    renderCommList(rows);
+                }, err => {
+                    console.error('Commissions realtime error:', err);
+                    const list = document.getElementById('commList');
+                    if (list) list.innerHTML = `<div class="center-state" style="padding:50px 20px;"><div class="state-icon"><i class="fas fa-exclamation-circle"></i></div><h2>Could not load requests</h2><p>${escapeHtml(String(err.message || ''))}</p></div>`;
+                });
+        }
+
+        function renderCommList(rows) {
+            const list = document.getElementById('commList');
+            if (!list) return;
+            if (rows.length === 0) {
+                list.innerHTML = `
+                    <div class="center-state" style="padding:60px 20px;">
+                        <div class="state-icon"><i class="fas fa-envelope-open"></i></div>
+                        <h2>No custom lyric requests yet</h2>
+                        <p>When a buyer asks you to write a song, the request appears here so you can accept it.</p>
+                        <a class="btn-primary" href="artist.html?uid=${encodeURIComponent(currentUser.uid)}"><i class="fas fa-store"></i> View my public page</a>
+                    </div>
+                `;
+                return;
+            }
+            const openColor = { 'open': '#2e7d32', 'accepted': '#4b2aad', 'declined': '#b76e4b', 'done': '#00796b' };
+            list.innerHTML = rows.map(r => `
+                <div class="commission-card" style="background:#fff;border:1px solid #ede8ff;border-radius:14px;padding:16px 18px;margin-bottom:14px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+                        <div>
+                            <div style="font-weight:700;font-size:0.95rem;"><i class="fas fa-user" style="color:#4b2aad;margin-right:6px;"></i>${escapeHtml(r.fromName)}</div>
+                            <div class="manage-meta" style="margin-top:4px;">
+                                ${r.fromEmail ? `<span style="font-size:0.82rem;color:#6a5f55;"><i class="fas fa-envelope"></i> ${escapeHtml(r.fromEmail)}</span>` : ''}
+                                <span style="font-size:0.82rem;color:#6a5f55;"><i class="fas fa-clock"></i> ${escapeHtml(r.ts)}</span>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="status-badge" style="background:${openColor[r.status] || '#9a8f82'};color:#fff;">${escapeHtml((r.status || 'open').toUpperCase())}</span>
+                            <div style="font-size:1rem;font-weight:800;color:#4b2aad;margin-top:6px;">GHS ${Number(r.budget).toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <p style="font-size:0.86rem;color:#4a4458;margin:12px 0 0;padding:12px;background:#faf9fe;border:1px solid #ede8ff;border-radius:10px;white-space:pre-wrap;">${escapeHtml(r.details)}</p>
+                    ${r.status === 'open' || !r.status ? `
+                    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+                        <button class="btn-primary btn-sm" onclick="respondToCommission('${r.id}','accepted')"><i class="fas fa-check"></i> Accept</button>
+                        <button class="btn-outline btn-sm" onclick="respondToCommission('${r.id}','declined')" style="color:#b76e4b;border-color:#e0b4a0;"><i class="fas fa-times"></i> Decline</button>
+                    </div>` : `
+                    ${r.backlog ? `<div style="font-size:0.75rem;color:#9a8f82;margin-top:10px;"><i class="fas fa-info-circle"></i> Saved from your earlier admin backlog — reach out directly.</div>` : ''}`}
+                </div>
+            `).join('');
+        }
+
+        async function respondToCommission(id, status) {
+            try {
+                await db.collection('commission-requests').doc(id).update({ status: status, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                showToast(status === 'accepted' ? 'Request accepted — get in touch with the buyer.' : 'Request declined.');
+            } catch (e) {
+                console.error('Commission response error:', e);
+                showToast('Could not update the request.');
+            }
+        }
+
+        let reqBadgeUnsub = null;
+        function startRequestBadge(user) {
+            if (reqBadgeUnsub) { reqBadgeUnsub(); reqBadgeUnsub = null; }
+            if (!user) return;
+            reqBadgeUnsub = db.collection('commission-requests')
+                .where('toUid', '==', user.uid)
+                .onSnapshot(snap => {
+                    const open = snap.docs.filter(d => (d.data().status || 'open') === 'open').length;
+                    const el = document.getElementById('reqBadge');
+                    if (el) { el.textContent = open; el.style.display = open > 0 ? 'inline-flex' : 'none'; }
+                }, () => {});
         }
 
         function countryOptions(selected) {
@@ -2434,7 +2595,10 @@
                 updateUserAvatar(null, null);
             }
             loadListings();
+            startRequestBadge(user);
         });
+
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
     </script>
 
 </body>

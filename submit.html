@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sell Your Lyrics · Volant Lyrics</title>
+     <script>
+    // Simple console blocker - production only
+    (function() {
+        if (window.location.hostname.includes('localhost') || 
+            window.location.hostname.includes('127.0.0.1')) {
+            return; // Allow in development
+        }
+        
+        // Block all console methods
+        var methods = ['log', 'info', 'warn', 'error', 'debug', 'trace', 'table', 'group', 'groupEnd', 'dir'];
+        methods.forEach(function(m) {
+            console[m] = function() {};
+            try {
+                Object.defineProperty(console, m, { configurable: false, writable: false });
+            } catch(e) {}
+        });
+        
+        window.onerror = function() { return true; };
+        window.onunhandledrejection = function() { return true; };
+    })();
+</script>
     <meta name="description" content="Submit and sell your original song lyrics. Join the Volant Lyrics marketplace." />
     
     <!-- Fonts & Icons -->
@@ -14,6 +35,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <!-- Paystack Inline - audio upload unlock -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
 
 <link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png">
     <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png">
@@ -866,6 +890,100 @@
         .inspire-quote .gold {
             color: #4b2aad;
         }
+        /* ===== AUDIO PAYWALL MODAL ===== */
+        .audio-paywall-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 15, 45, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .audio-paywall-overlay.open { display: flex; }
+        .audio-paywall-card {
+            position: relative;
+            background: #fff;
+            border-radius: 20px;
+            max-width: 420px;
+            width: 100%;
+            padding: 32px 26px 24px;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            font-family: 'Inter', sans-serif;
+        }
+        .audio-paywall-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .audio-paywall-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4b2aad, #6f4ae4);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .audio-paywall-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.45rem;
+            margin-bottom: 10px;
+            color: #1d1833;
+        }
+        .audio-paywall-card p {
+            font-size: 0.88rem;
+            color: #5d5d78;
+            line-height: 1.6;
+        }
+        .audio-paywall-card ul {
+            list-style: none;
+            text-align: left;
+            margin: 16px 0;
+            padding: 0;
+        }
+        .audio-paywall-card ul li {
+            font-size: 0.84rem;
+            color: #3d3d5c;
+            padding: 4px 0;
+        }
+        .audio-paywall-card ul li i { color: #2e9e5b; margin-right: 8px; }
+        .audio-paywall-btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4b2aad, #6f4ae4);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .audio-paywall-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(75, 42, 173, 0.35); }
+        .audio-paywall-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .audio-paywall-later {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: none;
+            background: none;
+            color: #8a8aa0;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -1004,6 +1122,23 @@
                         <span class="audio-name" id="audioName">Sample preview</span>
                         <audio controls preload="none" id="audioPreview"></audio>
                         <button type="button" class="link-remove" onclick="clearAudioSample()"><i class="fas fa-trash-alt"></i> Remove</button>
+                    </div>
+                </div>
+
+                <!-- AUDIO UPLOAD PAYWALL MODAL -->
+                <div class="audio-paywall-overlay" id="audioPaywallOverlay">
+                    <div class="audio-paywall-card">
+                        <button type="button" class="audio-paywall-close" id="audioPaywallClose" aria-label="Close">&times;</button>
+                        <div class="audio-paywall-icon"><i class="fas fa-microphone-alt"></i></div>
+                        <h3>Unlock Audio Uploads</h3>
+                        <p>You've used your <strong>4 free audio uploads</strong>. To keep adding preview samples to your lyrics, unlock unlimited audio with a <strong>one-time payment of GHS 50.00</strong>.</p>
+                        <ul>
+                            <li><i class="fas fa-check"></i> Unlock unlimited audio uploads for life</li>
+                            <li><i class="fas fa-check"></i> Secure payment via Paystack</li>
+                            <li><i class="fas fa-check"></i> Instant unlock after payment</li>
+                        </ul>
+                        <button type="button" class="audio-paywall-btn" id="audioPaywallBtn"><i class="fas fa-lock-open"></i> Pay GHS 50.00 &amp; Unlock</button>
+                        <button type="button" class="audio-paywall-later" id="audioPaywallLater">Maybe later</button>
                     </div>
                 </div>
                 
@@ -1203,8 +1338,6 @@
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', updatePreview);
     });
-    renderGenreChips();
-    updatePreview();
 
     // ===== COLOR FROM NAME (SAME AS VOLANT READS) =====
     function colorFromName(name) {
@@ -1276,6 +1409,9 @@
         const std = [...selectedLGenres];
         return (std.length ? std[0] : '') || (customLGenres[0] || '');
     }
+
+    renderGenreChips();
+    updatePreview();
 
     // ===== AVATAR GENERATION (SAME AS VOLANT READS) =====
     async function generateAndUploadAvatar(initials, bgColor, userId) {
@@ -1443,6 +1579,10 @@
             submitForm.style.display = 'block';
             
             const userData = await fetchUserData(user.uid);
+            if (userData) {
+                audioUploadsCount = Number(userData.audioUploads) || 0;
+                audioUploadsPaid = !!(userData.audioUploadsPaid);
+            }
             await renderHeader(user, userData);
             preFillForm(userData);
             
@@ -1458,8 +1598,16 @@
     const AUDIO_MAX_DURATION_SEC = 30;
     const AUDIO_CLOUD_NAME = 'dzoq4pgjn';
     const AUDIO_UPLOAD_PRESET = 'audio_samples';
+    const FREE_AUDIO_LIMIT = 4;
+    const AUDIO_UNLOCK_GHS = 50;
+    const LYRICS_PAYSTACK_API_BASE = '/api';
+    const LYRICS_PAYSTACK_PUBLIC_KEY_FALLBACK = 'pk_test_bba6e3bfb9fefff1b6c49aceb34344c8f92b9499';
+    let lyricsPaystackPublicKey = LYRICS_PAYSTACK_PUBLIC_KEY_FALLBACK;
+    let audioUploadsCount = 0;
+    let audioUploadsPaid = false;
     let audioStateFile = null; // effective file: original or auto-trimmed
     let audioUploadCanceled = false;
+    let audioUnlockInProgress = false;
 
     function setAudioMsg(type, text) {
         const el = document.getElementById('audioMsg');
@@ -1472,6 +1620,115 @@
             el.textContent = '';
         }
     }
+
+    /* ===== AUDIO PAYWALL (4 FREE THEN PAY) ===== */
+    function openAudioPaywall() {
+        const overlay = document.getElementById('audioPaywallOverlay');
+        if (!overlay) return;
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        fetch(LYRICS_PAYSTACK_API_BASE + '/lyrics-paystack-config')
+            .then(r => r.json())
+            .then(data => { if (data && data.publicKey) lyricsPaystackPublicKey = data.publicKey; })
+            .catch(() => {});
+    }
+
+    function closeAudioPaywall() {
+        const overlay = document.getElementById('audioPaywallOverlay');
+        if (!overlay) return;
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    async function unlockAudioUploads() {
+        const btn = document.getElementById('audioPaywallBtn');
+        if (!auth.currentUser) {
+            window.location.href = 'universal-login.html?platform=lyrics&redirect=submit.html';
+            return;
+        }
+        if (audioUnlockInProgress) return;
+        if (typeof PaystackPop === 'undefined') {
+            setAudioMsg('info', 'Payment system loading. Please wait a moment, then try again.');
+            return;
+        }
+        audioUnlockInProgress = true;
+        btn.disabled = true;
+        btn.textContent = 'Opening secure payment...';
+        try {
+            const email = auth.currentUser.email || '';
+            const handler = PaystackPop.setup({
+                key: lyricsPaystackPublicKey,
+                email: email,
+                amount: Math.round(AUDIO_UNLOCK_GHS * 100),
+                currency: 'GHS',
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Payment Type", variable_name: "payment_type", value: "lyrics_audio_unlock" },
+                        { display_name: "Customer ID", variable_name: "customer_id", value: auth.currentUser.uid }
+                    ]
+                },
+                callback: async (response) => {
+                    btn.disabled = true;
+                    btn.textContent = 'Verifying payment...';
+                    try {
+                        const vres = await fetch(LYRICS_PAYSTACK_API_BASE + '/lyrics-verify-transaction', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                reference: response.reference,
+                                amount: AUDIO_UNLOCK_GHS,
+                                email: email
+                            })
+                        });
+                        const vdata = await vres.json();
+                        if (vdata.success) {
+                            await db.collection('users').doc(auth.currentUser.uid).update({
+                                audioUploadsPaid: true,
+                                audioUploadsPaidAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            await db.collection('purchases').add({
+                                userId: auth.currentUser.uid,
+                                userEmail: email,
+                                type: 'audio_upload_unlock',
+                                platform: 'lyrics',
+                                amount: AUDIO_UNLOCK_GHS,
+                                currency: 'GHS',
+                                transactionRef: response.reference,
+                                verified: true,
+                                status: 'completed',
+                                purchasedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            audioUploadsPaid = true;
+                            closeAudioPaywall();
+                            showToast('🎉 You have unlocked unlimited audio uploads!', 'success');
+                        } else {
+                            setAudioMsg('warn', 'Payment could not be verified. If you were charged, contact support.');
+                        }
+                    } catch (verifyErr) {
+                        setAudioMsg('warn', 'Could not verify payment. Please try again.');
+                    }
+                    audioUnlockInProgress = false;
+                },
+                onClose: () => {
+                    audioUnlockInProgress = false;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-lock-open"></i> Pay GHS 50.00 & Unlock';
+                }
+            });
+            handler.openIframe();
+        } catch (err) {
+            audioUnlockInProgress = false;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-lock-open"></i> Pay GHS 50.00 & Unlock';
+        }
+    }
+
+    document.getElementById('audioPaywallBtn')?.addEventListener('click', unlockAudioUploads);
+    document.getElementById('audioPaywallClose')?.addEventListener('click', closeAudioPaywall);
+    document.getElementById('audioPaywallLater')?.addEventListener('click', closeAudioPaywall);
+    document.getElementById('audioPaywallOverlay')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeAudioPaywall();
+    });
 
     function toggleAudioBox() {
         const box = document.getElementById('audioSampleBox');
@@ -1501,6 +1758,12 @@
         }
 
         if (file.size <= AUDIO_MAX_BYTES) {
+            if (!audioUploadsPaid && audioUploadsCount >= FREE_AUDIO_LIMIT) {
+                input.value = '';
+                audioStateFile = null;
+                openAudioPaywall();
+                return;
+            }
             attachAudio(file);
             return;
         }
@@ -1509,6 +1772,12 @@
         setAudioMsg('info', '<i class="fas fa-spinner fa-spin"></i> Your sample is over 5 MB — trimming to the first 30 seconds...');
         trimAndCompressAudio(file)
             .then(trimmed => {
+                if (!audioUploadsPaid && audioUploadsCount >= FREE_AUDIO_LIMIT) {
+                    input.value = '';
+                    audioStateFile = null;
+                    openAudioPaywall();
+                    return;
+                }
                 audioStateFile = trimmed;
                 attachAudio(trimmed);
                 const mb = (trimmed.size / (1024 * 1024)).toFixed(2);
@@ -1730,6 +1999,7 @@ genre,
                 lyrics,
                 description: description || '',
                 views: 0,
+                plays: 0,
                 saleCount: 0,
                 exclusive: exclusive,
                 status: 'active',
@@ -1743,6 +2013,17 @@ genre,
             };
             
             await db.collection('volant-lyrics').add(lyricData);
+
+            if (audioFile) {
+                try {
+                    await db.collection('users').doc(user.uid).update({
+                        audioUploads: firebase.firestore.FieldValue.increment(1)
+                    });
+                    audioUploadsCount += 1;
+                } catch (incrementErr) {
+                    console.warn('Could not increment audio upload count:', incrementErr);
+                }
+            }
             
             successMessage.classList.add('show');
             lyricsForm.reset();

@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Volant Lyrics — Lyric Details</title>
+     <script>
+    // Simple console blocker - production only
+    (function() {
+        if (window.location.hostname.includes('localhost') || 
+            window.location.hostname.includes('127.0.0.1')) {
+            return; // Allow in development
+        }
+        
+        // Block all console methods
+        var methods = ['log', 'info', 'warn', 'error', 'debug', 'trace', 'table', 'group', 'groupEnd', 'dir'];
+        methods.forEach(function(m) {
+            console[m] = function() {};
+            try {
+                Object.defineProperty(console, m, { configurable: false, writable: false });
+            } catch(e) {}
+        });
+        
+        window.onerror = function() { return true; };
+        window.onunhandledrejection = function() { return true; };
+    })();
+</script>
     <meta name="description" content="View full details of an original lyric on Volant Lyrics. See the full lyric, licensing and songwriter information." />
     <link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png" />
@@ -528,6 +549,33 @@
         .songwriter-avatar.has-photo { background-size: cover; background-position: center; }
         .songwriter-card .who { font-weight: 700; color: #1a1a2e; font-size: 1rem; }
         .songwriter-card .role { font-size: 0.82rem; color: #6a5f55; }
+        .songwriter-card .writer-page-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4b2aad;
+            text-decoration: none;
+        }
+        .songwriter-card .writer-page-link:hover { text-decoration: underline; }
+        .songwriter-card .btn-commission {
+            flex: 1 1 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 6px;
+            padding: 11px 18px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4b2aad, #7a4dff);
+            color: #fff !important;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .songwriter-card .btn-commission:hover { opacity: 0.92; }
         .songwriter-card .sw-bio {
             flex: 1 1 100%;
             font-size: 0.86rem;
@@ -693,6 +741,174 @@
             .volant-footer-col a { font-size: 0.78rem !important; }
             .volant-footer-contact-list li { font-size: 0.78rem; }
         }
+
+        /* ===== CUSTOM AUDIO PLAYER ===== */
+        .custom-player { margin-top: 14px; }
+        .player-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f5f0ff;
+            border: 1px solid #ede8ff;
+            border-radius: 14px;
+            padding: 10px 16px;
+        }
+        .player-btn {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            transition: background 0.3s;
+        }
+        .player-btn:hover { background: #3a1f8a; }
+        .player-seek-wrap { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .player-seek {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 4px;
+            background: #e0daf0;
+            outline: none;
+            cursor: pointer;
+        }
+        .player-seek::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4b2aad;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        .player-seek::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4b2aad;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .player-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: #8a7b6a;
+            font-variant-numeric: tabular-nums;
+        }
+        .player-vol {
+            background: none;
+            border: none;
+            color: #4b2aad;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+        .waveform-wrap {
+            height: 60px;
+            margin-top: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f5f0ff;
+            border: 1px solid #ede8ff;
+        }
+        .waveform-wrap canvas { display: block; width: 100%; height: 100%; }
+
+        /* ===== PREVIEW OVERLAY ===== */
+        .preview-overlay {
+            position: relative;
+            margin-top: 8px;
+        }
+        .preview-mask {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(245,240,255,0.92);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 12px;
+            z-index: 5;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-align: center;
+            padding: 20px;
+        }
+        .preview-mask.show { display: flex; }
+        .preview-mask .preview-label { font-weight: 700; color: #4b2aad; font-size: 0.95rem; }
+        .preview-mask .btn-unlock {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .preview-mask .btn-unlock:hover { background: #3a1f8a; transform: translateY(-1px); }
+
+        /* ===== BLUR LOCK (freemium) ===== */
+        .lyrics-blur-wrap {
+            position: relative;
+            overflow: hidden;
+            border-radius: 14px;
+        }
+        .lyrics-blur-wrap .full-lyrics.readable {
+            max-height: 130px;
+            overflow: hidden;
+        }
+        .lyrics-blur-wrap .full-lyrics.blurred {
+            filter: blur(5px);
+            user-select: none;
+            pointer-events: none;
+            max-height: none;
+        }
+        .lyrics-blur-wrap .unlock-card {
+            display: none;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(250,249,254,0.97) 30%);
+            padding: 36px 20px 20px;
+            text-align: center;
+            z-index: 3;
+        }
+        .lyrics-blur-wrap .unlock-card.show { display: block; }
+        .lyrics-blur-wrap .unlock-card .unlock-price { font-size: 1.3rem; font-weight: 800; color: #4b2aad; margin-bottom: 6px; }
+        .lyrics-blur-wrap .unlock-card .btn-unlock-lyrics {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .lyrics-blur-wrap .unlock-card .btn-unlock-lyrics:hover { background: #3a1f8a; transform: translateY(-1px); }
     </style>
 </head>
 <body>
@@ -1010,6 +1226,7 @@
                         <div class="detail-meta">
                             <span><i class="fas fa-user"></i> ${escapeHtml(data.artist || 'Anonymous')}</span>
                             <span><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>
+                            <span><i class="fas fa-play"></i> ${(data.plays || 0).toLocaleString()} plays</span>
                             <span><i class="fas fa-cart-arrow-down"></i> ${(data.saleCount || 0).toLocaleString()} purchased</span>
                             ${data.exclusive ? `<span class="excl-chip"><i class="fas fa-crown"></i> Exclusive Rights</span>` : ''}
                             <span class="genre-tag"><i class="fas fa-tag"></i> ${escapeHtml(genreDisplay)}</span>
@@ -1046,14 +1263,48 @@
                     ${data.audioSampleUrl ? `
                     <div class="panel audio-sample-panel">
                         <h2><i class="fas fa-headphones"></i> Audio Sample</h2>
-                        <p class="audio-sample-note">A short preview of the song this lyric was written for.</p>
-                        <audio controls preload="none" src="${escapeHtml(data.audioSampleUrl)}"></audio>
+                        <p class="audio-sample-note">A short preview of the song this lyric was written for.${!isOwned ? ' Free preview: first 30 seconds.' : ''}</p>
+                        <audio preload="none" id="sampleAudio" src="${escapeHtml(data.audioSampleUrl)}"></audio>
+                        <div class="custom-player" id="customPlayer">
+                            <div class="player-bar">
+                                <button class="player-btn" id="playPauseBtn"><i class="fas fa-play"></i></button>
+                                <div class="player-seek-wrap">
+                                    <input type="range" class="player-seek" id="seekBar" min="0" max="100" value="0" step="0.1" />
+                                    <div class="player-time">
+                                        <span id="currentTime">0:00</span>
+                                        <span id="totalTime">0:00</span>
+                                    </div>
+                                </div>
+                                <button class="player-vol" id="volBtn" title="Mute"><i class="fas fa-volume-up"></i></button>
+                            </div>
+                            <div class="waveform-wrap" id="waveformWrap">
+                                <canvas id="waveformCanvas"></canvas>
+                            </div>
+                            ${!isOwned ? `
+                            <div class="preview-overlay" id="previewOverlay">
+                                <div class="preview-mask" id="previewMask">
+                                    <span class="preview-label"><i class="fas fa-lock"></i> Preview ended — 30s limit</span>
+                                    <button class="btn-unlock" id="previewUnlockBtn"><i class="fas fa-lock-open"></i> Unlock full audio</button>
+                                </div>
+                            </div>` : ''}
+                        </div>
                     </div>
                 ` : ''}
 
                     <div class="panel">
                         <h2><i class="fas fa-feather-alt"></i> Full Lyrics</h2>
+                        ${!isOwned ? `
+                        <div class="lyrics-blur-wrap" id="lyricsBlurWrap">
+                            <div class="full-lyrics readable" id="lyricsReadable">${escapeHtml(data.lyrics || 'No lyrics available.').substring(0, 180)}</div>
+                            <div class="full-lyrics blurred" id="lyricsBlurred">${escapeHtml(data.lyrics || 'No lyrics available.')}</div>
+                            <div class="unlock-card show" id="unlockCard">
+                                <div class="unlock-price">${priceDisplay}</div>
+                                <button class="btn-unlock-lyrics" id="unlockLyricsBtn"><i class="fas fa-lock-open"></i> Unlock Full Lyrics</button>
+                            </div>
+                        </div>
+                        ` : `
                         <div class="full-lyrics">${escapeHtml(data.lyrics || 'No lyrics available.')}</div>
+                        `}
                     </div>
 
                     ${data.description ? `
@@ -1080,8 +1331,13 @@
                         <div>
                             <div class="who">${escapeHtml(songwriter)}</div>
                             <div class="role">Verified songwriter on Volant Lyrics</div>
+                            ${data.submittedBy ? `<a class="writer-page-link" href="artist.html?uid=${encodeURIComponent(data.submittedBy)}"><i class="fas fa-store"></i> View ${escapeHtml(songwriter)}'s catalog</a>` : ''}
                         </div>
                         ${songwriterProfile && songwriterProfile.lyricsBio ? `<div class="sw-bio">${escapeHtml(songwriterProfile.lyricsBio)}</div>` : ''}
+                        ${data.submittedBy ? `
+                        <a class="btn-commission" href="artist.html?uid=${encodeURIComponent(data.submittedBy)}&request=1">
+                            <i class="fas fa-pen-nib"></i> Request custom lyrics from ${escapeHtml(songwriter)}
+                        </a>` : ''}
                     </div>
 
                     <div class="trust-row">
@@ -1092,6 +1348,184 @@
                     </div>
                 </div>
             `;
+
+            const sampleAudio = document.getElementById('sampleAudio');
+            if (sampleAudio) {
+                const playPauseBtn = document.getElementById('playPauseBtn');
+                const seekBar = document.getElementById('seekBar');
+                const currentTimeEl = document.getElementById('currentTime');
+                const totalTimeEl = document.getElementById('totalTime');
+                const volBtn = document.getElementById('volBtn');
+                const previewMask = document.getElementById('previewMask');
+                const previewUnlockBtn = document.getElementById('previewUnlockBtn');
+                const canvas = document.getElementById('waveformCanvas');
+                const ctx = canvas ? canvas.getContext('2d') : null;
+                const PREVIEW_SEC = 30;
+                let audioCtx = null;
+                let analyser = null;
+                let sourceNode = null;
+                let animId = null;
+                let muted = false;
+                let playStarted = false;
+
+                function fmtTime(s) {
+                    if (!isFinite(s)) return '0:00';
+                    const m = Math.floor(s / 60);
+                    const sec = Math.floor(s % 60);
+                    return m + ':' + (sec < 10 ? '0' : '') + sec;
+                }
+
+                if (playPauseBtn) {
+                    playPauseBtn.addEventListener('click', function() {
+                        if (sampleAudio.paused) {
+                            sampleAudio.play().catch(() => {});
+                        } else {
+                            sampleAudio.pause();
+                        }
+                    });
+                }
+
+                sampleAudio.addEventListener('play', function() {
+                    if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    if (!playStarted) { playStarted = true; maybeRecordPlay(docId); }
+                    startWaveform();
+                });
+                sampleAudio.addEventListener('pause', function() {
+                    if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    stopWaveform();
+                });
+
+                sampleAudio.addEventListener('timeupdate', function() {
+                    const cur = sampleAudio.currentTime;
+                    const dur = sampleAudio.duration;
+                    if (currentTimeEl) currentTimeEl.textContent = fmtTime(cur);
+                    if (dur && seekBar) seekBar.value = (cur / dur) * 100;
+                    if (!isOwned && dur && cur >= PREVIEW_SEC) {
+                        sampleAudio.pause();
+                        sampleAudio.currentTime = 0;
+                        if (seekBar) seekBar.value = 0;
+                        if (previewMask) previewMask.classList.add('show');
+                    }
+                });
+
+                sampleAudio.addEventListener('loadedmetadata', function() {
+                    if (totalTimeEl) totalTimeEl.textContent = fmtTime(sampleAudio.duration);
+                });
+
+                if (seekBar) {
+                    seekBar.addEventListener('input', function() {
+                        const dur = sampleAudio.duration;
+                        if (!dur) return;
+                        let target = (seekBar.value / 100) * dur;
+                        if (!isOwned && target > PREVIEW_SEC) target = PREVIEW_SEC;
+                        sampleAudio.currentTime = target;
+                    });
+                }
+
+                if (volBtn) {
+                    volBtn.addEventListener('click', function() {
+                        muted = !muted;
+                        sampleAudio.muted = muted;
+                        volBtn.innerHTML = muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+                    });
+                }
+
+                if (previewUnlockBtn) {
+                    previewUnlockBtn.addEventListener('click', function() {
+                        const unlockItem = {
+                            id: docId,
+                            title: data.title || 'Untitled',
+                            artist: data.artist || 'Anonymous',
+                            price: data.price || 0,
+                            currency: data.priceCurrency || 'GHS'
+                        };
+                        addToCart(unlockItem);
+                        window.location.href = 'index.html?open=cart';
+                    });
+                }
+
+                const unlockLyricsBtn = document.getElementById('unlockLyricsBtn');
+                if (unlockLyricsBtn) {
+                    unlockLyricsBtn.addEventListener('click', function() {
+                        const unlockItem = {
+                            id: docId,
+                            title: data.title || 'Untitled',
+                            artist: data.artist || 'Anonymous',
+                            price: data.price || 0,
+                            currency: data.priceCurrency || 'GHS'
+                        };
+                        addToCart(unlockItem);
+                        window.location.href = 'index.html?open=cart';
+                    });
+                }
+
+                function initAudioContext() {
+                    if (audioCtx) return true;
+                    try {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioCtx.createAnalyser();
+                        analyser.fftSize = 128;
+                        sourceNode = audioCtx.createMediaElementSource(sampleAudio);
+                        sourceNode.connect(analyser);
+                        analyser.connect(audioCtx.destination);
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                }
+
+                function startWaveform() {
+                    if (!canvas || !ctx) return;
+                    const ok = initAudioContext();
+                    if (!ok) { drawStaticWaveform(); return; }
+                    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+                    const bufLen = analyser.frequencyBinCount;
+                    const dataArr = new Uint8Array(bufLen);
+                    function draw() {
+                        animId = requestAnimationFrame(draw);
+                        analyser.getByteFrequencyData(dataArr);
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        const barW = canvas.width / 64;
+                        for (let i = 0; i < 64; i++) {
+                            const val = dataArr[i] || 0;
+                            const h = (val / 255) * canvas.height * 0.9;
+                            const x = i * barW;
+                            const y = canvas.height - h;
+                            ctx.fillStyle = i % 2 === 0 ? '#4b2aad' : '#7a5cff';
+                            ctx.fillRect(x + 1, y, barW - 2, h);
+                        }
+                    }
+                    draw();
+                }
+
+                function stopWaveform() {
+                    if (animId) cancelAnimationFrame(animId);
+                    animId = null;
+                }
+
+                function drawStaticWaveform() {
+                    if (!canvas || !ctx) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const barW = canvas.width / 64;
+                    for (let i = 0; i < 64; i++) {
+                        const h = Math.random() * canvas.height * 0.3 + 4;
+                        const x = i * barW;
+                        const y = canvas.height - h;
+                        ctx.fillStyle = i % 2 === 0 ? 'rgba(75,42,173,0.25)' : 'rgba(122,92,255,0.25)';
+                        ctx.fillRect(x + 1, y, barW - 2, h);
+                    }
+                }
+
+                function sizeCanvas() {
+                    if (!canvas) return;
+                    const wrap = canvas.parentElement;
+                    canvas.width = wrap ? wrap.clientWidth : 400;
+                    canvas.height = 60;
+                    drawStaticWaveform();
+                }
+                sizeCanvas();
+                window.addEventListener('resize', sizeCanvas);
+            }
 
             if (!isOwned) {
                 const addBtn = document.getElementById('addCartBtn');
@@ -1277,6 +1711,18 @@
             }
             loadLyric();
         });
+
+        // ===== PLAY TRACKING =====
+        function maybeRecordPlay(docId) {
+            if (!docId) return;
+            const k = 'lyrics_play_' + docId;
+            const last = Number(sessionStorage.getItem(k) || 0);
+            if (Date.now() - last < 60000) return;
+            sessionStorage.setItem(k, String(Date.now()));
+            db.collection('volant-lyrics').doc(docId).update({
+                plays: firebase.firestore.FieldValue.increment(1)
+            }).catch(err => console.warn('Could not log play:', err));
+        }
     </script>
 
 </body>

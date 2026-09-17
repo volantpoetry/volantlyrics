@@ -25,11 +25,27 @@
         window.onunhandledrejection = function() { return true; };
     })();
 </script>
-    <meta name="description" content="Browse an original lyricist's catalog on Volant Lyrics. See their songs, plays and reviews, and request custom lyrics." />
+<meta name="description" content="Browse an original lyricist's catalog on Volant Lyrics. See their songs, plays and reviews, and request custom lyrics." />
+    <link rel="canonical" href="https://volantlyrics.vercel.app/artist.html" />
     <link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png" />
     <link rel="shortcut icon" href="https://volantpoetry.vercel.app/images/lyrics-favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://volantpoetry.vercel.app/images/apple-touch-icon.png" />
 
+    <!-- Social -->
+    <meta property="og:title" content="Volant Lyrics — Songwriter" />
+    <meta property="og:description" content="Browse an original lyricist's catalog on Volant Lyrics. See their songs, plays and reviews." />
+    <meta property="og:image" content="https://volantpoetry.vercel.app/images/logokk.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://volantlyrics.vercel.app/artist.html" />
+    <meta property="og:site_name" content="Volant Lyrics" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Volant Lyrics — Songwriter" />
+    <meta name="twitter:description" content="Browse an original lyricist's catalog on Volant Lyrics." />
+    <meta name="twitter:image" content="https://volantpoetry.vercel.app/images/logokk.png" />
+
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
@@ -485,7 +501,7 @@
             </div>
             <div class="volant-footer-col">
                 <h4>Platforms</h4>
-                <a href="https://volantpoetry.vercel.app/volant_foundry/">Volant Foundry</a>
+                <a href="https://volantfoundry.vercel.app/">Volant Foundry</a>
                 <a href="https://volantpoetry.vercel.app/">Volant Poetry</a>
                 <a href="https://volantpoetry.vercel.app/store/">Volant Reads</a>
                 <a href="https://volantcodes.vercel.app/">Volant Codes</a>
@@ -568,6 +584,22 @@
             return String(v === undefined || v === null ? '' : v)
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        function updateMeta(title, description, image) {
+            const set = (sel, val, attr) => {
+                const el = document.querySelector(sel);
+                if (el) el.setAttribute(attr, val);
+            };
+            document.title = title || document.title;
+            set('meta[name="description"]', description, 'content');
+            set('meta[property="og:title"]', title, 'content');
+            set('meta[property="og:description"]', description, 'content');
+            set('meta[name="twitter:title"]', title, 'content');
+            set('meta[name="twitter:description"]', description, 'content');
+            if (image) {
+                set('meta[property="og:image"]', image, 'content');
+                set('meta[name="twitter:image"]', image, 'content');
+            }
         }
         function formatPrice(price, currency) {
             const n = Number(price) || 0;
@@ -711,6 +743,13 @@
             state.style.display = 'none';
             document.title = artistName + ' — Volant Lyrics';
             const photo = (artistProfile && (artistProfile.photoURL || artistProfile.cachedAvatarURL)) || '';
+            updateMeta(
+                artistName + ' — Volant Lyrics',
+                (artistProfile && (artistProfile.lyricsBio || artistProfile.bio)) ?
+                    String(artistProfile.lyricsBio || artistProfile.bio).slice(0, 150) :
+                    'Browse ' + artistName + '\'s original lyrics catalog on Volant Lyrics.',
+                photo
+            );
             const bio = (artistProfile && artistProfile.lyricsBio) || (artistProfile && artistProfile.bio) || '';
             const country = (artistProfile && artistProfile.country) || '';
             const totals = catalog.reduce((acc, l) => {

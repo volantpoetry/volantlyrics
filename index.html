@@ -31,13 +31,20 @@
     <link rel="shortcut icon" href="https://volantpoetry.vercel.app/images/lyrics-favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="https://volantpoetry.vercel.app/images/apple-touch-icon.png" />
     <link rel="manifest" href="./manifest.json" />
+    <link rel="canonical" href="https://volantlyrics.vercel.app/" />
     
     <!-- Social -->
     <meta property="og:title" content="Volant Lyrics — Marketplace" />
     <meta property="og:description" content="Discover and purchase original song lyrics from talented songwriters. Premium lyrics marketplace." />
     <meta property="og:image" content="https://volantpoetry.vercel.app/images/logokk.png" />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:url" content="https://volantlyrics.vercel.app/" />
+    <meta property="og:site_name" content="Volant Lyrics" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Volant Lyrics — Marketplace" />
+    <meta name="twitter:description" content="Discover and purchase original song lyrics from talented songwriters." />
+    <meta name="twitter:image" content="https://volantpoetry.vercel.app/images/logokk.png" />
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -975,22 +982,48 @@
         /* ===== LOADING ===== */
         .loading-skeleton {
             grid-column: 1 / -1;
-            text-align: center;
-            padding: 60px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 22px;
+            width: 100%;
         }
         
-        .loading-skeleton .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 3px solid #f0edff;
-            border-top-color: #4b2aad;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        .skeleton-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid #f0ebff;
+            border-radius: 14px;
+            background: #fff;
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .skeleton-card .sk-cover {
+            border-radius: 10px;
+            height: 168px;
+        }
+        .skeleton-card .sk-line { border-radius: 8px; height: 12px; }
+        .skeleton-card .sk-line.w80 { width: 80%; }
+        .skeleton-card .sk-line.w70 { width: 70%; }
+        .skeleton-card .sk-line.w50 { width: 50%; }
+        .skeleton-card .sk-line.w40 { width: 40%; }
+        .skeleton-card .sk-line.w30 { width: 30%; }
+        .skeleton-card .sk-foot { display: flex; justify-content: space-between; gap: 10px; }
+        .collab-skeleton {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            width: 100%;
+        }
+        .collab-skeleton .skeleton-card { border-color: #ede8ff; }
+        .sk-shimmer {
+            background: linear-gradient(90deg, #f5f2ff 25%, #ece7ff 37%, #f5f2ff 63%);
+            background-size: 400% 100%;
+            animation: sk-shimmer 1.4s ease infinite;
+        }
+        @keyframes sk-shimmer {
+            0% { background-position: 100% 50%; }
+            100% { background-position: 0 50%; }
         }
         
         .loading-skeleton p {
@@ -2324,6 +2357,215 @@
         }
         .collab-form .btn-post:hover { background: #3a1f8a; transform: translateY(-1px); }
 
+        .collab-card .collab-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .collab-card .btn-respond {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 24px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .collab-card .btn-respond:hover { background: #3a1f8a; transform: translateY(-1px); }
+        .collab-card .btn-close-req {
+            background: #fff;
+            color: #b00020;
+            border: 1px solid #f1c9c9;
+            padding: 7px 14px;
+            border-radius: 24px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .collab-card .btn-close-req:hover { background: #b00020; color: #fff; }
+        .collab-card .collab-owner-tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #4b2aad;
+            background: #ede8ff;
+            border-radius: 12px;
+            padding: 3px 10px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .collab-card .collab-response-count {
+            font-size: 0.72rem;
+            color: #b0a89a;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-toggle-thread {
+            background: #fff;
+            color: #4b2aad;
+            border: 1px solid #d8ccf7;
+            padding: 7px 14px;
+            border-radius: 24px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .btn-toggle-thread:hover { background: #ede8ff; }
+        .collab-unread-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #b00020;
+            background: #fdecec;
+            border-radius: 12px;
+            padding: 3px 10px;
+        }
+        .collab-unread-badge i { font-size: 0.5rem; }
+        .collab-thread {
+            margin-top: 12px;
+            border-top: 1px dashed #ede8ff;
+            padding-top: 10px;
+        }
+        .collab-thread-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .collab-response-item {
+            background: #faf9fe;
+            border: 1px solid #f0ebff;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .collab-response-item .ri-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .collab-response-item .ri-head strong { font-size: 0.82rem; color: #1a1a2e; }
+        .collab-response-item .ri-head span { font-size: 0.7rem; color: #b0a89a; }
+        .collab-response-item .ri-msg { font-size: 0.85rem; color: #6a5f55; margin-top: 4px; line-height: 1.5; }
+        .collab-inline-reply {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: center;
+        }
+        .collab-inline-reply input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #ede8ff;
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+        }
+        .collab-inline-reply input:focus { outline: none; border-color: #4b2aad; }
+
+        .collab-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(26,26,46,0.6);
+            z-index: 9997;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .collab-backdrop.show { opacity: 1; pointer-events: auto; }
+        .collab-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -46%) scale(0.97);
+            width: min(520px, 92vw);
+            background: #fff;
+            border-radius: 18px;
+            z-index: 9998;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+        }
+        .collab-modal.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+        .collab-modal .cm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #ede8ff;
+            background: #faf9fe;
+        }
+        .collab-modal .cm-header h3 { font-family: 'Playfair Display', serif; font-size: 1rem; color: #1a1a2e; margin: 0; }
+        .collab-modal .cm-close {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            color: #b0a89a;
+            cursor: pointer;
+        }
+        .collab-modal .cm-close:hover { color: #1a1a2e; }
+        .collab-modal .cm-body { padding: 1.25rem; }
+        .collab-modal .cm-target {
+            background: #faf9fe;
+            border: 1px solid #ede8ff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+        }
+        .collab-modal .cm-target .t-type { font-size: 0.72rem; font-weight: 700; color: #4b2aad; text-transform: uppercase; letter-spacing: 0.5px; }
+        .collab-modal .cm-target .t-name { font-weight: 700; color: #1a1a2e; margin-top: 2px; }
+        .collab-modal .cm-target .t-msg { font-size: 0.85rem; color: #6a5f55; margin-top: 4px; line-height: 1.5; }
+        .collab-modal textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ede8ff;
+            border-radius: 10px;
+            padding: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 90px;
+        }
+        .collab-modal textarea:focus { outline: none; border-color: #4b2aad; }
+        .collab-modal .cm-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 0 1.25rem 1.25rem; }
+        .collab-modal .cm-btn {
+            background: #4b2aad;
+            color: #fff;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .collab-modal .cm-btn:hover { background: #3a1f8a; }
+        .collab-modal .cm-btn.cm-btn-ghost { background: #fff; color: #6a5f55; border: 1px solid #ede8ff; }
+        .collab-modal .cm-btn.cm-btn-ghost:hover { color: #1a1a2e; }
+
         @media (max-width: 768px) {
             .collab-grid { grid-template-columns: 1fr; }
         }
@@ -2549,8 +2791,12 @@
     </div>
     <div class="container" id="lyricsContainer">
         <div class="loading-skeleton" id="loadingSkeleton">
-            <div class="spinner"></div>
-            <p>Loading lyrics</p>
+            <div class="skeleton-card"><div class="sk-cover sk-shimmer"></div><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w40 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
+            <div class="skeleton-card"><div class="sk-cover sk-shimmer"></div><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w40 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
+            <div class="skeleton-card"><div class="sk-cover sk-shimmer"></div><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w40 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
+            <div class="skeleton-card"><div class="sk-cover sk-shimmer"></div><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w40 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
+            <div class="skeleton-card"><div class="sk-cover sk-shimmer"></div><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w40 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
+            <div class="skeleton-card"><div class="sk-cover sk-shimmer"></div><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w40 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
         </div>
     </div>
 </section>
@@ -2580,10 +2826,31 @@
             </div>
         </div>
         <div class="collab-grid" id="collabGrid">
-            <div class="collab-empty"><i class="fas fa-users"></i><p>Loading collab requests...</p></div>
+            <div class="collab-skeleton" id="collabLoading">
+                <div class="skeleton-card"><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w80 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
+                <div class="skeleton-card"><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w80 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
+                <div class="skeleton-card"><div class="sk-line w70 sk-shimmer"></div><div class="sk-line w50 sk-shimmer"></div><div class="sk-line w80 sk-shimmer"></div><div class="sk-foot"><div class="sk-line w40 sk-shimmer"></div><div class="sk-line w30 sk-shimmer"></div></div></div>
+            </div>
         </div>
     </div>
 </section>
+
+<!-- ===== COLLAB RESPONSE MODAL ===== -->
+<div class="collab-backdrop" id="collabBackdrop"></div>
+<div class="collab-modal" id="collabModal" role="dialog" aria-modal="true">
+    <div class="cm-header">
+        <h3><i class="fas fa-handshake"></i> Respond to Request</h3>
+        <button class="cm-close" id="collabModalClose" aria-label="Close collab response"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="cm-body">
+        <div class="cm-target" id="collabModalTarget"></div>
+        <textarea id="collabRespondMsg" placeholder="Introduce yourself and explain how you can help..."></textarea>
+    </div>
+    <div class="cm-footer">
+        <button class="cm-btn cm-btn-ghost" id="collabModalCancel">Cancel</button>
+        <button class="cm-btn" id="collabModalSend"><i class="fas fa-paper-plane"></i> Send Response</button>
+    </div>
+</div>
 
 <!-- ===== TRUST STRIP ===== -->
 <section class="trust-strip">
@@ -2703,7 +2970,7 @@
 
         <div class="volant-footer-col">
             <h4>Platforms</h4>
-            <a href="https://volantpoetry.vercel.app/volant_foundry/">Volant Foundry</a>
+            <a href="https://volantfoundry.vercel.app/">Volant Foundry</a>
             <a href="https://volantpoetry.vercel.app/">Volant Poetry</a>
             <a href="https://volantpoetry.vercel.app/store/">Volant Reads</a>
             <a href="https://volantcodes.vercel.app/">Volant Codes</a>
@@ -2721,7 +2988,7 @@
 
     <div id="volant-footer-bottom">
         <p style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-bottom:6px;">
-            <a href="https://volantpoetry.vercel.app/volant_foundry/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">🏛 Volant Foundry</a>
+            <a href="https://volantfoundry.vercel.app/" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">🏛 Volant Foundry</a>
             <a href="https://volantpoetry.vercel.app/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">📖 Volant Poetry</a>
             <a href="https://volantpoetry.vercel.app/store/index.html" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">📚 Volant Reads</a>
             <a href="https://volantcodes.vercel.app/" style="color:#B8860B;text-decoration:none;font-size:0.8rem;font-weight:600;">💻 Volant Codes</a>
@@ -2962,6 +3229,7 @@
                     genre: genreVal,
                     genres: genres,
                     lyrics: safeStr(data.lyrics) || 'No lyrics available',
+                    wordCount: (safeStr(data.lyrics).trim().match(/\S+/g) || []).length,
                     views: safeNum(data.views),
                     plays: safeNum(data.plays),
                     saleCount: safeNum(data.saleCount),
@@ -3069,6 +3337,7 @@
                     <div class="card-footer">
                         <div class="views">
                             <i class="fas fa-eye"></i> ${(lyric.views || 0).toLocaleString()}
+                            <span class="plays-count" title="Word count"><i class="fas fa-align-left"></i> ${(lyric.wordCount || 0).toLocaleString()} words</span>
                             ${(lyric.plays || 0) > 0 ? `<span class="plays-count" title="Audio plays"><i class="fas fa-play"></i> ${(lyric.plays || 0).toLocaleString()}</span>` : ''}
                         </div>
                         <div style="display:flex;gap:6px;align-items:center;">
@@ -3286,6 +3555,7 @@
                 <div class="qv-artist">
                     <i class="fas fa-user"></i> ${escapeHtml(data.artist || 'Anonymous')}
                     <span class="genre-tag">${escapeHtml(genreDisplay)}</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-align-left"></i> ${((data.lyrics || '').trim().match(/\S+/g) || []).length.toLocaleString()} words</span>
                     <span style="display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>${(data.plays || 0) > 0 ? `<span style="display:inline-flex;align-items:center;gap:5px;"><i class="fas fa-play"></i> ${(data.plays || 0).toLocaleString()} plays</span>` : ''}
                 </div>
                 ${data.audioSampleUrl ? `<div class="qv-audio"><i class="fas fa-headphones"></i> Audio sample available — play it from the detail page</div>` : ''}
@@ -4275,6 +4545,8 @@
     let lyrCurrentUid = null;
     let lyrNotifUnsubs = [];
     let lyrNotifUnread = new Map();
+    let lyrNotifBodyCache = '';
+    let lyrNotifLoadGen = 0;
 
     function lyrFmtTime(ts) {
         if (!ts) return '';
@@ -4322,6 +4594,7 @@
         if (d.type === 'commission_accepted') return short(d.message || 'Your commission request was accepted');
         if (d.type === 'commission_declined') return short(d.message || 'Your commission request was declined');
         if (d.type === 'collab_request') return name + ' sent a collab request';
+        if (d.type === 'collab_response') return name + ' responded to your collab request: ' + short(d.message || d.body);
         if (d.type === 'custom_lyrics') return short(d.message || 'New custom lyrics order');
         if (d.type === 'play') return short(d.message || name + ' played your lyrics');
         if (d.type === 'purchase') return short(d.message || d.title || 'Your lyrics sold');
@@ -4339,9 +4612,14 @@
     }
 
     function lyrLoadNotifList(uid) {
+        const gen = ++lyrNotifLoadGen;
         const list = document.getElementById('notifList');
         if (!list) return;
-        list.innerHTML = '<div class="notif-empty">Loading…</div>';
+        if (lyrNotifBodyCache) {
+            list.innerHTML = lyrNotifBodyCache;
+        } else {
+            list.innerHTML = '<div class="notif-empty">Loading…</div>';
+        }
         const tsOf = (t) => {
             if (!t) return 0;
             if (t && typeof t.toMillis === 'function') return t.toMillis();
@@ -4353,6 +4631,7 @@
             db.collection('notifications').where('userId', '==', uid).limit(100).get(),
             db.collection('notifications').where('forUser', '==', uid).limit(100).get()
         ]).then(([s1, s2]) => {
+            if (gen !== lyrNotifLoadGen) return;
             const items = [];
             const seen = new Set();
             [s1, s2].forEach(sn => sn.forEach(ds => {
@@ -4360,7 +4639,8 @@
             }));
             items.sort((a, b) => tsOf(b.data().timestamp || b.data().createdAt) - tsOf(a.data().timestamp || a.data().createdAt));
             if (!items.length) {
-                list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+                lyrNotifBodyCache = '<div class="notif-empty">No notifications yet</div>';
+                list.innerHTML = lyrNotifBodyCache;
                 return;
             }
             let html = '';
@@ -4377,9 +4657,12 @@
                     + '<span class="notif-time">' + lyrFmtTime(d.timestamp || d.createdAt) + '</span>'
                     + '</div>';
             });
+            lyrNotifBodyCache = html;
             list.innerHTML = html;
         }).catch(() => {
-            list.innerHTML = '<div class="notif-empty">Could not load notifications.</div>';
+            if (gen !== lyrNotifLoadGen) return;
+            lyrNotifBodyCache = '<div class="notif-empty">Could not load notifications.</div>';
+            list.innerHTML = lyrNotifBodyCache;
         });
     }
 
@@ -4459,6 +4742,7 @@
         attach(db.collection('notifications').where('userId', '==', user.uid));
         attach(db.collection('notifications').where('forUser', '==', user.uid));
         lyrRenderBadge();
+        lyrLoadNotifList(user.uid);
     }
 
     const lyrBellEl = document.getElementById('notifBell');
@@ -4561,9 +4845,14 @@
     };
 
     // ===== COLLAB BOARD =====
+    let collabRespondingId = null;
+    let collabRespondingData = null;
+
     async function loadCollabs() {
         const grid = document.getElementById('collabGrid');
         if (!grid) return;
+        const skel = document.getElementById('collabLoading');
+        if (skel) skel.style.display = 'none';
         try {
             const snap = await db.collection('collabs').where('status', '==', 'open').limit(50).get();
             if (snap.empty) {
@@ -4578,20 +4867,153 @@
                 return tb - ta;
             });
             grid.innerHTML = '';
+            const respData = {};
+            const respPromises = docs.map(d => db.collection('collabs').doc(d.id).collection('responses').orderBy('createdAt', 'asc').limit(10).get()
+                .then(s => {
+                    const items = [];
+                    s.forEach(ds => items.push({ id: ds.id, ...ds.data() }));
+                    respData[d.id] = items;
+                })
+                .catch(() => { respData[d.id] = []; }));
+            await Promise.all(respPromises);
+            const uid = currentUser ? currentUser.uid : null;
             docs.forEach(d => {
                 const created = t => t && t.toDate ? t.toDate() : (t ? new Date(t) : new Date());
                 const timeStr = created(d.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const isOwner = uid && d.fromUid === uid;
+                const canRespond = !isOwner;
+                const resps = respData[d.id] || [];
+                const count = resps.length;
+                const seen = Number(d.seenResponseCount) || 0;
+                const unread = isOwner && count > seen;
+                const threadHtml = resps.length
+                    ? resps.map(r => {
+                        const rc = created(r.createdAt);
+                        const rTime = rc.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        return `<div class="collab-response-item"><div class="ri-head"><strong>${escapeHtml(r.fromName || 'Anonymous')}</strong><span>${rTime}</span></div><div class="ri-msg">${escapeHtml(r.message || '')}</div></div>`;
+                    }).join('')
+                    : '<div class="collab-empty" style="padding:12px;">No responses yet. Be the first to reply.</div>';
+                const threadBlock = `
+                    <div class="collab-thread" id="collabThread_${d.id}" ${(unread ? '' : 'style="display:none;"')}>
+                        <div class="collab-thread-list">${threadHtml}</div>
+                        ${uid ? (canRespond ? `
+                        <div class="collab-inline-reply">
+                            <input type="text" id="inlineReply_${d.id}" placeholder="Write a quick reply…" maxlength="400" />
+                            <button class="btn-respond" onclick="sendInlineReply('${d.id}')"><i class="fas fa-paper-plane"></i> Reply</button>
+                        </div>` : '') : ''}
+                    </div>`;
+                const toggleBtn = count > 0 ? `
+                    <button class="btn-toggle-thread" onclick="toggleCollabThread('${d.id}')">
+                        <i class="fas fa-chevron-down"></i> ${count} response${count === 1 ? '' : 's'}
+                    </button>` : '';
+                const unreadBadge = unread ? `<span class="collab-unread-badge"><i class="fas fa-circle"></i> New responses</span>` : '';
                 grid.innerHTML += `
                     <div class="collab-card">
                         <span class="collab-type"><i class="fas fa-handshake"></i> ${escapeHtml(d.type || 'Lyrics')}</span>
                         <div class="collab-name">${escapeHtml(d.fromName || 'Anonymous')}</div>
                         <div class="collab-msg">${escapeHtml(d.message || '')}</div>
                         <div class="collab-time"><i class="fas fa-clock"></i> ${timeStr}</div>
+                        ${isOwner ? '<span class="collab-owner-tag"><i class="fas fa-user-check"></i> Your request</span>' : ''}
+                        ${unreadBadge}
+                        <div class="collab-actions">
+                            ${canRespond ? `<button class="btn-respond" onclick="openCollabRespond('${d.id}')"><i class="fas fa-comment-dots"></i> Respond</button>` : ''}
+                            ${isOwner ? `<button class="btn-close-req" onclick="closeCollabRequest('${d.id}')"><i class="fas fa-check"></i> Close Request</button>` : ''}
+                            ${toggleBtn}
+                        </div>
+                        ${threadBlock}
                     </div>
                 `;
+                if (unread) {
+                    const openThread = document.getElementById('collabThread_' + d.id);
+                    if (openThread) openThread.classList.add('open');
+                    markCollabSeen(d.id, count);
+                }
             });
         } catch (err) {
             grid.innerHTML = '<div class="collab-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load collab requests.</p></div>';
+        }
+    }
+
+    function toggleCollabThread(collabId) {
+        const el = document.getElementById('collabThread_' + collabId);
+        if (!el) return;
+        el.classList.toggle('open');
+        el.style.display = el.classList.contains('open') ? 'block' : 'none';
+    }
+
+    async function markCollabSeen(collabId, count) {
+        if (!currentUser) return;
+        try {
+            const docRef = db.collection('collabs').doc(collabId);
+            const snap = await docRef.get();
+            if (!snap.exists) return;
+            const d = snap.data();
+            if (d.fromUid !== currentUser.uid) return;
+            if ((d.seenResponseCount || 0) >= count) return;
+            await docRef.update({ seenResponseCount: count });
+        } catch (e) { console.warn('Could not update seen count:', e); }
+    }
+
+    async function sendInlineReply(collabId) {
+        const input = document.getElementById('inlineReply_' + collabId);
+        if (!input) return;
+        const message = (input.value || '').trim();
+        if (!message) { showToast('Please write a message.', 'error'); return; }
+        await submitCollabResponse(collabId, message);
+        input.value = '';
+    }
+
+    async function submitCollabResponse(collabId, message) {
+        if (!collabId || !message) return false;
+        const uid = currentUser ? currentUser.uid : null;
+        if (!uid) {
+            window.location.href = 'universal-login.html?platform=lyrics&redirect=index.html';
+            return false;
+        }
+        try {
+            let parent = null;
+            try {
+                const pSnap = await db.collection('collabs').doc(collabId).get();
+                if (!pSnap.exists) { showToast('Request not found.', 'error'); return false; }
+                parent = pSnap.data();
+                if (parent.status !== 'open') { showToast('This request is already closed.', 'error'); loadCollabs(); return false; }
+            } catch (e) { showToast('Could not load request.', 'error'); return false; }
+            let usernameHint = null;
+            try {
+                const uSnap = await db.collection('users').doc(uid).get();
+                const uData = uSnap.data();
+                if (uData?.username) usernameHint = uData.username;
+            } catch (e) {}
+            const fromName = usernameHint || currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous';
+            await db.collection('collabs').doc(collabId).collection('responses').add({
+                fromUid: uid,
+                fromName: fromName,
+                message: message,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            if (parent && parent.fromUid) {
+                try {
+                    await db.collection('notifications').add({
+                        userId: parent.fromUid,
+                        type: 'collab_response',
+                        fromUserName: fromName,
+                        collabId: collabId,
+                        message: message,
+                        body: fromName + ' responded to your collab request: ' + message,
+                        platform: 'lyrics',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        read: false
+                    });
+                } catch (e) {
+                    console.warn('Collab response notification failed:', e);
+                }
+            }
+            showToast('Response sent! The requester has been notified.', 'success');
+            loadCollabs();
+            return true;
+        } catch (err) {
+            showToast('Failed to send. Please try again.', 'error');
+            return false;
         }
     }
 
@@ -4630,6 +5052,76 @@
             showToast('Failed to post. Please try again.', 'error');
         }
     }
+
+    function openCollabRespond(collabId) {
+        if (!currentUser) {
+            window.location.href = 'universal-login.html?platform=lyrics&redirect=index.html';
+            return;
+        }
+        db.collection('collabs').doc(collabId).get().then(snap => {
+            if (!snap.exists) { showToast('Request not found.', 'error'); return; }
+            const d = snap.data();
+            if (d.status !== 'open') { showToast('This request is already closed.', 'error'); loadCollabs(); return; }
+            collabRespondingId = collabId;
+            collabRespondingData = d;
+            const target = document.getElementById('collabModalTarget');
+            target.innerHTML =
+                `<div class="t-type"><i class="fas fa-handshake"></i> ${escapeHtml(d.type || 'Lyrics')}</div>` +
+                `<div class="t-name">${escapeHtml(d.fromName || 'Anonymous')}</div>` +
+                `<div class="t-msg">${escapeHtml(d.message || '')}</div>`;
+            document.getElementById('collabRespondMsg').value = '';
+            document.getElementById('collabModal').classList.add('open');
+            document.getElementById('collabBackdrop').classList.add('show');
+            setTimeout(() => document.getElementById('collabRespondMsg').focus(), 150);
+        }).catch(() => showToast('Could not load request.', 'error'));
+    }
+
+    function closeCollabModal() {
+        document.getElementById('collabModal').classList.remove('open');
+        document.getElementById('collabBackdrop').classList.remove('show');
+        collabRespondingId = null;
+        collabRespondingData = null;
+    }
+
+    async function sendCollabResponse() {
+        if (!collabRespondingId || !collabRespondingData) return;
+        const msgEl = document.getElementById('collabRespondMsg');
+        const message = (msgEl.value || '').trim();
+        if (!message) { showToast('Please write a message.', 'error'); return; }
+        const sendBtn = document.getElementById('collabModalSend');
+        sendBtn.disabled = true;
+        try {
+            const ok = await submitCollabResponse(collabRespondingId, message);
+            if (ok) { closeCollabModal(); msgEl.value = ''; }
+        } catch (err) {
+            showToast('Failed to send. Please try again.', 'error');
+        } finally {
+            sendBtn.disabled = false;
+        }
+    }
+
+    async function closeCollabRequest(collabId) {
+        if (!currentUser) { window.location.href = 'universal-login.html?platform=lyrics&redirect=index.html'; return; }
+        if (!confirm('Close this collab request? It will be removed from the board.')) return;
+        try {
+            await db.collection('collabs').doc(collabId).update({ status: 'closed' });
+            showToast('Request closed.', 'success');
+            loadCollabs();
+        } catch (err) {
+            showToast('Could not close the request.', 'error');
+        }
+    }
+
+    function initCollabModal() {
+        const modalEl = document.getElementById('collabModal');
+        const backdrop = document.getElementById('collabBackdrop');
+        if (!modalEl || !backdrop) return;
+        document.getElementById('collabModalClose').addEventListener('click', closeCollabModal);
+        document.getElementById('collabModalCancel').addEventListener('click', closeCollabModal);
+        document.getElementById('collabModalSend').addEventListener('click', sendCollabResponse);
+        backdrop.addEventListener('click', closeCollabModal);
+    }
+    initCollabModal();
 
     loadCollabs();
 

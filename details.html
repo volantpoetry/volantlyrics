@@ -26,10 +26,24 @@
     })();
 </script>
     <meta name="description" content="View full details of an original lyric on Volant Lyrics. See the full lyric, licensing and songwriter information." />
+    <link rel="canonical" href="https://volantlyrics.vercel.app/details.html" />
     <link rel="icon" type="image/png" sizes="32x32" href="https://volantpoetry.vercel.app/images/lyrics-favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="https://volantpoetry.vercel.app/images/lyrics-favicon-64.png" />
     <link rel="shortcut icon" href="https://volantpoetry.vercel.app/images/lyrics-favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="https://volantpoetry.vercel.app/images/apple-touch-icon.png" />
+
+    <!-- Social -->
+    <meta property="og:title" content="Volant Lyrics — Lyric Details" />
+    <meta property="og:description" content="View full details of an original lyric on Volant Lyrics. See the full lyric, licensing and songwriter information." />
+    <meta property="og:image" content="https://volantpoetry.vercel.app/images/logokk.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://volantlyrics.vercel.app/details.html" />
+    <meta property="og:site_name" content="Volant Lyrics" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Volant Lyrics — Lyric Details" />
+    <meta name="twitter:description" content="View full details of an original lyric on Volant Lyrics." />
+    <meta name="twitter:image" content="https://volantpoetry.vercel.app/images/logokk.png" />
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -972,7 +986,7 @@
             </div>
             <div class="volant-footer-col">
                 <h4>Platforms</h4>
-                <a href="https://volantpoetry.vercel.app/volant_foundry/">Volant Foundry</a>
+                <a href="https://volantfoundry.vercel.app/">Volant Foundry</a>
                 <a href="https://volantpoetry.vercel.app/">Volant Poetry</a>
                 <a href="https://volantpoetry.vercel.app/store/">Volant Reads</a>
                 <a href="https://volantcodes.vercel.app/">Volant Codes</a>
@@ -1020,6 +1034,23 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function updateMeta(title, description, image) {
+            const set = (sel, val, attr) => {
+                const el = document.querySelector(sel);
+                if (el) el.setAttribute(attr, val);
+            };
+            document.title = title || document.title;
+            set('meta[name="description"]', description, 'content');
+            set('meta[property="og:title"]', title, 'content');
+            set('meta[property="og:description"]', description, 'content');
+            set('meta[name="twitter:title"]', title, 'content');
+            set('meta[name="twitter:description"]', description, 'content');
+            if (image) {
+                set('meta[property="og:image"]', image, 'content');
+                set('meta[name="twitter:image"]', image, 'content');
+            }
         }
 
         function formatPrice(price, currency) {
@@ -1198,6 +1229,12 @@
             const songwriter = (songwriterProfile && (songwriterProfile.username || songwriterProfile.authorName)) || fallbackName;
             const swPhoto = (songwriterProfile && (songwriterProfile.photoURL || songwriterProfile.cachedAvatarURL)) || null;
 
+            updateMeta(
+                String(data.title || 'Untitled') + ' — Volant Lyrics',
+                (String(data.description || data.lyrics || '').slice(0, 150)) + (String(data.description || data.lyrics || '').length > 150 ? '…' : ''),
+                swPhoto || 'https://volantpoetry.vercel.app/images/logokk.png'
+            );
+
             let ghsNote = '';
             if (Number(data.price) > 0 && String(data.priceCurrency || 'GHS').toUpperCase() !== 'GHS') {
                 try {
@@ -1225,6 +1262,7 @@
                         <h1>${escapeHtml(data.title || 'Untitled')}</h1>
                         <div class="detail-meta">
                             <span><i class="fas fa-user"></i> ${escapeHtml(data.artist || 'Anonymous')}</span>
+                            <span><i class="fas fa-align-left"></i> ${((data.lyrics || '').trim().match(/\S+/g) || []).length.toLocaleString()} words</span>
                             <span><i class="fas fa-eye"></i> ${(data.views || 0).toLocaleString()} views</span>
                             <span><i class="fas fa-play"></i> ${(data.plays || 0).toLocaleString()} plays</span>
                             <span><i class="fas fa-cart-arrow-down"></i> ${(data.saleCount || 0).toLocaleString()} purchased</span>
